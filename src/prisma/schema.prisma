@@ -1,0 +1,3753 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource genienou_live {
+  provider = "mysql"
+  url      = env("MYSQL_CONNECTION_STR")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model TABLE_256 {
+  COL_1 String? @map("COL 1") @genienou_live.VarChar(251)
+
+  @@map("TABLE 256")
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model TABLE_257 {
+  COL_1 String? @map("COL 1") @genienou_live.VarChar(251)
+
+  @@map("TABLE 257")
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model Test {
+  query        String @genienou_live.Text
+  result       String @genienou_live.Text
+  user_id      String @genienou_live.Text
+  insert_query String @genienou_live.Text
+
+  @@ignore
+}
+
+model blood_report {
+  id         Int     @id @default(autoincrement())
+  report_id  Int
+  user_id    Int
+  first_name String  @genienou_live.VarChar(50)
+  last_name  String  @genienou_live.VarChar(50)
+  report     String? @genienou_live.VarChar(50)
+}
+
+model blood_report_file {
+  file_id    Int      @id @default(autoincrement())
+  report_id  Int
+  file_name  String   @genienou_live.VarChar(50)
+  time_added DateTime @default(now()) @genienou_live.Timestamp(6)
+}
+
+model call_record_temp {
+  record_id    Int      @id @default(autoincrement())
+  data         String   @genienou_live.LongText
+  record_type  Int
+  date_created DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model clinic_dubai {
+  cd_id     Int    @id @default(autoincrement())
+  cd_name   String @genienou_live.VarChar(100)
+  cd_number BigInt
+  cd_email  String @genienou_live.VarChar(50)
+  status    Int    @genienou_live.TinyInt
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model corporate_group {
+  group_id       Int
+  corporate_name String   @genienou_live.VarChar(300)
+  address        String   @genienou_live.VarChar(1000)
+  status         Int      @genienou_live.TinyInt
+  ts             DateTime @default(now()) @genienou_live.Timestamp(0)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model corporate_users {
+  corporate_id Int
+  user_id      Int
+  group_id     Int
+  ts           DateTime @default(now()) @genienou_live.Timestamp(0)
+  status       Int
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model corporate_users_privacy {
+  id         Int
+  group_id   Int
+  user_id    Int
+  to_user_id Int
+  visible    Boolean
+
+  @@ignore
+}
+
+model email_sent {
+  id       Int    @id @default(autoincrement())
+  email_id String @genienou_live.VarChar(45)
+  name     String @genienou_live.VarChar(100)
+
+  @@index([email_id], map: "email_id")
+}
+
+model end_call_data {
+  id   Int    @id @default(autoincrement())
+  data String @genienou_live.Text
+}
+
+model excel_emails {
+  id    Int    @id @default(autoincrement())
+  email String @genienou_live.VarChar(100)
+}
+
+model feedback_ans {
+  ans_id      Int       @id @default(autoincrement())
+  user_id     Int
+  que_id      Int
+  option_id   Int?
+  answer      String?   @genienou_live.VarChar(3000)
+  created_at  DateTime  @default(now()) @genienou_live.Timestamp(0)
+  modified_at DateTime? @genienou_live.Timestamp(0)
+  is_deleted  Boolean
+}
+
+model feedback_category {
+  feedback_category_id Int       @id @default(autoincrement())
+  feedback_type        String    @genienou_live.VarChar(30)
+  created_at           DateTime  @default(now()) @genienou_live.Timestamp(0)
+  modified_at          DateTime? @genienou_live.Timestamp(0)
+  is_deleted           Boolean
+}
+
+model feedback_option {
+  option_id   Int       @id @default(autoincrement())
+  que_id      Int
+  options     String    @genienou_live.VarChar(300)
+  created_at  DateTime  @default(now()) @genienou_live.Timestamp(0)
+  modified_at DateTime? @genienou_live.Timestamp(0)
+  is_deleted  Boolean   @default(false)
+}
+
+model feedback_que {
+  que_id               Int       @id @default(autoincrement())
+  type                 String    @genienou_live.VarChar(30)
+  question             String    @genienou_live.VarChar(300)
+  feedback_category_id Int
+  ratings              Int
+  created_at           DateTime  @default(now()) @genienou_live.Timestamp(0)
+  modified_at          DateTime? @genienou_live.Timestamp(0)
+  is_deleted           Boolean   @default(false) @map("is deleted")
+}
+
+model na_order_items {
+  order_item_id Int      @id @default(autoincrement())
+  order_number  String   @genienou_live.VarChar(100)
+  item_id       Int
+  item_name     String   @genienou_live.VarChar(250)
+  unit_price    Float
+  tax_percent   Int
+  quantity      Int
+  sub_total     Float
+  created_at    DateTime @genienou_live.DateTime(0)
+  updated_at    DateTime @genienou_live.DateTime(0)
+  delete_flag   Int      @genienou_live.TinyInt
+}
+
+model na_orders {
+  order_id           BigInt                 @id @default(autoincrement())
+  order_number       String                 @genienou_live.VarChar(100)
+  email              String                 @genienou_live.VarChar(100)
+  user_details_id    BigInt
+  user_id            BigInt
+  na_user_id         Int
+  coupon_id          Int
+  subscr_id          Int
+  service_tax        Float                  @default(0.00)
+  shipping_charges   Int                    @default(0)
+  cod_charges        Int
+  grand_total        Float                  @genienou_live.Float
+  currency           String                 @genienou_live.VarChar(50)
+  payment_mode       String                 @genienou_live.VarChar(50)
+  order_status       na_orders_order_status
+  tran_track_id      String                 @genienou_live.VarChar(100)
+  payment_id         String                 @genienou_live.VarChar(100)
+  payment_status     String                 @genienou_live.VarChar(255)
+  hdfc_response      String                 @genienou_live.VarChar(100)
+  hdfc_json_response String                 @genienou_live.Text
+  transaction_id     String                 @genienou_live.VarChar(100)
+  created            DateTime               @genienou_live.DateTime(0)
+  modified           DateTime               @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  read               na_orders_read         @default(no)
+  ANGULAR_TOKEN      String                 @genienou_live.Text
+}
+
+model nourishable_orders {
+  order_id           BigInt                          @id @default(autoincrement())
+  order_number       String                          @genienou_live.VarChar(100)
+  first_name         String                          @genienou_live.VarChar(150)
+  last_name          String                          @genienou_live.VarChar(150)
+  gender             String                          @genienou_live.VarChar(150)
+  email              String                          @genienou_live.VarChar(100)
+  address_1          String                          @genienou_live.LongText
+  address_2          String                          @genienou_live.LongText
+  landmark           String                          @genienou_live.VarChar(255)
+  city               String                          @genienou_live.VarChar(255)
+  state              String                          @genienou_live.VarChar(255)
+  pincode            String                          @genienou_live.VarChar(10)
+  country            String                          @genienou_live.VarChar(255)
+  dial_code          Int
+  mobile             String                          @genienou_live.VarChar(10)
+  user_id            BigInt
+  na_user_id         Int
+  coupon_id          Int
+  item_id            BigInt
+  item_name          String                          @genienou_live.VarChar(255)
+  unit_price         Int
+  quantity           Int
+  sub_total          Int
+  service_tax        Float                           @default(0) @genienou_live.Float
+  cod_charges        Int
+  shipping_charges   Int                             @default(0)
+  grand_total        Float                           @genienou_live.Float
+  currency           String                          @genienou_live.VarChar(50)
+  payment_mode       String                          @genienou_live.VarChar(50)
+  order_status       nourishable_orders_order_status
+  tran_track_id      String                          @genienou_live.VarChar(100)
+  payment_id         String                          @genienou_live.VarChar(100)
+  payment_status     String                          @genienou_live.VarChar(255)
+  hdfc_response      String                          @genienou_live.VarChar(100)
+  hdfc_json_response String                          @genienou_live.Text
+  transaction_id     String                          @genienou_live.VarChar(100)
+  created            DateTime                        @genienou_live.DateTime(0)
+  modified           DateTime                        @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  read               nourishable_orders_read         @default(no)
+}
+
+model np_achievers {
+  achiever_id       BigInt   @id @default(autoincrement())
+  name              String   @genienou_live.VarChar(100)
+  location          String   @genienou_live.VarChar(100)
+  age               Int
+  gender            String   @genienou_live.VarChar(255)
+  occupation        String   @genienou_live.VarChar(100)
+  achievement       Boolean  @genienou_live.Bit(1)
+  achievement_title String   @genienou_live.VarChar(250)
+  short_desc        String   @genienou_live.VarChar(255)
+  testimony         String   @genienou_live.Text
+  avatar            String   @genienou_live.VarChar(255)
+  status            Boolean  @default(false)
+  created           DateTime @genienou_live.DateTime(0)
+}
+
+model np_activities {
+  activities_id       BigInt  @id @default(autoincrement())
+  activity_name       String  @genienou_live.VarChar(200)
+  activity_type_const Int
+  is_active           Boolean @default(false)
+}
+
+model np_activity_diary {
+  activity_id     BigInt   @id @default(autoincrement())
+  user_id         BigInt
+  type            Int      @default(1) @genienou_live.TinyInt
+  act_type        Int
+  level           String   @genienou_live.VarChar(100)
+  activity_type   String   @default("Walking") @genienou_live.VarChar(200)
+  duration        Int
+  distance        Float?   @genienou_live.Float
+  calories_burned Int
+  activity_time   DateTime @genienou_live.Time(0)
+  start_time      String   @genienou_live.VarChar(50)
+  date            DateTime @genienou_live.Date
+  updated_at      DateTime @genienou_live.Date
+  int_delete_flag Boolean  @default(false)
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_admin_activity_log {
+  id               Int      @id @default(autoincrement())
+  admin_id         Int
+  page_title       String   @genienou_live.VarChar(300)
+  navigation_url   String   @genienou_live.VarChar(300)
+  page_active_time String   @genienou_live.VarChar(200)
+  created_date     DateTime @genienou_live.DateTime(0)
+  updated_date     DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag  Boolean  @default(false)
+}
+
+model np_admin_user {
+  id                 Int    @id @default(autoincrement()) @genienou_live.UnsignedInt
+  username           String @genienou_live.VarChar(255)
+  password           String @genienou_live.VarChar(255)
+  email              String @genienou_live.VarChar(255)
+  mobile             BigInt
+  service_worker_key String @genienou_live.Text
+  is_admin           Int    @genienou_live.TinyInt
+  is_active          Int    @genienou_live.TinyInt
+  admin_type         Int
+  phone_extn         Int?
+}
+
+model np_admin_user_call_list {
+  naucl_id            Int    @id @default(autoincrement())
+  naucl_admin_id      Int
+  is_isd              Int    @genienou_live.TinyInt
+  naucl_agent_name    String @genienou_live.VarChar(50)
+  naucl_campaign_list String @genienou_live.VarChar(100)
+  naucl_call_list     String @genienou_live.VarChar(100)
+}
+
+model np_admin_user_log {
+  log_id      Int      @id @default(autoincrement())
+  module_name String   @genienou_live.VarChar(128)
+  admin_name  String   @genienou_live.VarChar(15)
+  admin_id    Int
+  user_id     BigInt
+  detail_logs String   @genienou_live.Text
+  change_logs String   @genienou_live.Text
+  created     DateTime @genienou_live.DateTime(0)
+
+  @@index([admin_id], map: "admin_id")
+  @@index([user_id], map: "user_id")
+}
+
+model np_admin_user_login_history {
+  id           Int      @id @default(autoincrement())
+  admin_id     Int
+  ip           String   @genienou_live.VarChar(20)
+  status       Int      @genienou_live.TinyInt
+  browser      String   @genienou_live.TinyText
+  date         DateTime @genienou_live.Date
+  created_date DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_afterlogindashboard_ui_positions {
+  ul_id             BigInt   @id @default(autoincrement())
+  user_id           BigInt
+  list_id           Int
+  position          Int      @genienou_live.TinyInt
+  messages          String   @genienou_live.VarChar(255)
+  nourish_network   String   @genienou_live.VarChar(255)
+  vitamins          String   @genienou_live.VarChar(255)
+  blood_report      String   @genienou_live.VarChar(255)
+  nourish_selfie    String   @genienou_live.VarChar(255)
+  weight_loss       String   @genienou_live.VarChar(255)
+  nourish_achievers String   @genienou_live.VarChar(255)
+  water_intake      String   @genienou_live.VarChar(255)
+  start_up_kit      String   @genienou_live.VarChar(255)
+  display_renew     String   @genienou_live.VarChar(255)
+  ipad              String   @genienou_live.VarChar(255)
+  food_diary        String   @genienou_live.VarChar(255)
+  weight_check      String   @genienou_live.VarChar(255)
+  activity_diary    String   @genienou_live.VarChar(255)
+  nourish_speak     String   @genienou_live.VarChar(255)
+  meal_plan         String   @genienou_live.VarChar(255)
+  renew             String   @genienou_live.VarChar(255)
+  current_weight    String   @genienou_live.VarChar(255)
+  created_at        DateTime @genienou_live.DateTime(0)
+  updated_at        DateTime @genienou_live.DateTime(0)
+}
+
+model np_alarm {
+  na_id        BigInt   @id @default(autoincrement())
+  user_id      BigInt
+  alarm_date   DateTime @genienou_live.Date
+  alarm_time   DateTime @genienou_live.Time(0)
+  alarm_status Int      @genienou_live.TinyInt
+  alarm_type   String   @genienou_live.VarChar(255)
+  sync_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_all_invoices {
+  nai_id              BigInt                        @id @default(autoincrement())
+  nai_user_id         BigInt
+  nai_cas_id          Float
+  nai_invoice_no      String                        @genienou_live.VarChar(20)
+  nai_reference       np_all_invoices_nai_reference
+  nai_currency        String                        @genienou_live.VarChar(5)
+  nai_total_amount    Float
+  nai_short_desc      String                        @genienou_live.Text
+  nai_payment_mode    String                        @genienou_live.VarChar(20)
+  nai_payment_gateway String                        @genienou_live.VarChar(20)
+  nai_created         DateTime                      @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_app_login_history {
+  id           Int      @id @default(autoincrement())
+  user_id      BigInt
+  ip           String   @genienou_live.VarChar(20)
+  browser      String   @genienou_live.Text
+  created_date DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_app_sessions {
+  session_id    BigInt @id @default(autoincrement())
+  session_data  String @default("0") @genienou_live.VarChar(40)
+  user_id       BigInt @genienou_live.UnsignedBigInt
+  device_id     String @genienou_live.VarChar(120)
+  last_activity Int    @default(0) @genienou_live.UnsignedInt
+
+  @@index([last_activity], map: "last_activity_idx")
+}
+
+model np_appointment_slot_log {
+  id         Int      @id @default(autoincrement())
+  nas_id     BigInt
+  user_id    Int
+  status     Int
+  created_at DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_appointment_slots {
+  nas_id             BigInt   @id @default(autoincrement())
+  user_id            Int
+  subscription_id    Int
+  appointment_date   DateTime @genienou_live.Date
+  start_time         DateTime @default(dbgenerated("'00:00:00'")) @genienou_live.Time(0)
+  end_time           DateTime @default(dbgenerated("'00:00:00'")) @genienou_live.Time(0)
+  appointment_type   String?  @genienou_live.VarChar(100)
+  appointment_status Int
+  rescheduled        Int
+  is_cancelled       Int
+  created_by         Int
+  updated_by         Int
+  created_at         DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  updated_at         DateTime @default(now()) @genienou_live.Timestamp(0)
+  delete_flag        Boolean  @default(false)
+}
+
+model np_appointment_slots_change_log {
+  nra_id          BigInt   @id @default(autoincrement())
+  nas_id          BigInt
+  user_id         Int
+  subscription_id Int
+  change_purpose  String   @genienou_live.VarChar(50)
+  updated_by      Int
+  updated_at      DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_apps_sessions {
+  session_id    BigInt   @id @default(autoincrement())
+  session_key   String   @default("0") @genienou_live.VarChar(40)
+  user_id       BigInt   @genienou_live.UnsignedBigInt
+  device_id     String   @genienou_live.VarChar(200)
+  last_activity Int      @default(0) @genienou_live.UnsignedInt
+  created       DateTime @default(now()) @genienou_live.Timestamp(0)
+  token         String   @genienou_live.Text
+  platform      String   @genienou_live.VarChar(100)
+  login_flag    Boolean  @default(false)
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_autocomplete {
+  id            Int      @id @default(autoincrement())
+  name          String   @genienou_live.VarChar(200)
+  type          String   @genienou_live.VarChar(20)
+  values        String   @genienou_live.Text
+  date_created  DateTime @genienou_live.DateTime(0)
+  date_modified DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_bank_holidays {
+  nbh_id         BigInt   @id @default(autoincrement())
+  nbh_name       String   @genienou_live.VarChar(128)
+  nbh_date       DateTime @genienou_live.Date
+  nbh_created_at DateTime @genienou_live.Date
+  nbh_updated_at DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_blood_report_deleted {
+  file_id     BigInt   @id @default(autoincrement())
+  report_id   BigInt
+  filename    String   @genienou_live.VarChar(255)
+  dateadded   DateTime @default(now()) @genienou_live.Timestamp(0)
+  datedeleted DateTime @genienou_live.DateTime(0)
+}
+
+model np_blood_report_files {
+  file_id         BigInt   @id @default(autoincrement())
+  report_id       BigInt
+  filename        String   @genienou_live.VarChar(255)
+  dateadded       DateTime @default(now()) @genienou_live.Timestamp(0)
+  datedeleted     DateTime @genienou_live.DateTime(0)
+  int_delete_flag Boolean
+}
+
+model np_blood_reports {
+  report_id                 BigInt   @id @default(autoincrement())
+  user_id                   BigInt
+  data_type                 String?  @genienou_live.VarChar(1)
+  blood_sugar_fpp           String?  @genienou_live.VarChar(50)
+  serum_insulin_fpp         String?  @genienou_live.VarChar(50)
+  blood_sugar_pp            String?  @genienou_live.VarChar(50)
+  serum_insulin_pp          String?  @genienou_live.VarChar(50)
+  glycosylated_haemoglobin  String?  @genienou_live.VarChar(50)
+  serum_proteins            String?  @genienou_live.VarChar(50)
+  serum_creatinine          String?  @genienou_live.VarChar(50)
+  serum_uric_acid           String?  @genienou_live.VarChar(50)
+  sgpt                      String?  @genienou_live.VarChar(50)
+  free_t3                   String?  @genienou_live.VarChar(50)
+  free_t4                   String?  @genienou_live.VarChar(50)
+  tsh                       String?  @genienou_live.VarChar(50)
+  anti_tpo                  String   @genienou_live.VarChar(50)
+  anti_tg                   String   @genienou_live.VarChar(50)
+  serum_calcium             String?  @genienou_live.VarChar(50)
+  serum_vit_d3              String?  @genienou_live.VarChar(50)
+  serum_b12                 String?  @genienou_live.VarChar(50)
+  lp_cholesterol            String?  @genienou_live.VarChar(50)
+  lp_triglycerides          String?  @genienou_live.VarChar(45)
+  lp_cholesterol_hdl        String?  @genienou_live.VarChar(45)
+  lp_cholesterol_ldl        String?  @genienou_live.VarChar(45)
+  lp_hdl_ldl_ratio          String?  @genienou_live.VarChar(45)
+  ur_colour                 String?  @genienou_live.VarChar(45)
+  ur_appearance             String?  @genienou_live.VarChar(45)
+  ur_ph                     String?  @genienou_live.VarChar(45)
+  ur_specific_gravity       String?  @genienou_live.VarChar(45)
+  ur_glucose                String?  @genienou_live.VarChar(45)
+  ur_proteins               String?  @genienou_live.VarChar(45)
+  ur_ketones                String?  @genienou_live.VarChar(45)
+  ur_blood                  String?  @genienou_live.VarChar(45)
+  ur_bilirubin_urobilinogen String?  @genienou_live.VarChar(45)
+  ur_nitrite                String?  @genienou_live.VarChar(45)
+  ur_wbc                    String?  @genienou_live.VarChar(45)
+  ur_epithelial_cells       String?  @genienou_live.VarChar(45)
+  ur_casts                  String?  @genienou_live.VarChar(45)
+  ur_crystals               String?  @genienou_live.VarChar(45)
+  ur_bacteria               String?  @genienou_live.VarChar(45)
+  ur_pus_cells              String   @genienou_live.VarChar(50)
+  bc_rbc_count              String?  @genienou_live.VarChar(45)
+  bc_haemoglobin            String?  @genienou_live.VarChar(45)
+  bc_hematocrit             String?  @genienou_live.VarChar(45)
+  bc_mcv                    String?  @genienou_live.VarChar(45)
+  bc_mch                    String?  @genienou_live.VarChar(45)
+  bc_mchc                   String?  @genienou_live.VarChar(45)
+  bc_rdw                    String?  @genienou_live.VarChar(45)
+  bc_platelet_count         String?  @genienou_live.VarChar(45)
+  bc_mvp                    String?  @genienou_live.VarChar(45)
+  bc_wbc_count              String?  @genienou_live.VarChar(45)
+  bc_wbc_differential_count String?  @genienou_live.VarChar(45)
+  bc_neutrophils            String?  @genienou_live.VarChar(45)
+  bc_eosinophils            String?  @genienou_live.VarChar(45)
+  bc_lymphocytes            String?  @genienou_live.VarChar(45)
+  bc_monocytes              String?  @genienou_live.VarChar(45)
+  bc_basophils              String?  @genienou_live.VarChar(45)
+  report_date               DateTime @genienou_live.Date
+  created                   DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.DateTime(0)
+  modified                  DateTime @genienou_live.DateTime(0)
+  status                    Boolean  @default(false)
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_books {
+  book_id       Int     @id @default(autoincrement())
+  title         String  @genienou_live.VarChar(255)
+  type          String  @genienou_live.VarChar(200)
+  author        String  @genienou_live.VarChar(150)
+  publisher     String  @genienou_live.VarChar(255)
+  book_category Int     @default(1)
+  price_rupee   Int
+  price_dollar  Int
+  service_tax   Int
+  img_name      String  @genienou_live.VarChar(255)
+  prebook_link  String  @genienou_live.VarChar(100)
+  status        Boolean
+}
+
+model np_break_options {
+  id              Int      @id @default(autoincrement())
+  name            String   @genienou_live.VarChar(200)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_break_time_log {
+  id              Int      @id @default(autoincrement())
+  admin_id        Int
+  break_type      Int
+  break_time      String   @genienou_live.VarChar(200)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_call_info_details {
+  call_info_id    Int      @id @default(autoincrement())
+  call_id         Int
+  user_id         Int
+  username        String   @genienou_live.VarChar(100)
+  phone_number    Int
+  call_time       DateTime @genienou_live.Time(0)
+  admin_id        Int
+  extension       Int
+  call_purpose    String   @genienou_live.VarChar(100)
+  call_outcome    String   @genienou_live.VarChar(100)
+  additional_info String   @genienou_live.TinyText
+  created_at      DateTime @genienou_live.DateTime(0)
+}
+
+model np_call_now {
+  ncn_id         BigInt   @id @default(autoincrement())
+  user_id        BigInt
+  ncn_date       DateTime @genienou_live.Date
+  ncn_message    String   @genienou_live.Text
+  ncn_time_slot  String   @genienou_live.VarChar(100)
+  ncn_created_at DateTime @genienou_live.DateTime(0)
+  ncn_updated_at DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_calls {
+  nc_id            BigInt          @id @default(autoincrement())
+  number           String          @genienou_live.VarChar(50)
+  line             String          @genienou_live.VarChar(10)
+  source           np_calls_source
+  call_time        DateTime        @genienou_live.DateTime(0)
+  duration         DateTime        @genienou_live.Time(0)
+  rating           Float           @default(-1)
+  file_name        String          @genienou_live.VarChar(100)
+  emp_name         String          @genienou_live.VarChar(20)
+  moderated_by     Int             @genienou_live.TinyInt
+  admin_moderation Int             @genienou_live.TinyInt
+  short_desc       String          @genienou_live.Text
+  moderate_desc    String          @genienou_live.Text
+  created          DateTime        @genienou_live.DateTime(0)
+}
+
+model np_campaign_user_links_sent_log {
+  id              Float    @id
+  user_id         Float
+  token           String   @genienou_live.VarChar(250)
+  is_link_used    Boolean  @default(false)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_captcha {
+  captcha_id   BigInt @id @default(autoincrement()) @genienou_live.UnsignedBigInt
+  captcha_time Int    @genienou_live.UnsignedInt
+  ip_address   String @default("0") @genienou_live.VarChar(16)
+  word         String @genienou_live.VarChar(20)
+
+  @@index([word], map: "word")
+}
+
+model np_cemails {
+  nc_id      Int      @id @default(autoincrement())
+  ticket_id  BigInt
+  from_email String   @genienou_live.VarChar(50)
+  from_name  String   @genienou_live.VarChar(50)
+  to_email   String   @genienou_live.VarChar(100)
+  subject    String   @genienou_live.Text
+  body       String   @genienou_live.Text
+  created    DateTime @genienou_live.DateTime(0)
+  modified   DateTime @genienou_live.DateTime(0)
+}
+
+model np_challenge_daily_point {
+  id                     Int      @id @default(autoincrement())
+  user_id                Int
+  date                   DateTime @genienou_live.Date
+  veg_juice              Float    @genienou_live.Float
+  fruit_point            Float    @genienou_live.Float
+  egg_whites_point       Float    @genienou_live.Float
+  water_point            Float    @genienou_live.Float
+  steps_point            Float    @genienou_live.Float
+  activity_point         Float    @genienou_live.Float
+  track_meal_point       Float    @genienou_live.Float
+  no_instant_alert_point Float    @genienou_live.Float
+  calories_finish_point  Float    @genienou_live.Float
+  synced                 Float    @default(0) @genienou_live.Float
+  created_date           DateTime @genienou_live.DateTime(0)
+  updated_date           DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_challenge_global {
+  global_id           Int      @id @default(autoincrement())
+  title               String   @genienou_live.VarChar(100)
+  description         String   @genienou_live.VarChar(1000)
+  workout_type        Int      @genienou_live.TinyInt
+  activity_type       Int      @genienou_live.TinyInt
+  activity_goal       Int      @genienou_live.TinyInt
+  activity_goal_value Float
+  number_of_sets      Int      @genienou_live.TinyInt
+  number_of_days      Int      @genienou_live.TinyInt
+  points              Int
+  start_date          DateTime @genienou_live.Date
+  created_date        DateTime @genienou_live.DateTime(0)
+  updated_date        DateTime @default(now()) @genienou_live.Timestamp(0)
+  status              Int      @genienou_live.TinyInt
+}
+
+model np_challenge_global_point {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  global_id    Int
+  start_date   DateTime @genienou_live.Date
+  earn_points  Float    @genienou_live.Float
+  synced       Int      @default(0)
+  created_date DateTime @genienou_live.DateTime(0)
+  updated_date DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_challenge_master {
+  id              Int      @id @default(autoincrement())
+  user_id         Int
+  date            DateTime @genienou_live.Date
+  daily_point     Float
+  weekly_point    Float
+  challenge_point Float
+  total_point     Float
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_challenge_weekly_point {
+  id                         Int      @id @default(autoincrement())
+  user_id                    Int
+  start_date                 DateTime @genienou_live.Date
+  end_date                   DateTime @genienou_live.Date
+  steps_point                Float    @genienou_live.Float
+  activity_point             Float    @genienou_live.Float
+  custom_plan_point          Float    @genienou_live.Float
+  live_tracking_point        Float    @genienou_live.Float
+  eat_two_hourly_point       Float    @genienou_live.Float
+  balance_lunch_dinner_point Float    @genienou_live.Float
+  synced                     Boolean  @default(false)
+  created_date               DateTime @genienou_live.DateTime(0)
+  updated_date               DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_cities {
+  id         Int      @id @default(autoincrement())
+  name       String   @genienou_live.VarChar(128)
+  state_id   Int
+  created_by Int
+  created    DateTime @genienou_live.DateTime(0)
+  updated    DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_clients {
+  nc_id       BigInt @id @default(autoincrement())
+  nc_email    String @genienou_live.VarChar(200)
+  client_type String @default("clay") @genienou_live.VarChar(20)
+  status      Int
+}
+
+model np_clinic {
+  clinic_id  Int      @id @default(autoincrement())
+  name       String   @genienou_live.VarChar(50)
+  email      String   @genienou_live.VarChar(50)
+  gender     String   @genienou_live.VarChar(10)
+  age        Float
+  diet       String   @genienou_live.VarChar(10)
+  roti_size  String   @default("small") @genienou_live.VarChar(10)
+  dial_code  Int
+  mobile     BigInt
+  country    String   @genienou_live.VarChar(40)
+  state      String   @genienou_live.VarChar(50)
+  city       String   @genienou_live.VarChar(50)
+  address_1  String   @genienou_live.VarChar(200)
+  address_2  String   @genienou_live.VarChar(200)
+  tel_home   String   @genienou_live.VarChar(30)
+  tel_office String   @genienou_live.VarChar(30)
+  is_dc      Int      @genienou_live.TinyInt
+  dc_comment String   @genienou_live.TinyText
+  registered DateTime @genienou_live.DateTime(0)
+  short_desc String   @genienou_live.Text
+}
+
+model np_clinic_reports {
+  manual_id                 BigInt   @id @default(autoincrement())
+  user_id                   BigInt
+  validate_status           Int      @genienou_live.TinyInt
+  validate_final_status     Int      @genienou_live.TinyInt
+  data_type                 String?  @genienou_live.VarChar(1)
+  blood_sugar_fpp           String?  @genienou_live.VarChar(50)
+  serum_insulin_fpp         String?  @genienou_live.VarChar(50)
+  blood_sugar_pp            String   @genienou_live.VarChar(50)
+  serum_insulin_pp          String   @genienou_live.VarChar(50)
+  glycosylated_haemoglobin  String?  @genienou_live.VarChar(50)
+  serum_proteins            String?  @genienou_live.VarChar(50)
+  serum_creatinine          String?  @genienou_live.VarChar(50)
+  serum_uric_acid           String?  @genienou_live.VarChar(50)
+  sgpt                      String?  @genienou_live.VarChar(50)
+  free_t3                   String?  @genienou_live.VarChar(50)
+  free_t4                   String?  @genienou_live.VarChar(50)
+  tsh                       String?  @genienou_live.VarChar(50)
+  serum_calcium             String?  @genienou_live.VarChar(50)
+  serum_vit_d3              String   @genienou_live.VarChar(50)
+  serum_b12                 String?  @genienou_live.VarChar(50)
+  lp_cholesterol            String?  @genienou_live.VarChar(50)
+  lp_triglycerides          String?  @genienou_live.VarChar(45)
+  lp_cholesterol_hdl        String?  @genienou_live.VarChar(45)
+  lp_cholesterol_ldl        String?  @genienou_live.VarChar(45)
+  lp_hdl_ldl_ratio          String?  @genienou_live.VarChar(45)
+  ur_colour                 String?  @genienou_live.VarChar(45)
+  ur_appearance             String?  @genienou_live.VarChar(45)
+  ur_ph                     String?  @genienou_live.VarChar(45)
+  ur_specific_gravity       String?  @genienou_live.VarChar(45)
+  ur_glucose                String?  @genienou_live.VarChar(45)
+  ur_proteins               String?  @genienou_live.VarChar(45)
+  ur_ketones                String?  @genienou_live.VarChar(45)
+  ur_blood                  String?  @genienou_live.VarChar(45)
+  ur_bilirubin_urobilinogen String?  @genienou_live.VarChar(45)
+  ur_nitrite                String?  @genienou_live.VarChar(45)
+  ur_rbc                    String   @genienou_live.VarChar(45)
+  ur_pus                    String?  @genienou_live.VarChar(45)
+  ur_epithelial_cells       String?  @genienou_live.VarChar(45)
+  ur_casts                  String?  @genienou_live.VarChar(45)
+  ur_crystals               String?  @genienou_live.VarChar(45)
+  ur_bacteria               String?  @genienou_live.VarChar(45)
+  bc_rbc_count              String?  @genienou_live.VarChar(45)
+  bc_haemoglobin            String?  @genienou_live.VarChar(45)
+  bc_hematocrit             String?  @genienou_live.VarChar(45)
+  bc_mcv                    String?  @genienou_live.VarChar(45)
+  bc_mch                    String?  @genienou_live.VarChar(45)
+  bc_mchc                   String?  @genienou_live.VarChar(45)
+  bc_rdw                    String?  @genienou_live.VarChar(45)
+  bc_platelet_count         String?  @genienou_live.VarChar(45)
+  bc_mvp                    String?  @genienou_live.VarChar(45)
+  bc_wbc_count              String?  @genienou_live.VarChar(45)
+  bc_wbc_differential_count String?  @genienou_live.VarChar(45)
+  bc_neutrophils            String?  @genienou_live.VarChar(45)
+  bc_eosinophils            String?  @genienou_live.VarChar(45)
+  bc_lymphocytes            String?  @genienou_live.VarChar(45)
+  bc_monocytes              String?  @genienou_live.VarChar(45)
+  bc_basophils              String?  @genienou_live.VarChar(45)
+  status                    Int      @genienou_live.TinyInt
+  report_date               String   @genienou_live.VarChar(40)
+  validate_json             String   @genienou_live.Text
+  confirm_json              String   @genienou_live.Text
+  created                   DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.DateTime(0)
+  modified                  DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  message                   String   @genienou_live.MediumText
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_clinic_videos {
+  ncv_id     BigInt                      @id @default(autoincrement())
+  video_type np_clinic_videos_video_type
+  video_key  String                      @genienou_live.VarChar(60)
+}
+
+model np_comb_food_web {
+  ncfw_id         Float    @id
+  nmfcw_id        Float
+  nefcw_id        Float
+  nepfcw_id       Float
+  nepmfcw_id      Float
+  food_name       String   @genienou_live.VarChar(128)
+  qty             Float
+  priority        Int
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_constants {
+  c_id    Int    @id @default(autoincrement())
+  c_name  String @genienou_live.VarChar(40)
+  c_value String @genienou_live.VarChar(10)
+  c_para  String @genienou_live.Text
+  c_para1 String @genienou_live.Text
+  c_para2 String @genienou_live.Text
+}
+
+model np_contact {
+  id           BigInt   @id @default(autoincrement())
+  name         String   @genienou_live.VarChar(100)
+  email        String   @genienou_live.VarChar(100)
+  mobile       String   @genienou_live.VarChar(20)
+  comment      String   @genienou_live.LongText
+  created_date DateTime @genienou_live.DateTime(0)
+  read         String   @default("no") @genienou_live.VarChar(4)
+}
+
+model np_corporate_company_details {
+  ncc_id                 Int      @id @default(autoincrement())
+  corporate_company_name String   @genienou_live.VarChar(255)
+  company_slug           String   @genienou_live.VarChar(255)
+  discount_percent       Float    @genienou_live.Float
+  created_date           DateTime @genienou_live.DateTime(0)
+  updated_date           DateTime @genienou_live.DateTime(0)
+}
+
+model np_corporate_genie_log {
+  id               Int      @id @default(autoincrement())
+  user_id          Int
+  ncc_id           Int
+  discount_applied Float    @genienou_live.Float
+  created_date     DateTime @genienou_live.DateTime(0)
+  updated_date     DateTime @genienou_live.DateTime(0)
+}
+
+model np_countries {
+  id                 Int      @id @default(autoincrement())
+  name               String   @genienou_live.VarChar(128)
+  country_initiative String   @genienou_live.VarChar(56)
+  dial_code          Int
+  created_by         Int
+  created            DateTime @genienou_live.DateTime(0)
+  updated            DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_coupons {
+  nc_id                 Int      @id @default(autoincrement())
+  full_name             String   @genienou_live.VarChar(60)
+  code                  String   @genienou_live.VarChar(20)
+  discount              Float
+  user_id               Int
+  is_coupon_used        Int      @genienou_live.TinyInt
+  for_package_id        Int
+  min_usage             Int
+  per_user_usage        Int
+  min_duration          Int      @genienou_live.TinyInt
+  valid_till_date       DateTime @genienou_live.Date
+  for_subscription_type Boolean
+  date_used             DateTime @genienou_live.DateTime(0)
+  date_created          DateTime @genienou_live.DateTime(0)
+}
+
+model np_coupons_190325 {
+  nc_id           Int      @id @default(autoincrement())
+  full_name       String   @genienou_live.VarChar(60)
+  code            String   @genienou_live.VarChar(20)
+  discount        Float
+  user_id         BigInt
+  is_coupon_used  Int      @genienou_live.TinyInt
+  for_package_id  Int
+  min_usage       Int
+  per_user_usage  Int
+  offer           Boolean  @default(true)
+  min_duration    Int      @genienou_live.TinyInt
+  valid_till_date DateTime @genienou_live.Date
+  date_used       DateTime @genienou_live.DateTime(0)
+  date_created    DateTime @genienou_live.DateTime(0)
+}
+
+model np_coupons_logs {
+  ncl_id       Int      @id @default(autoincrement())
+  nc_id        Int
+  code         String   @genienou_live.VarChar(20)
+  user_id      BigInt
+  is_used      Boolean  @default(false)
+  date_created DateTime @genienou_live.DateTime(0)
+}
+
+model np_cust_call_type {
+  id           Int    @id @default(autoincrement())
+  name         String @genienou_live.VarChar(500)
+  script       String @genienou_live.Text
+  cap_count    Int
+  avg_call_min Int
+  priority     Int
+}
+
+model np_cust_task {
+  id               BigInt   @id @default(autoincrement())
+  script_id        Int
+  cust_id          Int
+  user_id          Int
+  user_feedback_id BigInt
+  call_type_id     Int      @genienou_live.TinyInt
+  task_type        Int      @genienou_live.TinyInt
+  task_status      Int      @genienou_live.TinyInt
+  date             DateTime @genienou_live.Date
+  event_date       DateTime @genienou_live.Date
+  followup_date    DateTime @genienou_live.Date
+  call_duration    DateTime @genienou_live.Time(0)
+  created_date     DateTime @default(now()) @genienou_live.Timestamp(0)
+  modified_date    DateTime @genienou_live.DateTime(0)
+}
+
+model np_custom_amount_subscription {
+  id                    Float                                   @id
+  user_id               Float
+  currency              String                                  @genienou_live.VarChar(10)
+  reference             np_custom_amount_subscription_reference @default(website)
+  payment_mode          String                                  @genienou_live.VarChar(50)
+  payment_gateway       String                                  @genienou_live.VarChar(50)
+  description           String                                  @genienou_live.Text
+  tax                   Float                                   @genienou_live.Float
+  total_amount          Float
+  payment_status        String                                  @genienou_live.VarChar(256)
+  tran_track_id         String                                  @genienou_live.VarChar(100)
+  payment_id            String                                  @genienou_live.VarChar(100)
+  transaction_id        String                                  @genienou_live.VarChar(100)
+  hdfc_response         String                                  @genienou_live.VarChar(256)
+  hdfc_json_response    String                                  @genienou_live.Text
+  pg_initiation_details String                                  @genienou_live.VarChar(256)
+  is_transfered         Int                                     @default(0) @genienou_live.TinyInt
+  transfered_by         Int?
+  invoice_no            String                                  @genienou_live.VarChar(50)
+  created_date          DateTime                                @genienou_live.DateTime(0)
+  updated_date          DateTime                                @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_dashboard_serach_list_item {
+  list_id               Int      @id @default(autoincrement())
+  image                 String?  @genienou_live.VarChar(255)
+  title                 String?  @genienou_live.VarChar(255)
+  buttonName            String?  @genienou_live.VarChar(255)
+  buttonColor           String   @genienou_live.VarChar(255)
+  navigateToUrl         String   @genienou_live.VarChar(255)
+  border                String   @genienou_live.VarChar(255)
+  size                  String   @genienou_live.VarChar(255)
+  listName              String   @genienou_live.VarChar(255)
+  data                  String   @genienou_live.VarChar(255)
+  dynamicDataName       String?  @genienou_live.VarChar(255)
+  created_date          DateTime @genienou_live.DateTime(0)
+  updated_date          DateTime @genienou_live.DateTime(0)
+  int_delete_flag       Boolean  @default(false)
+  position_on_dashboard Int
+}
+
+model np_debug_table {
+  id   Int    @id @default(autoincrement())
+  data String @genienou_live.Text
+}
+
+model np_deleted_subscriptions {
+  nds_id            Int      @id @default(autoincrement())
+  subscription_id   Int
+  subscription_data String   @genienou_live.LongText
+  created_date      DateTime @genienou_live.DateTime(0)
+  modified_date     DateTime @genienou_live.DateTime(0)
+}
+
+model np_diet_data {
+  dd_id      Int      @id @default(autoincrement())
+  dd_dhid    Int
+  paragraph  String   @genienou_live.Text
+  row_id     Int
+  column_id  Int
+  sort_by    Int
+  created_at DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_diet_heading {
+  dh_id      Int      @id @default(autoincrement())
+  dh_name    String   @genienou_live.VarChar(100)
+  created_at DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_diet_master {
+  diet_id  Int    @id @default(autoincrement())
+  name     String @genienou_live.VarChar(200)
+  unit     String @genienou_live.VarChar(200)
+  editable Int    @default(1)
+  swap_id  Int    @default(0)
+  gram     Float  @default(1)
+  kcal     Float
+  protien  Float
+  FAT      Float
+  CHO      Float
+}
+
+model np_draft_messages {
+  draft_msg_id BigInt                  @id @default(autoincrement())
+  type         np_draft_messages_type? @default(MAIL)
+  draft_msg    String?                 @genienou_live.Text
+  created_at   DateTime                @default(now()) @genienou_live.Timestamp(0)
+  updated_at   DateTime                @default(now()) @genienou_live.Timestamp(0)
+  deleted_flag Boolean?                @default(false)
+}
+
+model np_dummyuser {
+  Id       Int     @id @default(autoincrement())
+  Email    String? @genienou_live.VarChar(45)
+  Password String? @genienou_live.VarChar(50)
+}
+
+model np_eating_in_master {
+  nei_id             Int      @id @default(autoincrement())
+  recipe_name        String   @genienou_live.VarChar(512)
+  recipe_description String   @genienou_live.Text
+  date               DateTime @genienou_live.Date
+  created_date       DateTime @genienou_live.DateTime(0)
+  updated_date       DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag    Int      @default(0)
+}
+
+model np_eating_in_recipe_imgs {
+  nei_img_id      Int      @id @default(autoincrement())
+  nei_id          Int
+  img_path        String   @genienou_live.VarChar(512)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_eating_patterns {
+  nri_id       Int    @id @default(autoincrement())
+  text_item    String @genienou_live.Text
+  replace_item String @genienou_live.Text
+  conditions   Int    @default(1) @genienou_live.TinyInt
+  is_deleted   Int    @genienou_live.TinyInt
+}
+
+model np_email_templates {
+  id               Int      @id @default(autoincrement())
+  mail_subject     String   @genienou_live.VarChar(256)
+  mail_body        String   @genienou_live.Text
+  mail_body_base64 String   @genienou_live.Text
+  vars             String   @genienou_live.VarChar(256)
+  created_date     DateTime @genienou_live.DateTime(0)
+  updated_date     DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag  Boolean  @default(false)
+}
+
+model np_emails {
+  ne_id      Int      @id @default(autoincrement())
+  ticket_id  BigInt
+  from_email String   @genienou_live.VarChar(50)
+  from_name  String   @genienou_live.VarChar(50)
+  to_email   String   @genienou_live.VarChar(100)
+  subject    String   @genienou_live.Text
+  body       String   @genienou_live.Text
+  created    DateTime @genienou_live.DateTime(0)
+  modified   DateTime @genienou_live.DateTime(0)
+}
+
+model np_enrolnment {
+  id          Int      @id @default(autoincrement())
+  name        String   @genienou_live.VarChar(128)
+  gender_key  Int      @genienou_live.TinyInt
+  heading     String   @genienou_live.VarChar(256)
+  long_name   String   @genienou_live.VarChar(256)
+  desc        String   @genienou_live.LongText
+  long_desc   String   @genienou_live.Text
+  program_img String   @genienou_live.VarChar(256)
+  url_segment String   @genienou_live.VarChar(64)
+  created_at  DateTime @genienou_live.DateTime(0)
+  updated_at  DateTime @genienou_live.DateTime(0)
+  delete_flag Boolean  @default(false)
+}
+
+model np_eod_backend {
+  neb_id         BigInt   @id @default(autoincrement())
+  neb_diet_id    BigInt
+  ned_plan_date  DateTime @genienou_live.Date
+  ned_duration   Int      @genienou_live.TinyInt
+  ned_sleep_time DateTime @genienou_live.Time(0)
+  ned_created    DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_eod_food_comb {
+  nefc_id   BigInt   @id @default(autoincrement())
+  diet_id   BigInt
+  user_id   BigInt
+  time      DateTime @genienou_live.Time(0)
+  meal_type String   @genienou_live.VarChar(30)
+  meal_name String   @genienou_live.VarChar(30)
+  meal_date DateTime @genienou_live.Date
+  label     String   @genienou_live.VarChar(30)
+  is_record Int      @genienou_live.TinyInt
+  comb_food String   @genienou_live.Text
+  created   DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_eod_food_comb_web {
+  nefcw_id        Float    @id
+  diet_id         Float
+  user_id         Float
+  time            DateTime @genienou_live.Time(0)
+  meal_type       String   @genienou_live.VarChar(100)
+  meal_name       String   @genienou_live.VarChar(100)
+  meal_date       DateTime @genienou_live.Date
+  label           String?  @genienou_live.VarChar(100)
+  is_record       Boolean? @default(false)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_eod_food_log {
+  nefl_id         Float    @id
+  plan_id         Float
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_eod_plan_food_comb {
+  nepfc_id  BigInt   @id @default(autoincrement())
+  diet_id   BigInt
+  user_id   BigInt
+  time      DateTime @genienou_live.Time(0)
+  meal_type String   @genienou_live.VarChar(30)
+  meal_name String   @genienou_live.VarChar(30)
+  meal_date DateTime @genienou_live.Date
+  label     String   @genienou_live.VarChar(30)
+  is_record Int      @genienou_live.TinyInt
+  comb_food String   @genienou_live.Text
+  created   DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_eod_plan_food_comb_web {
+  nepfcw_id       Float    @id
+  diet_id         Float
+  user_id         Float
+  plan_id         Int
+  time            DateTime @genienou_live.Time(0)
+  meal_type       String   @genienou_live.VarChar(100)
+  meal_name       String   @genienou_live.VarChar(100)
+  meal_date       DateTime @genienou_live.Date
+  label           String   @genienou_live.VarChar(100)
+  is_record       Boolean  @default(false)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_eod_plan_modified_food_comb_web {
+  nepmfcw_id      Float    @id
+  diet_id         Float
+  user_id         Float
+  nefl_id         Int
+  time            DateTime @genienou_live.Time(0)
+  meal_type       String   @genienou_live.VarChar(100)
+  meal_name       String   @genienou_live.VarChar(100)
+  meal_date       DateTime @genienou_live.Date
+  label           String   @genienou_live.VarChar(100)
+  is_record       Boolean  @default(false)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_error_defaulter {
+  nped_id          Int       @id @default(autoincrement())
+  er_log_name      String    @genienou_live.VarChar(50)
+  user_id          BigInt
+  time             String?   @genienou_live.VarChar(50)
+  food_item        String?   @genienou_live.VarChar(50)
+  qty              Float?
+  entry_date       DateTime? @genienou_live.Date
+  create_date      DateTime  @genienou_live.Date
+  first_slot_json  String    @genienou_live.Text
+  second_slot_json String    @genienou_live.Text
+
+  @@index([entry_date], map: "entry_date")
+  @@index([er_log_name], map: "er_log_name")
+  @@index([user_id], map: "user_id")
+}
+
+model np_error_logs {
+  nel_id         Int    @id @default(autoincrement())
+  nel_name       String @genienou_live.VarChar(50)
+  nel_desc       String @genienou_live.Text
+  nel_compliment String @genienou_live.Text
+  nel_value      String @genienou_live.VarChar(4)
+  nel_percent    String @genienou_live.VarChar(6)
+}
+
+model np_faqs {
+  faq_id     Int      @id @default(autoincrement())
+  question   String   @genienou_live.Text
+  answer     String   @genienou_live.Text
+  visibility Boolean
+  ordering_1 Int      @default(0)
+  ordering_2 Int      @default(0)
+  status     Boolean  @default(false)
+  created    DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.DateTime(0)
+  modified   DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+}
+
+model np_fb_shares {
+  shares_id BigInt   @id @default(autoincrement())
+  user_id   BigInt
+  is_share  Int      @genienou_live.TinyInt
+  reference String   @genienou_live.VarChar(15)
+  created   DateTime @genienou_live.DateTime(0)
+}
+
+model np_food_comb {
+  nfc_id     BigInt   @id @default(autoincrement())
+  diet_id    BigInt
+  food_type  String   @genienou_live.VarChar(30)
+  box_name   String   @genienou_live.VarChar(30)
+  is_default Int      @genienou_live.TinyInt
+  comb_food  String   @genienou_live.Text
+  created    DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_food_diary {
+  log_id           BigInt             @id @default(autoincrement())
+  user_id          BigInt
+  diet_id          BigInt
+  time             DateTime           @genienou_live.Time(0)
+  food_name        String             @genienou_live.VarChar(250)
+  quantity         Float              @genienou_live.Float
+  date             DateTime           @genienou_live.Date
+  other_food       String?            @genienou_live.VarChar(200)
+  snack_food       String?            @genienou_live.VarChar(200)
+  vegetables       String             @genienou_live.VarChar(200)
+  slMilkName       String             @genienou_live.VarChar(200)
+  food_type        String             @genienou_live.VarChar(20)
+  read             np_food_diary_read @default(no)
+  meal_record_time DateTime           @genienou_live.DateTime(0)
+  sync_type        String             @genienou_live.VarChar(30)
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_food_diary_deleted_log {
+  log_id           BigInt                         @id @default(autoincrement())
+  user_id          BigInt
+  diet_id          BigInt
+  time             DateTime                       @genienou_live.Time(0)
+  food_name        String                         @genienou_live.VarChar(250)
+  quantity         Float                          @genienou_live.Float
+  date             DateTime                       @genienou_live.Date
+  other_food       String?                        @genienou_live.VarChar(200)
+  snack_food       String?                        @genienou_live.VarChar(200)
+  vegetables       String                         @genienou_live.VarChar(200)
+  slMilkName       String                         @genienou_live.VarChar(200)
+  food_type        String                         @genienou_live.VarChar(20)
+  read             np_food_diary_deleted_log_read @default(no)
+  meal_record_time DateTime                       @genienou_live.DateTime(0)
+  int_delete_flag  Int                            @default(0)
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_food_feedback {
+  feed_id       BigInt   @id @default(autoincrement())
+  user_id       BigInt
+  time          DateTime @genienou_live.Time(0)
+  alert_name    String   @genienou_live.VarChar(100)
+  alert_message String   @genienou_live.TinyText
+  date          DateTime @genienou_live.Date
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_food_groups {
+  id    Int    @id @default(autoincrement()) @genienou_live.UnsignedInt
+  group String @genienou_live.VarChar(255)
+}
+
+model np_food_types {
+  id            Int     @id @default(autoincrement()) @genienou_live.UnsignedInt
+  food_group_id Int     @genienou_live.UnsignedInt
+  food          String  @genienou_live.VarChar(255)
+  min_weight    Float?  @genienou_live.Float
+  max_weight    Float   @genienou_live.Float
+  weight_info   String? @genienou_live.VarChar(255)
+  measure       String? @genienou_live.VarChar(255)
+  kcal          Float   @genienou_live.Float
+  cho           Float   @genienou_live.Float
+  protein       Float   @genienou_live.Float
+  fat           Float   @genienou_live.Float
+  sodium        Float   @genienou_live.Float
+  calcium       Float?  @genienou_live.Float
+  fibre         Float?  @genienou_live.Float
+}
+
+model np_forum_posts {
+  post_id    BigInt                     @id @default(autoincrement())
+  topic_id   BigInt
+  post_text  String                     @genienou_live.Text
+  post_by    BigInt
+  post_group np_forum_posts_post_group?
+  status     Boolean                    @default(true)
+  created    DateTime                   @genienou_live.DateTime(0)
+  modified   DateTime                   @default(now()) @genienou_live.Timestamp(0)
+  read       np_forum_posts_read        @default(no)
+}
+
+model np_forum_topics {
+  topic_id          Int                          @id @default(autoincrement())
+  topic_title       String                       @genienou_live.VarChar(255)
+  topic_description String                       @genienou_live.Text
+  topic_group       np_forum_topics_topic_group?
+  view_count        Int                          @default(0)
+  status            Boolean                      @default(true)
+  started_by        Int
+  created           DateTime                     @genienou_live.DateTime(0)
+  modified          DateTime                     @default(now()) @genienou_live.Timestamp(0)
+  read              np_forum_topics_read         @default(no)
+}
+
+model np_free_users_info {
+  id              Int      @id @default(autoincrement())
+  user_id         Int
+  dob             DateTime @genienou_live.Date
+  height_value    Float
+  height_unit     Boolean  @default(false)
+  weight_value    Float
+  weight_unit     Boolean  @default(false)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @genienou_live.DateTime(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_gemails {
+  ng_id      Int      @id @default(autoincrement())
+  ticket_id  BigInt
+  from_email String   @genienou_live.VarChar(50)
+  from_name  String   @genienou_live.VarChar(50)
+  to_email   String   @genienou_live.VarChar(100)
+  subject    String   @genienou_live.Text
+  body       String   @genienou_live.Text
+  created    DateTime @genienou_live.DateTime(0)
+  modified   DateTime @genienou_live.DateTime(0)
+}
+
+model np_genie_clients {
+  nc_id       BigInt @id @default(autoincrement())
+  nc_email    String @genienou_live.VarChar(200)
+  nc_name     String @genienou_live.VarChar(200)
+  client_type String @default("clay3") @genienou_live.VarChar(20)
+  status      Int
+}
+
+model np_genie_clients_old {
+  nc_id       BigInt @id @default(autoincrement())
+  nc_email    String @genienou_live.VarChar(200)
+  nc_name     String @genienou_live.VarChar(200)
+  client_type String @default("clay2") @genienou_live.VarChar(20)
+  status      Int
+}
+
+model np_genie_credit_invoice {
+  ngci_id      BigInt   @id @default(autoincrement())
+  invoice_id   String   @genienou_live.VarChar(10)
+  user_id      BigInt
+  sub_id       BigInt
+  total_amount Float
+  reference_no String   @genienou_live.VarChar(20)
+  short_note   String   @genienou_live.TinyText
+  created_date DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_genie_emails {
+  ticket_id      BigInt                        @id @default(autoincrement())
+  ticket_status  np_genie_emails_ticket_status @default(pending)
+  from_name      String                        @genienou_live.VarChar(50)
+  from_email     String                        @genienou_live.VarChar(50)
+  admin_email    String                        @genienou_live.VarChar(50)
+  to_email       String                        @genienou_live.VarChar(50)
+  message        String                        @genienou_live.Text
+  message_status Int                           @genienou_live.TinyInt
+  created        DateTime                      @default(now()) @genienou_live.Timestamp(0)
+  updated        DateTime                      @genienou_live.DateTime(0)
+}
+
+model np_genie_tv_users {
+  gtu_id          Int      @id @default(autoincrement())
+  genie_tv_id     Int
+  user_id         Int
+  is_watched      Int
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_gift_user {
+  gift_user_id      BigInt   @id @default(autoincrement())
+  user_id           BigInt
+  first_name        String   @genienou_live.VarChar(200)
+  last_name         String   @genienou_live.VarChar(200)
+  email             String   @genienou_live.VarChar(200)
+  country           String   @genienou_live.VarChar(100)
+  mobile_no         String   @genienou_live.VarChar(20)
+  friend_first_name String   @genienou_live.VarChar(200)
+  friend_last_name  String   @genienou_live.VarChar(200)
+  friend_email      String   @genienou_live.VarChar(200)
+  friend_country    String   @genienou_live.VarChar(100)
+  friend_mobile_no  String   @genienou_live.VarChar(50)
+  created_at        DateTime @genienou_live.DateTime(0)
+  updated_at        DateTime @genienou_live.DateTime(0)
+}
+
+model np_gift_users_subscriptions {
+  gift_subscription_id    BigInt                                 @id @default(autoincrement())
+  gift_user_id            BigInt
+  invoice_no              String                                 @genienou_live.VarChar(40)
+  payment_mode            String                                 @genienou_live.VarChar(50)
+  cheque_no               Int?
+  cheque_date             DateTime?                              @genienou_live.Date
+  reference               np_gift_users_subscriptions_reference? @default(website)
+  package_pricing_id      Int
+  payment_plan            String                                 @genienou_live.VarChar(100)
+  currency                String                                 @genienou_live.VarChar(10)
+  price                   Int
+  service_tax             Float                                  @genienou_live.Float
+  total_amount            Float                                  @genienou_live.Float
+  dollar_value            Float?                                 @genienou_live.Float
+  subscription_start_date DateTime                               @genienou_live.Date
+  subscription_end_date   DateTime                               @genienou_live.Date
+  subscription_duration   Int
+  tran_track_id           String?                                @genienou_live.VarChar(100)
+  payment_id              String?                                @genienou_live.VarChar(100)
+  payment_status          String                                 @genienou_live.VarChar(255)
+  hdfc_response           String                                 @genienou_live.VarChar(100)
+  hdfc_json_response      String                                 @genienou_live.Text
+  ccavenue_status_message String                                 @genienou_live.VarChar(100)
+  transaction_id          String?                                @genienou_live.VarChar(100)
+  created                 DateTime                               @genienou_live.DateTime(0)
+  modified                DateTime                               @genienou_live.DateTime(0)
+  payment_gateway         String                                 @genienou_live.VarChar(128)
+  response                String                                 @genienou_live.VarChar(500)
+}
+
+model np_holiday_list {
+  nphl_id         Int      @id @default(autoincrement())
+  holiday_name    String   @genienou_live.VarChar(256)
+  date            DateTime @genienou_live.Date
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_idle_time_log {
+  id              Int      @id @default(autoincrement())
+  admin_id        Int
+  idle_time       String   @genienou_live.VarChar(200)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_insta_follow_requests {
+  id                Int      @id @default(autoincrement())
+  user_id           Int
+  following_user_id Int
+  status            Int      @genienou_live.TinyInt
+  created_date      DateTime @genienou_live.DateTime(0)
+  updated_date      DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag   Boolean  @default(false)
+}
+
+model np_insta_mute_posts {
+  id              BigInt   @id @default(autoincrement())
+  user_id         BigInt
+  post_id         BigInt
+  status          Int      @genienou_live.TinyInt
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_insta_notifications {
+  id                Int      @id @default(autoincrement())
+  user_id           Int
+  action_by_user_id Int
+  type              String   @genienou_live.VarChar(100)
+  action            String   @genienou_live.VarChar(100)
+  post_id           Int
+  comment_id        Int
+  tag_id            Int
+  request_id        Int
+  notification      String   @genienou_live.Text
+  status            Boolean  @default(false)
+  created_date      DateTime @genienou_live.DateTime(0)
+  updated_date      DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag   Boolean  @default(false)
+}
+
+model np_insta_profile_images {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  image_path   String   @genienou_live.VarChar(255)
+  created_date DateTime @genienou_live.DateTime(0)
+  updated_date DateTime @genienou_live.DateTime(0)
+  delete_flag  Boolean  @default(false)
+}
+
+model np_insta_user_comment_tags {
+  id              Int      @id @default(autoincrement())
+  user_id         Int
+  tagged_user_id  Int
+  comment_id      Int
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_insta_user_details {
+  id                   Int      @id @default(autoincrement())
+  user_id              Int
+  user_name            String   @genienou_live.VarChar(255)
+  status_text          String   @genienou_live.Text
+  bio                  String   @genienou_live.Text
+  img_id               Int
+  privacy              Int      @default(1) @genienou_live.TinyInt
+  last_notification_id Int
+  created_date         DateTime @genienou_live.DateTime(0)
+  updated_date         DateTime @genienou_live.DateTime(0)
+  delete_flag          Boolean  @default(false)
+}
+
+model np_insta_user_favorite_posts {
+  id              Int      @id @default(autoincrement())
+  user_id         Int
+  post_id         Int
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_insta_user_following {
+  id                Int      @id @default(autoincrement())
+  user_id           Int
+  following_user_id Int
+  status            Int      @default(1) @genienou_live.TinyInt
+  created_date      DateTime @genienou_live.DateTime(0)
+  updated_date      DateTime @genienou_live.DateTime(0)
+  delete_flag       Boolean  @default(false)
+}
+
+model np_insta_user_post_comment_action {
+  id            Int      @id @default(autoincrement())
+  user_id       Int
+  up_comment_id Int
+  like_action   Boolean  @default(false)
+  created_date  DateTime @genienou_live.DateTime(0)
+  updated_date  DateTime @genienou_live.DateTime(0)
+  delete_flag   Boolean  @default(false)
+}
+
+model np_insta_user_post_comments {
+  id                Int      @id @default(autoincrement())
+  user_id           Int
+  insta_post_id     Int
+  comment           String   @genienou_live.Text
+  comment_type      Boolean  @default(false)
+  parent_comment_id Int
+  created_date      DateTime @genienou_live.DateTime(0)
+  updated_date      DateTime @genienou_live.DateTime(0)
+  delete_flag       Boolean  @default(false)
+}
+
+model np_insta_user_post_content {
+  id                       Int      @id @default(autoincrement())
+  insta_post_id            Int
+  content_type             String   @genienou_live.VarChar(100)
+  content_path             String   @genienou_live.VarChar(250)
+  video_thumbnail_img_path String?  @genienou_live.VarChar(255)
+  created_date             DateTime @genienou_live.DateTime(0)
+  updated_date             DateTime @genienou_live.DateTime(0)
+  delete_flag              Boolean  @default(false)
+}
+
+model np_insta_user_post_tags {
+  id             Int      @id @default(autoincrement())
+  user_id        Int
+  tagged_user_id Int
+  insta_post_id  Int
+  status         Int      @default(1) @genienou_live.TinyInt
+  created_date   DateTime @genienou_live.DateTime(0)
+  updated_date   DateTime @genienou_live.DateTime(0)
+  delete_flag    Boolean  @default(false)
+}
+
+model np_insta_user_posts {
+  id                Int      @id @default(autoincrement())
+  user_id           Int
+  content_type      String   @genienou_live.VarChar(256)
+  post_text         String   @genienou_live.Text
+  post_caption_text String?  @genienou_live.Text
+  privacy           Int      @genienou_live.TinyInt
+  created_date      DateTime @genienou_live.DateTime(0)
+  updated_date      DateTime @genienou_live.DateTime(0)
+  delete_flag       Boolean  @default(false)
+}
+
+model np_insta_user_posts_action {
+  id            Int      @id @default(autoincrement())
+  user_id       Int
+  insta_post_id Int
+  like_action   Boolean  @default(false)
+  created_date  DateTime @genienou_live.DateTime(0)
+  updated_date  DateTime @genienou_live.DateTime(0)
+  delete_flag   Boolean  @default(false)
+}
+
+model np_invoices {
+  ni_id        BigInt @id @default(autoincrement())
+  sub_id       BigInt
+  sub_renew_id BigInt
+  user_id      BigInt
+}
+
+model np_live_tracking {
+  nlt_id              BigInt   @id @default(autoincrement())
+  user_id             BigInt
+  global_id           Int
+  activity_name       String   @genienou_live.VarChar(100)
+  steps               String   @genienou_live.VarChar(20)
+  steps_per_minutes   String   @genienou_live.VarChar(10)
+  distance            String   @genienou_live.VarChar(30)
+  calories            String   @genienou_live.VarChar(30)
+  active_time         String   @genienou_live.VarChar(20)
+  pause_time          String   @genienou_live.VarChar(20)
+  max_speed           String   @genienou_live.VarChar(30)
+  avg_speed           String   @genienou_live.VarChar(30)
+  pace                String   @genienou_live.VarChar(30)
+  elevation_gain      String   @genienou_live.VarChar(20)
+  goal_type           String   @genienou_live.VarChar(50)
+  goal_value          Int
+  activity_start_time DateTime @genienou_live.Time(0)
+  date                DateTime @genienou_live.DateTime(0)
+  sync_time           DateTime @genienou_live.DateTime(0)
+  valid_steps         String   @genienou_live.VarChar(30)
+  created             DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_live_tracking_points {
+  nltp_id       BigInt   @id @default(autoincrement())
+  nltp_nlt_id   BigInt
+  point_status  String   @genienou_live.VarChar(10)
+  accuracy      String   @genienou_live.VarChar(10)
+  altitude      String   @genienou_live.VarChar(20)
+  velocity      String   @genienou_live.VarChar(20)
+  latitude      String   @genienou_live.VarChar(30)
+  longitude     String   @genienou_live.VarChar(30)
+  recordingTime DateTime @genienou_live.DateTime(0)
+  deviceSteps   String   @genienou_live.VarChar(10)
+  startTime     DateTime @genienou_live.DateTime(0)
+  elevation     String   @genienou_live.VarChar(10)
+  created       DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_mail_report {
+  message_id    BigInt   @id
+  track_id      String   @genienou_live.VarChar(60)
+  processed     Int      @genienou_live.TinyInt
+  dropped       Int      @genienou_live.TinyInt
+  delivered     Int      @genienou_live.TinyInt
+  open          Int      @genienou_live.TinyInt
+  click         Int      @genienou_live.TinyInt
+  unsubscribe   Int      @genienou_live.TinyInt
+  spam          Int      @genienou_live.TinyInt
+  bounce        Int      @genienou_live.TinyInt
+  end_json      String   @genienou_live.Text
+  mail_date     DateTime @genienou_live.Date
+  mail_api_name String   @genienou_live.VarChar(255)
+}
+
+model np_mail_templates {
+  mailtemplate_id Int     @id @default(autoincrement())
+  type            String  @genienou_live.VarChar(255)
+  name            String  @genienou_live.VarChar(255)
+  cron_path       String  @genienou_live.VarChar(100)
+  details         String  @genienou_live.Text
+  is_sms          Boolean @default(false)
+  is_message      Boolean @default(false)
+  is_mail         Boolean @default(false)
+  sms_template_id String  @genienou_live.VarChar(256)
+  sms_text        String? @genienou_live.Text
+  message_text    String? @genienou_live.Text
+  mail_subject    String? @genienou_live.VarChar(255)
+  mail_body       String? @genienou_live.Text
+  vars            String? @genienou_live.VarChar(255)
+  status          Boolean @default(true)
+
+  @@index([type], map: "type")
+}
+
+model np_make_plan {
+  nmp_id           BigInt   @id @default(autoincrement())
+  diet_id          BigInt
+  user_id          BigInt
+  sleep_time       DateTime @genienou_live.Time(0)
+  plan_type        String   @genienou_live.VarChar(60)
+  reflect_days     Int      @genienou_live.TinyInt
+  create_date      DateTime @genienou_live.Date
+  comb_food        String   @genienou_live.Text
+  plan_fill_date   String   @genienou_live.Text
+  plan_unfill_date String   @genienou_live.Text
+  created          DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_make_plan_web {
+  nmpw_id         BigInt   @id @default(autoincrement())
+  diet_id         BigInt
+  user_id         BigInt
+  wakeup_time     DateTime @genienou_live.Time(0)
+  sleep_time      DateTime @genienou_live.Time(0)
+  plan_type       String   @genienou_live.VarChar(100)
+  reflect_days    Int      @genienou_live.TinyInt
+  date            DateTime @genienou_live.Date
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_manual_old_reports {
+  id             Int    @id @default(autoincrement())
+  user_id        BigInt
+  old_json_value String @genienou_live.Text
+  report_date    String @genienou_live.VarChar(100)
+  first_value    String @genienou_live.Text
+}
+
+model np_manual_reports {
+  manual_id                     BigInt   @id @default(autoincrement())
+  user_id                       BigInt
+  reports_sync                  Int      @genienou_live.TinyInt
+  validate_status               Int      @genienou_live.TinyInt
+  validate_final_status         Int      @genienou_live.TinyInt
+  data_type                     String?  @genienou_live.VarChar(1)
+  report_status                 Int      @genienou_live.TinyInt
+  is_old_report                 Int      @genienou_live.TinyInt
+  blood_sugar_fpp               String?  @genienou_live.VarChar(50)
+  serum_insulin_fpp             String?  @genienou_live.VarChar(50)
+  blood_sugar_pp                String   @genienou_live.VarChar(50)
+  serum_insulin_pp              String   @genienou_live.VarChar(50)
+  glycosylated_haemoglobin      String?  @genienou_live.VarChar(50)
+  glycosylated_haemoglobin_text String   @genienou_live.VarChar(50)
+  serum_proteins                String?  @genienou_live.VarChar(50)
+  serum_creatinine              String?  @genienou_live.VarChar(50)
+  serum_uric_acid               String?  @genienou_live.VarChar(50)
+  sgpt                          String?  @genienou_live.VarChar(50)
+  free_t3                       String?  @genienou_live.VarChar(50)
+  free_t4                       String?  @genienou_live.VarChar(50)
+  tsh                           String?  @genienou_live.VarChar(50)
+  tsh_text                      String   @genienou_live.VarChar(50)
+  serum_calcium                 String?  @genienou_live.VarChar(50)
+  serum_calcium_text            String   @genienou_live.VarChar(60)
+  serum_vit_d3                  String   @genienou_live.VarChar(50)
+  serum_vit_d3_text             String   @genienou_live.VarChar(50)
+  serum_b12                     String?  @genienou_live.VarChar(50)
+  serum_b12_text                String   @genienou_live.VarChar(50)
+  lp_cholesterol                String?  @genienou_live.VarChar(50)
+  lp_triglycerides              String?  @genienou_live.VarChar(45)
+  lp_cholesterol_hdl            String?  @genienou_live.VarChar(45)
+  lp_cholesterol_ldl            String?  @genienou_live.VarChar(45)
+  lp_hdl_ldl_ratio              String?  @genienou_live.VarChar(45)
+  ur_colour                     String?  @genienou_live.VarChar(45)
+  ur_appearance                 String?  @genienou_live.VarChar(45)
+  ur_ph                         String?  @genienou_live.VarChar(45)
+  ur_specific_gravity           String?  @genienou_live.VarChar(45)
+  ur_glucose                    String?  @genienou_live.VarChar(45)
+  ur_proteins                   String?  @genienou_live.VarChar(45)
+  ur_ketones                    String?  @genienou_live.VarChar(45)
+  ur_blood                      String?  @genienou_live.VarChar(45)
+  ur_bilirubin_urobilinogen     String?  @genienou_live.VarChar(45)
+  ur_nitrite                    String?  @genienou_live.VarChar(45)
+  ur_rbc                        String   @genienou_live.VarChar(45)
+  ur_pus                        String?  @genienou_live.VarChar(45)
+  ur_epithelial_cells           String?  @genienou_live.VarChar(45)
+  ur_casts                      String?  @genienou_live.VarChar(45)
+  ur_crystals                   String?  @genienou_live.VarChar(45)
+  ur_bacteria                   String?  @genienou_live.VarChar(45)
+  bc_rbc_count                  String?  @genienou_live.VarChar(45)
+  bc_haemoglobin                String?  @genienou_live.VarChar(45)
+  bc_hematocrit                 String?  @genienou_live.VarChar(45)
+  bc_mcv                        String?  @genienou_live.VarChar(45)
+  bc_mch                        String?  @genienou_live.VarChar(45)
+  bc_mchc                       String?  @genienou_live.VarChar(45)
+  bc_rdw                        String?  @genienou_live.VarChar(45)
+  bc_platelet_count             String?  @genienou_live.VarChar(45)
+  bc_mvp                        String?  @genienou_live.VarChar(45)
+  bc_wbc_count                  String?  @genienou_live.VarChar(45)
+  bc_wbc_differential_count     String?  @genienou_live.VarChar(45)
+  bc_neutrophils                String?  @genienou_live.VarChar(45)
+  bc_eosinophils                String?  @genienou_live.VarChar(45)
+  bc_lymphocytes                String?  @genienou_live.VarChar(45)
+  bc_monocytes                  String?  @genienou_live.VarChar(45)
+  bc_basophils                  String?  @genienou_live.VarChar(45)
+  anti_tpo                      String   @genienou_live.VarChar(100)
+  anti_tg                       String   @genienou_live.VarChar(100)
+  status                        Int      @genienou_live.TinyInt
+  report_date                   String   @genienou_live.VarChar(40)
+  validate_json                 String   @genienou_live.Text
+  confirm_json                  String   @genienou_live.Text
+  first_value                   String   @genienou_live.Text
+  created                       DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.DateTime(0)
+  modified                      DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  message                       String   @genienou_live.MediumText
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_master_genie_tv {
+  genie_tv_id     Int      @id @default(autoincrement())
+  title           String   @genienou_live.VarChar(512)
+  video_id        String   @genienou_live.VarChar(256)
+  cover_photo_url String   @genienou_live.VarChar(512)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_master_recipe {
+  recipe_id        Int      @id @default(autoincrement())
+  recipe_name      String   @genienou_live.VarChar(512)
+  recipe_category  String?  @genienou_live.VarChar(512)
+  recipe_img_path  String   @genienou_live.VarChar(512)
+  recipe_post_link String   @genienou_live.VarChar(512)
+  created_date     DateTime @default(now()) @genienou_live.Timestamp(0)
+  modified_date    DateTime @genienou_live.DateTime(0)
+  int_delete_flag  Int      @default(0) @genienou_live.TinyInt
+}
+
+model np_master_users {
+  user_id          BigInt   @id @default(autoincrement())
+  email            String   @genienou_live.VarChar(100)
+  password         String   @genienou_live.VarChar(100)
+  mobile           String   @genienou_live.VarChar(100)
+  alternate_number String   @genienou_live.VarChar(100)
+  last_name        String   @genienou_live.VarChar(100)
+  created          DateTime @genienou_live.DateTime(0)
+}
+
+model np_master_whatsapp_template {
+  template_id       BigInt   @id @default(autoincrement())
+  api_key_id        Boolean
+  template_name_ng  String   @genienou_live.LongText
+  template_name_360 String   @genienou_live.LongText
+  npwtc_id          BigInt?  @default(1)
+  template_type_360 Boolean
+  template_header   BigInt
+  template_body     BigInt
+  template_created  DateTime @default(now()) @genienou_live.Timestamp(0)
+  template_updated  DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  int_delete_flag   Boolean
+}
+
+model np_mediator {
+  diet_id              BigInt   @id
+  clinic_id            BigInt
+  created_date         DateTime @genienou_live.Date
+  is_diet              Int      @genienou_live.TinyInt
+  general_instructions String   @genienou_live.Text
+  swapping_list        String   @genienou_live.Text
+  foods_to_avoid       String   @genienou_live.Text
+  nutrition_value      String   @genienou_live.VarChar(100)
+  proteins             String   @genienou_live.VarChar(100)
+  activity_duration    Int      @default(60)
+  weight_check         DateTime @genienou_live.Date
+  diet_change          DateTime @genienou_live.Date
+  view_date            DateTime @genienou_live.Date
+  modified             DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  short_info           String   @genienou_live.VarChar(20)
+  short_diet           String   @genienou_live.Text
+
+  @@index([clinic_id], map: "clinic_id")
+}
+
+model np_mediators {
+  clinic_id  Int      @id @default(autoincrement())
+  name       String   @genienou_live.VarChar(50)
+  email      String   @genienou_live.VarChar(50)
+  gender     String   @genienou_live.VarChar(10)
+  age        Int
+  diet       String   @genienou_live.VarChar(10)
+  roti_size  String   @genienou_live.VarChar(10)
+  dial_code  Int
+  mobile     BigInt
+  country    String   @genienou_live.VarChar(40)
+  state      String   @genienou_live.VarChar(50)
+  city       String   @genienou_live.VarChar(50)
+  address_1  String   @genienou_live.VarChar(200)
+  address_2  String   @genienou_live.VarChar(200)
+  tel_home   String   @genienou_live.VarChar(30)
+  tel_office String   @genienou_live.VarChar(30)
+  is_dc      Int      @genienou_live.TinyInt
+  dc_comment String   @genienou_live.TinyText
+  registered DateTime @genienou_live.DateTime(0)
+  short_desc String   @genienou_live.Text
+}
+
+model np_medicine {
+  nm_id       Int      @id @default(autoincrement())
+  nm_medicine String   @genienou_live.VarChar(60)
+  nm_purpose  String   @genienou_live.TinyText
+  created_at  DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_mp_food_comb_web {
+  nmfcw_id        Float    @id
+  nmpw_id         Float
+  time            DateTime @genienou_live.Time(0)
+  meal_type       String   @genienou_live.VarChar(100)
+  meal_name       String   @genienou_live.VarChar(100)
+  label           String?  @genienou_live.VarChar(100)
+  priority        Int      @genienou_live.TinyInt
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_newsletter {
+  newsletter_id Int      @id @default(autoincrement())
+  email         String   @genienou_live.VarChar(50)
+  created_at    DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_online_session {
+  session_id  Int      @id @default(autoincrement())
+  description String   @genienou_live.Text
+  topic       String   @genienou_live.TinyText
+  start_time  DateTime @genienou_live.DateTime(0)
+  end_time    DateTime @genienou_live.DateTime(0)
+  video_file  String   @genienou_live.VarChar(255)
+  image_file  String   @default("open-house.jpg") @genienou_live.VarChar(30)
+  password    String   @genienou_live.VarChar(20)
+  is_premium  Boolean  @default(true)
+  status      Int      @genienou_live.TinyInt
+  is_deleted  Int      @genienou_live.TinyInt
+  cron_status Int      @default(0) @genienou_live.TinyInt
+}
+
+model np_open_house_request {
+  ohr_id            Int      @id @default(autoincrement())
+  user_id           BigInt
+  open_house_key    String   @genienou_live.VarChar(50)
+  open_house_req_id BigInt
+  open_house_id     Int
+  question_id       Int
+  created           DateTime @genienou_live.DateTime(0)
+}
+
+model np_orders {
+  order_id                BigInt                 @id @default(autoincrement())
+  first_name              String                 @genienou_live.VarChar(150)
+  last_name               String                 @genienou_live.VarChar(150)
+  gender                  String                 @genienou_live.VarChar(150)
+  email                   String                 @genienou_live.VarChar(100)
+  address_1               String                 @genienou_live.VarChar(255)
+  address_2               String                 @genienou_live.VarChar(255)
+  landmark                String                 @genienou_live.VarChar(255)
+  city                    String                 @genienou_live.VarChar(255)
+  state                   String                 @genienou_live.VarChar(255)
+  pincode                 String                 @genienou_live.VarChar(10)
+  country                 String                 @genienou_live.VarChar(255)
+  dial_code               Int
+  mobile                  String                 @genienou_live.VarChar(10)
+  user_id                 BigInt
+  item_id                 BigInt
+  item_name               String                 @genienou_live.VarChar(255)
+  unit_price              Int
+  quantity                Int
+  sub_total               Int
+  service_tax             Float                  @default(0) @genienou_live.Float
+  shipping_charges        Int                    @default(0)
+  grand_total             Float                  @genienou_live.Float
+  currency                String                 @genienou_live.VarChar(50)
+  payment_mode            String                 @genienou_live.VarChar(50)
+  order_status            np_orders_order_status
+  tran_track_id           String                 @genienou_live.VarChar(100)
+  payment_id              String                 @genienou_live.VarChar(100)
+  payment_status          String                 @genienou_live.VarChar(255)
+  ccavenue_status_message String                 @genienou_live.VarChar(100)
+  hdfc_response           String                 @genienou_live.VarChar(100)
+  hdfc_json_response      String                 @genienou_live.Text
+  transaction_id          String                 @genienou_live.VarChar(100)
+  dollar_value            Float?                 @genienou_live.Float
+  created                 DateTime               @genienou_live.DateTime(0)
+  modified                DateTime               @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  read                    np_orders_read         @default(no)
+}
+
+model np_other_foods {
+  nof_id      BigInt   @id @default(autoincrement())
+  nof_name    String   @genienou_live.VarChar(200)
+  nof_created DateTime @genienou_live.DateTime(0)
+}
+
+model np_otp_mapping {
+  id          Int      @id @default(autoincrement())
+  username    String   @genienou_live.VarChar(50)
+  otp         String   @genienou_live.VarChar(50)
+  browser     String   @genienou_live.Text
+  ip          String   @genienou_live.VarChar(50)
+  created_at  DateTime @genienou_live.DateTime(0)
+  updated_at  DateTime @genienou_live.DateTime(0)
+  is_remember Int      @genienou_live.TinyInt
+  mobile      String   @genienou_live.VarChar(50)
+}
+
+model np_package_features {
+  npf_id      Int      @id @default(autoincrement())
+  name        String   @genienou_live.VarChar(50)
+  created_at  DateTime @genienou_live.DateTime(0)
+  updated_at  DateTime @genienou_live.DateTime(0)
+  delete_flag Boolean  @default(false)
+}
+
+model np_package_features_pricing {
+  npfp_id       Int      @id @default(autoincrement())
+  package_id    Int
+  pricing_id    Int
+  feature_id    Int
+  feature_value String   @genienou_live.VarChar(128)
+  created_at    DateTime @genienou_live.DateTime(0)
+  updated_at    DateTime @genienou_live.DateTime(0)
+  delete_flag   Boolean  @default(false)
+}
+
+model np_package_pricing {
+  npp_id             Int      @id @default(autoincrement())
+  package_id         Int
+  duration           Int
+  price_rupee        Int
+  price_dollar       Int
+  price_rupee_renew  Int
+  price_dollar_renew Int
+  tax                Int
+  created_at         DateTime @genienou_live.DateTime(0)
+  updated_at         DateTime @genienou_live.DateTime(0)
+  delete_flag        Boolean  @default(false)
+}
+
+model np_package_types {
+  npt_id                  Int      @id @default(autoincrement())
+  name                    String   @genienou_live.VarChar(50)
+  description             String   @genienou_live.VarChar(255)
+  image_name              String   @genienou_live.VarChar(50)
+  url_segment             String   @genienou_live.VarChar(64)
+  note                    String   @genienou_live.Text
+  package_image_dashboard String   @genienou_live.VarChar(200)
+  reference               String   @genienou_live.VarChar(10)
+  created_at              DateTime @genienou_live.DateTime(0)
+  updated_at              DateTime @genienou_live.DateTime(0)
+  delete_flag             Boolean  @default(false)
+}
+
+model np_package_types_enrolnment {
+  npte_id       Int      @id @default(autoincrement())
+  enrolnment_id Int
+  package_id    Int
+  status        Boolean? @default(false)
+  created_at    DateTime @genienou_live.DateTime(0)
+  updated_at    DateTime @genienou_live.DateTime(0)
+  delete_flag   Int      @default(0) @genienou_live.TinyInt
+}
+
+model np_page_header_details {
+  id          Int    @id @default(autoincrement())
+  uri         String @genienou_live.VarChar(255)
+  title       String @genienou_live.VarChar(255)
+  description String @genienou_live.VarChar(255)
+  keywords    String @genienou_live.VarChar(255)
+  canonical   String @genienou_live.VarChar(255)
+  robots      String @genienou_live.VarChar(100)
+}
+
+model np_para_duplicate {
+  npd_id     BigInt   @id @default(autoincrement())
+  paragraph  String   @genienou_live.Text
+  admin_id   Int
+  created_at DateTime @default(now()) @genienou_live.Timestamp(0)
+  is_deleted Int      @genienou_live.TinyInt
+}
+
+model np_para_heading {
+  h_id       Int      @id @default(autoincrement())
+  h_name     String   @genienou_live.VarChar(100)
+  created_at DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_paragraphs {
+  p_id         Int      @id @default(autoincrement())
+  p_hid        Int
+  paragraph    String   @genienou_live.Text
+  bold_changes String   @genienou_live.TinyText
+  row_id       Int
+  column_id    Int
+  sort_by      Int
+  is_training  Int
+  created_at   DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_payment_link {
+  id            Int       @id @default(autoincrement())
+  nppl_id       String    @genienou_live.VarChar(30)
+  tran_track_id String?   @genienou_live.VarChar(30)
+  status        String?   @genienou_live.VarChar(3000)
+  expired_at    Int
+  created       DateTime  @default(now()) @genienou_live.Timestamp(0)
+  modified      DateTime? @genienou_live.Timestamp(0)
+}
+
+model np_payment_modes {
+  id                  Int    @id @default(autoincrement())
+  name                String @genienou_live.VarChar(255)
+  national            Int
+  international       Int
+  payment_mode_images String @genienou_live.VarChar(255)
+}
+
+model np_plan_activities {
+  id              Float    @id
+  user_id         Float
+  plan_id         Int
+  diet_id         Int
+  label_name      String   @genienou_live.VarChar(250)
+  start_time      DateTime @genienou_live.Time(0)
+  end_time        DateTime @genienou_live.Time(0)
+  description     String   @genienou_live.VarChar(250)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_pricings {
+  id               Int    @id @default(autoincrement())
+  client_type      String @genienou_live.VarChar(64)
+  appointment_type String @genienou_live.VarChar(64)
+  price_rupee      Int
+  service_tax      Int
+  registration_fee Int
+}
+
+model np_promotional_events {
+  event_id          Int      @id @default(autoincrement())
+  event_name        String   @genienou_live.VarChar(256)
+  event_description String   @genienou_live.VarChar(512)
+  validity_token    String   @genienou_live.VarChar(512)
+  created_date      DateTime @genienou_live.DateTime(0)
+  updated_date      DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag   Boolean  @default(false)
+}
+
+model np_reach_us {
+  request_id              Int              @id @default(autoincrement())
+  user_id                 BigInt
+  video1_req_sent         Boolean          @default(false)
+  video1_req_granted      Boolean          @default(false)
+  video2_req_sent         Boolean          @default(false)
+  video2_req_granted      Boolean          @default(false)
+  video4_req_sent         Boolean          @default(false)
+  video4_req_granted      Boolean          @default(false)
+  video5_req_sent         Boolean          @default(false)
+  video5_req_granted      Boolean          @default(false)
+  openhouse_req_sent      Boolean          @default(false)
+  openhouse_req_granted   Boolean          @default(false)
+  open_house_name         String           @genienou_live.VarChar(50)
+  open_house_id           Int
+  feedback                String           @genienou_live.Text
+  nourish_selfie_feedback String           @genienou_live.Text
+  req_sent_date           DateTime         @genienou_live.DateTime(0)
+  req_grant_date          DateTime         @genienou_live.DateTime(0)
+  read                    np_reach_us_read @default(no)
+}
+
+model np_recipe_category {
+  category_id     BigInt   @id @default(autoincrement())
+  category_name   String   @genienou_live.LongText
+  category_desc   String   @genienou_live.LongText
+  created_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  modified_date   DateTime @genienou_live.DateTime(0)
+  int_delete_flag Int      @default(0) @genienou_live.TinyInt
+}
+
+model np_recipe_ingredients {
+  id              Int      @id @default(autoincrement())
+  ribg_id         Int
+  ingredients     String   @genienou_live.VarChar(512)
+  quantity        String   @genienou_live.VarChar(256)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @genienou_live.DateTime(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_recipe_ingredients_base_group {
+  id              Int      @id @default(autoincrement())
+  recipe_id       Int
+  base_group      String   @genienou_live.VarChar(256)
+  tip             String   @genienou_live.VarChar(512)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @genienou_live.DateTime(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_recipe_nutrition {
+  id              Int      @id @default(autoincrement())
+  recipe_id       Int
+  name            String   @genienou_live.VarChar(500)
+  quantity        String   @genienou_live.VarChar(500)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @genienou_live.DateTime(0)
+  int_delete_flag Int      @default(0) @genienou_live.TinyInt
+}
+
+model np_recipe_preparation {
+  id              Int      @id @default(autoincrement())
+  recipe_id       Int
+  step_no         Int
+  step_title      String   @genienou_live.VarChar(256)
+  step_info       String   @genienou_live.VarChar(1024)
+  image_path      String   @genienou_live.VarChar(512)
+  video_path      String   @genienou_live.VarChar(512)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @genienou_live.DateTime(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_recipes {
+  id              Int      @id @default(autoincrement())
+  recipe_type_id  Int      @genienou_live.TinyInt
+  recipe_type     String   @genienou_live.VarChar(256)
+  recipe_name     String   @genienou_live.VarChar(256)
+  nutrition_tips  String   @genienou_live.VarChar(500)
+  premium         Boolean
+  image_path      String   @genienou_live.VarChar(256)
+  video_path      String   @genienou_live.VarChar(256)
+  recipe_owner    String   @genienou_live.VarChar(256)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @genienou_live.DateTime(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_referal {
+  nr_id         BigInt   @id @default(autoincrement())
+  user_id       BigInt
+  refer_user_id BigInt
+  refer_name    String   @genienou_live.VarChar(20)
+  created       DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_reference_domains {
+  nd_id           Int      @id @default(autoincrement())
+  domain_name     String   @genienou_live.VarChar(250)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_reference_site {
+  ref_id       Int    @id @default(autoincrement())
+  site_name    String @genienou_live.VarChar(100)
+  reference_by Int    @genienou_live.TinyInt
+  created_at   Int
+}
+
+model np_references {
+  npr_id          Int      @id @default(autoincrement())
+  reference_name  String   @genienou_live.VarChar(100)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_replace_items {
+  nri_id       Int    @id @default(autoincrement())
+  text_item    String @genienou_live.Text
+  replace_item String @genienou_live.Text
+  conditions   Int    @default(1) @genienou_live.TinyInt
+}
+
+model np_report_numbering {
+  nrp_id        Int    @id @default(autoincrement())
+  user_id       BigInt
+  nrp_name      String @genienou_live.VarChar(20)
+  nrp_numbering Int    @genienou_live.TinyInt
+  nrp_color     String @default("red") @genienou_live.VarChar(15)
+}
+
+model np_reports {
+  users_id       BigInt   @id @default(autoincrement())
+  name           String   @genienou_live.VarChar(100)
+  address        String   @genienou_live.VarChar(100)
+  lab_name       String   @genienou_live.VarChar(100)
+  location       String   @genienou_live.VarChar(100)
+  contact_number String   @genienou_live.VarChar(50)
+  report_date    String   @genienou_live.VarChar(40)
+  refrence_name  String   @genienou_live.VarChar(100)
+  refrence       Int      @default(1) @genienou_live.TinyInt
+  created_date   DateTime @default(now()) @genienou_live.Timestamp(0)
+  modified_date  DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+}
+
+model np_sales_calls {
+  sales_id            Int       @id @default(autoincrement())
+  admin_user_id       Int
+  user_id             Int?
+  sales_user_id       Int?
+  call_status         String    @genienou_live.VarChar(60)
+  script_status       String    @genienou_live.VarChar(50)
+  follow_up_date      DateTime  @genienou_live.Date
+  follow_up_time      DateTime  @genienou_live.Time(0)
+  interested          String    @genienou_live.VarChar(100)
+  feedback            String    @genienou_live.Text
+  follow_up           String?   @genienou_live.VarChar(3)
+  call_type           String    @genienou_live.VarChar(20)
+  user_satisfaction   String    @genienou_live.VarChar(20)
+  call_type_reference String    @genienou_live.VarChar(100)
+  call_payment_status Int
+  is_deleted          Int       @default(0)
+  created             DateTime  @genienou_live.DateTime(0)
+  updated             DateTime? @genienou_live.DateTime(0)
+}
+
+model np_sales_user {
+  user_id            Int      @id @default(autoincrement())
+  name               String   @genienou_live.VarChar(150)
+  mobile             String   @genienou_live.VarChar(20)
+  email              String   @genienou_live.VarChar(150)
+  enrollment_purpose String   @genienou_live.VarChar(100)
+  created            DateTime @genienou_live.DateTime(0)
+}
+
+model np_script {
+  ns_id        Int      @id @default(autoincrement())
+  ns_heading   String   @genienou_live.VarChar(60)
+  ns_paragraph String   @genienou_live.Text
+  ns_default   Int      @genienou_live.TinyInt
+  ns_filter    String   @genienou_live.VarChar(128)
+  heading_id   BigInt
+  created_at   DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_script_list {
+  nsl_id     BigInt   @id @default(autoincrement())
+  user_id    BigInt
+  paragraph  String   @genienou_live.Text
+  filter     String   @genienou_live.VarChar(56)
+  date       DateTime @genienou_live.Date
+  created_at DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_service_error_log {
+  error_id          Int      @id @default(autoincrement())
+  error_description String   @genienou_live.Text
+  created_at        DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_session_attendence {
+  id           Int      @id @default(autoincrement())
+  session_id   Int
+  user_id      BigInt
+  attendence   String   @default("yes") @genienou_live.VarChar(10)
+  created_date DateTime @genienou_live.DateTime(0)
+  updated_date DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_session_question {
+  question_id BigInt   @id @default(autoincrement())
+  session_id  Int
+  user_id     BigInt
+  question    String   @genienou_live.Text
+  attendence  String   @genienou_live.VarChar(5)
+  answer      String   @genienou_live.Text
+  quest_start DateTime @genienou_live.Time(0)
+  quest_end   DateTime @genienou_live.Time(0)
+  ans_start   DateTime @genienou_live.Time(0)
+  ans_end     DateTime @genienou_live.Time(0)
+  is_answered Int      @genienou_live.TinyInt
+  status      Boolean  @default(false)
+}
+
+model np_sessions {
+  session_id    String @id @default("0") @genienou_live.VarChar(40)
+  ip_address    String @default("0") @genienou_live.VarChar(45)
+  user_agent    String @genienou_live.VarChar(120)
+  last_activity Int    @default(0) @genienou_live.UnsignedInt
+  user_data     String @genienou_live.Text
+
+  @@index([last_activity], map: "last_activity_idx")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model np_shutdown_message {
+  sender_mobile     String   @genienou_live.VarChar(32)
+  message_send_date DateTime @genienou_live.Date
+  per_time          Int
+  created_at        DateTime @default(now()) @genienou_live.Timestamp(0)
+  updated_at        DateTime @default(now()) @genienou_live.Timestamp(0)
+
+  @@ignore
+}
+
+model np_sleep_time {
+  nst_id     BigInt   @id @default(autoincrement())
+  user_id    BigInt
+  sleep_date DateTime @genienou_live.Date
+  start_time DateTime @genienou_live.Time(0)
+  end_time   DateTime @genienou_live.Time(0)
+  sync_date  DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_sms_templates {
+  id              Int      @id @default(autoincrement())
+  sms_template_id String   @genienou_live.VarChar(256)
+  sms_text        String   @genienou_live.Text
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_star_message {
+  star_id    BigInt   @id @default(autoincrement())
+  admin_id   Int
+  admin_name String   @genienou_live.VarChar(15)
+  star_text  String   @genienou_live.Text
+  created    DateTime @genienou_live.DateTime(0)
+}
+
+model np_states {
+  id         BigInt   @id @default(autoincrement())
+  name       String   @genienou_live.VarChar(128)
+  country_id Int
+  created_by Int
+  created    DateTime @genienou_live.DateTime(0)
+  udated     DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_steps_data {
+  nsd_id           BigInt   @id @default(autoincrement())
+  user_id          BigInt
+  application_name String   @genienou_live.VarChar(100)
+  application_type Int      @genienou_live.TinyInt
+  status           Int      @genienou_live.TinyInt
+  steps            String   @genienou_live.VarChar(20)
+  calories         String   @genienou_live.VarChar(10)
+  date             DateTime @genienou_live.Date
+  sync_time        DateTime @genienou_live.DateTime(0)
+  created_at       DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_subscription_migration_log {
+  nsml_id                               Int      @id @default(autoincrement())
+  initiator_subscription_id             Int
+  beneficiary_old_subscription_id       Int?
+  beneficiary_old_subscription_status   String?  @genienou_live.VarChar(10)
+  beneficiary_new_subscription_id       Int
+  beneficiary_new_subscription_renew_id Int?
+  admin_id                              Int
+  initiator_id                          Int
+  beneficiary_id                        Int
+  diet_distribution                     String   @genienou_live.LongText
+  migration_config                      String   @genienou_live.LongText
+  invoice_config                        String   @genienou_live.LongText
+  initiator_sub_data                    String   @genienou_live.LongText
+  beneficiary_sub_data                  String   @genienou_live.LongText
+  migration_datetime                    DateTime @default(now()) @genienou_live.DateTime(0)
+  created_date                          DateTime @genienou_live.DateTime(0)
+  modified_date                         DateTime @genienou_live.DateTime(0)
+}
+
+model np_subscription_packages {
+  package_id         Int    @id @default(autoincrement())
+  duration           Int
+  plan_name          String @genienou_live.VarChar(255)
+  description        String @genienou_live.Text
+  price_rupee        Int
+  price_dollar       Int
+  service_tax        Float  @genienou_live.Float
+  price_rupee_renew  Int
+  price_dollar_renew Int
+}
+
+model np_sync {
+  sync_id       BigInt   @id @default(autoincrement())
+  sync_status   Int      @genienou_live.TinyInt
+  user_id       BigInt
+  table_name    String   @genienou_live.VarChar(30)
+  send_json     String   @genienou_live.LongText
+  sync_created  DateTime @default(now()) @genienou_live.Timestamp(0)
+  sync_modified DateTime @genienou_live.DateTime(0)
+}
+
+model np_templates {
+  template_id       Int      @id @default(autoincrement())
+  type              String   @genienou_live.VarChar(255)
+  name              String   @genienou_live.VarChar(255)
+  cron_path         String   @genienou_live.VarChar(100)
+  details           String   @genienou_live.Text
+  is_sms            Boolean  @default(false)
+  is_message        Boolean  @default(false)
+  is_mail           Boolean  @default(false)
+  sms_template_id   Int
+  email_template_id Int
+  status            Boolean  @default(true)
+  created_date      DateTime @genienou_live.DateTime(0)
+  updated_date      DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag   Boolean  @default(false)
+
+  @@index([type], map: "type")
+}
+
+model np_testimonials {
+  testimonial_id Int     @id @default(autoincrement())
+  author         String  @genienou_live.VarChar(255)
+  short_desc     String  @genienou_live.TinyText
+  long_desc      String  @genienou_live.Text
+  avatar         String  @genienou_live.VarChar(255)
+  big_banner     String  @genienou_live.VarChar(64)
+  sort_order     Int
+  status         Boolean @default(false)
+}
+
+model np_ticket {
+  ticket_id       BigInt                  @id @default(autoincrement())
+  clinic_id       BigInt
+  ticket_status   np_ticket_ticket_status @default(pending)
+  ticket_type     String                  @genienou_live.VarChar(100)
+  ticket_category String                  @default("general") @genienou_live.VarChar(50)
+  user_id         BigInt
+  user_name       String                  @genienou_live.VarChar(20)
+  user_email      String                  @genienou_live.VarChar(50)
+  user_dial_code  Int                     @genienou_live.SmallInt
+  user_mobile     String                  @genienou_live.VarChar(20)
+  user_message    String                  @genienou_live.Text
+  short_comment   String                  @genienou_live.VarChar(200)
+  reply_message   String                  @genienou_live.Text
+  reply_mail      String                  @genienou_live.LongText
+  reply_subject   String                  @genienou_live.VarChar(300)
+  reply_sms       String                  @genienou_live.VarChar(200)
+  message_status  Int                     @genienou_live.TinyInt
+  refer_id        BigInt
+  para_ids        String                  @genienou_live.VarChar(40)
+  created         DateTime                @default(now()) @genienou_live.Timestamp(0)
+  updated         DateTime                @genienou_live.DateTime(0)
+}
+
+model np_ticket_message_details {
+  id               BigInt   @id @default(autoincrement())
+  ticket_id        BigInt
+  admin_userid     Int
+  message          String   @genienou_live.Text
+  para_id_list     String   @genienou_live.VarChar(128)
+  user_entered_msg String   @genienou_live.Text
+  created          DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_ticketing {
+  ticketing_id      Float    @id
+  name              String   @genienou_live.VarChar(250)
+  ticket_details    String   @genienou_live.Text
+  user_id           Float
+  issuer_id         Float
+  issued_to_id      Float
+  priority_id       Int
+  status_id         Float
+  status_updated_by Float
+  created_date      DateTime @genienou_live.DateTime(0)
+  updated_date      DateTime @default(now()) @genienou_live.Timestamp(0)
+  delete_flag       Boolean  @default(false)
+}
+
+model np_ticketing_comments {
+  comment_id      Float    @id
+  ticket_id       Float
+  commented_by_id Float
+  comment         String   @genienou_live.Text
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  delete_flag     Boolean  @default(false)
+}
+
+model np_ticketing_notification {
+  notification_id      Float    @id
+  notification_details String   @genienou_live.Text
+  ticket_id            Float
+  notification_to_id   Float
+  created_date         DateTime @genienou_live.DateTime(0)
+  updated_date         DateTime @default(now()) @genienou_live.Timestamp(0)
+  delete_flag          Boolean  @default(false)
+}
+
+model np_ticketing_priority {
+  priority_id  Int      @id @default(autoincrement())
+  name         String   @genienou_live.VarChar(128)
+  created_date DateTime @genienou_live.DateTime(0)
+  updated_date DateTime @default(now()) @genienou_live.Timestamp(0)
+  delete_flag  Boolean  @default(false)
+}
+
+model np_ticketing_status {
+  status_id    Int      @id @default(autoincrement())
+  name         String   @genienou_live.VarChar(128)
+  created_date DateTime @genienou_live.DateTime(0)
+  updated_date DateTime @default(now()) @genienou_live.Timestamp(0)
+  delete_flag  Boolean  @default(false)
+}
+
+model np_user_balance_diet {
+  id        BigInt   @id @default(autoincrement())
+  user_id   BigInt
+  date      DateTime @genienou_live.Date
+  food_name String   @genienou_live.VarChar(100)
+  quantity  String   @genienou_live.VarChar(10)
+
+  @@index([user_id], map: "user_id")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model np_user_config {
+  user_id               BigInt
+  is_video_4_prescribed Int    @genienou_live.TinyInt
+  is_video_5_prescribed Int    @genienou_live.TinyInt
+
+  @@ignore
+}
+
+model np_user_diet {
+  diet_id              BigInt   @id @default(autoincrement())
+  user_id              BigInt
+  diet_sync            Int      @genienou_live.TinyInt
+  diet_purpose         String   @genienou_live.VarChar(10)
+  created_date         DateTime @genienou_live.Date
+  general_instructions String   @genienou_live.Text
+  swapping_list        String   @genienou_live.Text
+  foods_to_avoid       String   @genienou_live.Text
+  nutrition_value      String   @genienou_live.VarChar(100)
+  proteins             String   @genienou_live.VarChar(100)
+  activity_duration    Int      @default(60)
+  weight_check         DateTime @genienou_live.Date
+  diet_change          DateTime @genienou_live.Date
+  view_date            DateTime @genienou_live.Date
+  last_weight_chk_date DateTime @genienou_live.Date
+  last_weight          Float
+  weight_loss          Float
+  video2_req           Float
+  enrollment           String   @default("Weight Loss") @genienou_live.VarChar(60)
+  weight_msg           String   @genienou_live.Text
+  msg_send             Int      @genienou_live.TinyInt
+  nud_created          DateTime @genienou_live.DateTime(0)
+  update_details       String   @genienou_live.Text
+  modified             DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  short_info           String   @genienou_live.Text
+
+  @@index([diet_id], map: "diet_id")
+  @@index([user_id], map: "user_id")
+}
+
+model np_user_diet_details {
+  id        BigInt @id @default(autoincrement())
+  diet_id   BigInt
+  food_name String @genienou_live.VarChar(200)
+  quantity  String @genienou_live.VarChar(10)
+  unit      String @genienou_live.VarChar(200)
+  info      String @genienou_live.VarChar(200)
+
+  @@index([diet_id], map: "diet_id")
+}
+
+model np_user_login_history {
+  id           Int      @id @default(autoincrement())
+  user_id      BigInt
+  ip           String   @genienou_live.VarChar(20)
+  browser      String   @genienou_live.TinyText
+  created_date DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_user_vitamin {
+  nuv_id       BigInt   @id @default(autoincrement())
+  vitamin_json String   @genienou_live.MediumText
+  user_id      BigInt
+  vitamin_sync Int      @genienou_live.TinyInt
+  nuv_status   Int      @default(1) @genienou_live.TinyInt
+  created_date DateTime @genienou_live.Date
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_user_wakeup {
+  id          BigInt   @id @default(autoincrement())
+  user_id     BigInt
+  wakeup_time DateTime @genienou_live.Time(0)
+  date        DateTime @genienou_live.Date
+
+  @@unique([user_id, date], map: "Composite Primary")
+  @@index([user_id], map: "user_id")
+}
+
+model np_user_whatsapp_numbers {
+  id              Int      @id @default(autoincrement())
+  user_id         Int      @unique(map: "user_id")
+  mobile_number   String   @genienou_live.VarChar(255)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_users {
+  user_id                 BigInt          @id
+  first_name              String          @genienou_live.VarChar(255)
+  last_name               String          @genienou_live.VarChar(255)
+  gender                  String          @genienou_live.VarChar(255)
+  email                   String          @genienou_live.VarChar(255)
+  password                String          @genienou_live.VarChar(255)
+  location                String          @genienou_live.VarChar(255)
+  address_1               String          @genienou_live.VarChar(255)
+  address_2               String          @genienou_live.VarChar(255)
+  address_3               String          @genienou_live.VarChar(255)
+  landmark                String          @genienou_live.VarChar(255)
+  city                    String          @genienou_live.VarChar(255)
+  pincode                 String          @genienou_live.VarChar(255)
+  state                   String          @genienou_live.VarChar(255)
+  country                 String          @genienou_live.VarChar(255)
+  dial_code               Int             @default(91)
+  mobile                  String          @genienou_live.VarChar(255)
+  register_date           DateTime        @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.DateTime(0)
+  social_login            String          @genienou_live.VarChar(50)
+  facebook_id1            String          @genienou_live.VarChar(56)
+  facebook_id             String          @genienou_live.VarChar(255)
+  last_login              DateTime        @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.DateTime(0)
+  diet_change_last        DateTime        @genienou_live.Date
+  diet_date               DateTime        @genienou_live.Date
+  expiry_date             DateTime        @genienou_live.Date
+  weight_chk_date         DateTime        @genienou_live.Date
+  badges                  String          @genienou_live.Text
+  badges_date             String          @genienou_live.TinyText
+  is_subscribed           Boolean         @default(false)
+  is_diet_new             Int             @genienou_live.TinyInt
+  is_expired              Int             @genienou_live.TinyInt
+  is_star_updated         Int             @genienou_live.TinyInt
+  is_diet_change          Int             @genienou_live.TinyInt
+  is_fb_share             Int             @genienou_live.TinyInt
+  status                  np_users_status @default(active)
+  forgot_psw_key          String          @genienou_live.VarChar(250)
+  forget_psw_key_validity DateTime        @genienou_live.DateTime(0)
+  reply_message_flag      Boolean
+  profile_status          Boolean
+  blood_report_submitted  Boolean
+  blood_report_status     Int             @genienou_live.TinyInt
+  is_sms                  Int             @default(1) @genienou_live.TinyInt
+  is_msg                  Int             @default(1) @genienou_live.TinyInt
+  is_mail                 Int             @default(1) @genienou_live.TinyInt
+  is_force_sync           Int             @genienou_live.TinyInt
+  is_news_letter          Int             @default(1) @genienou_live.TinyInt
+  is_call                 Int             @genienou_live.TinyInt
+  video1_key              String          @genienou_live.VarChar(40)
+  video1_req              Int
+  video2_key              String          @genienou_live.VarChar(40)
+  video2_req              Int
+  video4_key              String          @genienou_live.VarChar(40)
+  video4_req              Int             @genienou_live.TinyInt
+  video5_key              String          @genienou_live.VarChar(40)
+  video5_req              Int             @genienou_live.TinyInt
+  open_house_key          String          @genienou_live.VarChar(40)
+  open_house_req          Boolean
+  short_info              String          @genienou_live.Text
+  short_other_info        String          @genienou_live.Text
+  short_diet_info         String          @genienou_live.Text
+  remainig_diet           Int
+  lock_diet               Int             @genienou_live.TinyInt
+  ewallet_money           Float
+  summary                 String          @genienou_live.TinyText
+  ip                      String          @genienou_live.VarChar(20)
+  browser                 String          @genienou_live.MediumText
+  alternate_number        String          @genienou_live.VarChar(256)
+  remember_token          String          @genienou_live.Text
+  last_visit_url          String          @genienou_live.VarChar(512)
+  gst_number              String          @genienou_live.VarChar(256)
+  company_name            String          @genienou_live.VarChar(512)
+  pan_number              String          @genienou_live.VarChar(256)
+  pan_img_name            String          @genienou_live.VarChar(256)
+  reference_by            Boolean         @default(false)
+  angular_token           String          @genienou_live.VarChar(255)
+  corporate_company_id    Int
+  promo_event_id          Int             @default(0)
+  reference_id            Int
+  reference_domain_id     Int
+  cust_id                 Int
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_users_complaints {
+  int_np_users_complaints Int                              @id @default(autoincrement())
+  user_id                 BigInt
+  acidity                 np_users_complaints_acidity
+  gas                     np_users_complaints_gas
+  constipation            np_users_complaints_constipation
+  hairfall                np_users_complaints_hairfall
+  acne                    np_users_complaints_acne
+  weakness                np_users_complaints_weakness
+  insomnia                np_users_complaints_insomnia
+  other                   String?                          @genienou_live.Text
+  created_at              DateTime                         @genienou_live.DateTime(0)
+  updated_at              DateTime                         @genienou_live.DateTime(0)
+  int_delete_flag         Boolean                          @default(false)
+}
+
+model np_users_diet_para {
+  nupd_id  Int      @id @default(autoincrement())
+  nupd_pid Int
+  nupd_uid BigInt
+  created  DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_users_eating_pattern {
+  user_eating_pattern_id Int      @id @default(autoincrement())
+  user_id                BigInt
+  eating_sync            Int      @genienou_live.TinyInt
+  breakfast              String?  @genienou_live.Text
+  breakfast_type         Boolean?
+  breakfast_detail       String?  @genienou_live.VarChar(255)
+  lunch                  String?  @genienou_live.Text
+  lunch_type             Boolean?
+  lunch_detail           String?  @genienou_live.VarChar(255)
+  snacks                 String?  @genienou_live.Text
+  snacks_type            Boolean?
+  snacks_detail          String?  @genienou_live.VarChar(255)
+  dinner                 String?  @genienou_live.Text
+  dinner_type            Boolean?
+  dinner_detail          String?  @genienou_live.VarChar(255)
+  peak_hunger_time       String?  @genienou_live.VarChar(255)
+  roti_size              String   @default("small") @genienou_live.VarChar(20)
+  eating_report          String   @genienou_live.Text
+  eating_status          Int      @genienou_live.TinyInt
+  eating_validate        Int      @genienou_live.TinyInt
+  created_at             DateTime @genienou_live.DateTime(0)
+  updated_at             DateTime @genienou_live.DateTime(0)
+  int_delete_flag        Boolean  @default(false)
+
+  @@index([user_id], map: "user_id_2")
+}
+
+model np_users_exercise_routine {
+  int_user_exercise_routine Int      @id @default(autoincrement())
+  user_id                   BigInt
+  type                      String   @genienou_live.VarChar(255)
+  duration                  String   @genienou_live.VarChar(255)
+  frequency                 String   @genienou_live.VarChar(255)
+  created_at                DateTime @genienou_live.DateTime(0)
+  updated_at                DateTime @genienou_live.DateTime(0)
+  int_delete_flag           Boolean  @default(false)
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_users_family_history {
+  np_users_family_history_id Int      @id @default(autoincrement())
+  user_id                    Int
+  diabetes                   String?  @genienou_live.Text
+  hypertension               String?  @genienou_live.Text
+  heart_disease              String?  @genienou_live.Text
+  hypothyroid                String?  @genienou_live.Text
+  cancer                     String?  @genienou_live.Text
+  overweight                 String?  @genienou_live.Text
+  created_at                 DateTime @genienou_live.DateTime(0)
+  updated_at                 DateTime @genienou_live.DateTime(0)
+  int_delete_flag            Boolean  @default(false)
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_users_feedback {
+  feedback_id   BigInt   @id @default(autoincrement())
+  user_id       BigInt
+  comment       String   @genienou_live.Text
+  admin_id      Int
+  is_renew      Int      @genienou_live.TinyInt
+  call_duration DateTime @genienou_live.Time(0)
+  date_created  DateTime @genienou_live.DateTime(0)
+  date_modified DateTime @genienou_live.DateTime(0)
+}
+
+model np_users_feedback_status {
+  nufs_id         BigInt @id @default(autoincrement())
+  feedback_id     BigInt
+  feedback_status Int    @genienou_live.TinyInt
+}
+
+model np_users_habits {
+  int_np_users_habits      Int      @id @default(autoincrement())
+  user_id                  BigInt   @unique(map: "user_id")
+  smoking                  String   @genienou_live.VarChar(10)
+  smoking_frequency        String?  @genienou_live.VarChar(255)
+  smoking_frequency_unit   Boolean?
+  smoking_frequency_value  Int?
+  drinking                 String   @genienou_live.VarChar(10)
+  drinking_frequency       String?  @genienou_live.VarChar(255)
+  drinking_frequency_unit  Boolean?
+  drinking_frequency_value Int?
+  cycle                    String   @genienou_live.VarChar(4)
+  cycle_days               String?  @genienou_live.VarChar(100)
+  cycle_details            String?  @genienou_live.Text
+  created_at               DateTime @genienou_live.DateTime(0)
+  updated_at               DateTime @genienou_live.DateTime(0)
+  int_delete_flag          Boolean  @default(false)
+}
+
+model np_users_info {
+  users_info_id      Int                          @id @default(autoincrement())
+  user_id            BigInt                       @unique(map: "user_id")
+  avatar             String?                      @genienou_live.VarChar(255)
+  dob                DateTime                     @genienou_live.Date
+  marital_status     np_users_info_marital_status
+  children_count     Int?
+  height             String                       @genienou_live.Text
+  height_unit        Boolean?
+  height_value       Float?
+  weight             String                       @genienou_live.Text
+  weight_unit        Boolean?
+  weight_value       Float?
+  waist              String?                      @genienou_live.Text
+  waist_unit         Boolean?
+  waist_value        Float?
+  hip                String?                      @genienou_live.Text
+  hip_unit           Boolean?
+  hip_value          Float?
+  enrollment_purpose String                       @genienou_live.VarChar(255)
+  diet               np_users_info_diet
+  phone_call         Int                          @genienou_live.TinyInt
+  call_dates         String                       @genienou_live.Text
+  draft              String                       @genienou_live.Text
+  subject            String                       @genienou_live.VarChar(100)
+  maintenance        String                       @genienou_live.Text
+  is_vip             Int                          @genienou_live.TinyInt
+  created_at         DateTime                     @genienou_live.DateTime(0)
+  updated_at         DateTime                     @genienou_live.DateTime(0)
+}
+
+model np_users_lifestyle {
+  user_lifestyle_id                 Int                        @id @default(autoincrement())
+  user_id                           BigInt
+  occupation                        String                     @genienou_live.VarChar(255)
+  other_detail1                     String?                    @genienou_live.Text
+  other_detail2                     String?                    @genienou_live.Text
+  travel                            np_users_lifestyle_travel
+  travelling_frequency              String?                    @genienou_live.Text
+  outside_meal                      String                     @genienou_live.VarChar(255)
+  other_outside_meal                String?                    @genienou_live.Text
+  program                           np_users_lifestyle_program @default(no)
+  program_detail                    String?                    @genienou_live.Text
+  additional                        String?                    @genienou_live.LongText
+  feedback_call_preference_language String?                    @genienou_live.VarChar(255)
+  created_at                        DateTime                   @genienou_live.DateTime(0)
+  updated_at                        DateTime                   @genienou_live.DateTime(0)
+  int_delete_flag                   Boolean                    @default(false)
+}
+
+model np_users_medical_history {
+  medical_history_id Int      @id @default(autoincrement())
+  user_id            BigInt
+  history_no         Int
+  past               String   @genienou_live.VarChar(255)
+  present            String   @genienou_live.VarChar(255)
+  created_at         DateTime @genienou_live.DateTime(0)
+  updated_at         DateTime @genienou_live.DateTime(0)
+  int_delete_flag    Boolean  @default(false)
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_users_medication {
+  medication_id   BigInt   @id @default(autoincrement())
+  user_id         BigInt
+  admin_username  String   @genienou_live.VarChar(15)
+  start_date      String   @genienou_live.VarChar(100)
+  name            String   @genienou_live.VarChar(255)
+  dosage          String   @genienou_live.VarChar(255)
+  timings         String   @genienou_live.VarChar(255)
+  num_created     DateTime @default(now()) @genienou_live.Timestamp(0)
+  updated_at      DateTime @genienou_live.DateTime(0)
+  int_delete_flag Boolean  @default(false)
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_users_messages {
+  msg_id            BigInt   @id @default(autoincrement())
+  msg_sync          Int      @genienou_live.TinyInt
+  to_id             BigInt
+  from_id           BigInt
+  admin_id          Int
+  template_id       Int
+  msg_ticket_id     BigInt
+  msg_text          String   @genienou_live.Text
+  subject           String   @genienou_live.VarChar(100)
+  user_name         String   @genienou_live.VarChar(50)
+  user_email        String   @genienou_live.VarChar(50)
+  date              DateTime @genienou_live.DateTime(0)
+  is_read           Boolean  @default(false)
+  local_db_id       Int
+  local_file_path   String   @genienou_live.VarChar(255)
+  file_name         String   @genienou_live.VarChar(255)
+  user_soft_delete  Boolean  @default(false)
+  admin_soft_delete Boolean  @default(false)
+
+  @@index([from_id], map: "from_id")
+  // @@index([msg_text], map: "msg_text")
+  @@index([to_id], map: "to_id")
+  @@index([to_id], map: "user_id")
+}
+
+model np_users_para {
+  nup_id  Int      @id @default(autoincrement())
+  nup_pid Int
+  nup_uid BigInt
+  created DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_users_permission {
+  nup_id          BigInt   @id @default(autoincrement())
+  user_id         BigInt
+  nup_template_id Int
+  is_sms          Int      @genienou_live.TinyInt
+  is_msg          Int      @genienou_live.TinyInt
+  is_mail         Int      @genienou_live.TinyInt
+  nup_created     DateTime @default(now()) @genienou_live.Timestamp(0)
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_users_profile_step_bkp {
+  bkp_id                 Int      @id @default(autoincrement())
+  user_id                Int
+  users_info             String   @genienou_live.Text
+  users_habits           String   @genienou_live.Text
+  users_lifestyle        String   @genienou_live.Text
+  users_medication       String   @genienou_live.Text
+  users_complaints       String   @genienou_live.Text
+  users_eating_pattern   String   @genienou_live.Text
+  users_family_history   String   @genienou_live.Text
+  users_medical_history  String   @genienou_live.Text
+  users_exercise_routine String   @genienou_live.Text
+  created_date           DateTime @genienou_live.DateTime(0)
+  updated_date           DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag        Boolean  @default(false)
+}
+
+model np_users_settings {
+  id              Int      @id @default(autoincrement())
+  user_id         Int
+  weight_goal     Float
+  is_share_score  Boolean  @default(false)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @genienou_live.DateTime(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_users_sms {
+  sms_id            BigInt   @id @default(autoincrement())
+  sms_sync          Int      @genienou_live.TinyInt
+  to_id             BigInt
+  from_id           BigInt
+  admin_id          Boolean
+  template_id       Int
+  msg_text          String   @genienou_live.Text
+  sms_track_id      String   @genienou_live.VarChar(255)
+  date              DateTime @genienou_live.DateTime(0)
+  is_read           Boolean  @default(false)
+  user_soft_delete  Boolean  @default(false)
+  admin_soft_delete Boolean  @default(false)
+
+  @@index([from_id], map: "from_id")
+  @@index([to_id], map: "to_id")
+  @@index([to_id], map: "user_id")
+}
+
+model np_users_subscriptions {
+  subscription_id         BigInt                                     @id @default(autoincrement())
+  user_id                 BigInt
+  subscription_renew_id   BigInt
+  invoice_no              String                                     @genienou_live.VarChar(40)
+  payment_mode            String                                     @genienou_live.VarChar(50)
+  cheque_no               Int?
+  cheque_date             DateTime?                                  @genienou_live.Date
+  subscription_status     np_users_subscriptions_subscription_status
+  reference               np_users_subscriptions_reference?          @default(website)
+  package_pricing_id      Int
+  payment_plan            String                                     @genienou_live.VarChar(100)
+  currency                String                                     @genienou_live.VarChar(10)
+  price                   Float
+  service_tax             Float                                      @genienou_live.Float
+  discount_percentage     Float?                                     @genienou_live.Float
+  discount_amount         Float?                                     @genienou_live.Float
+  total_amount            Float                                      @genienou_live.Float
+  dollar_value            Float?                                     @genienou_live.Float
+  subscription_start_date DateTime                                   @genienou_live.Date
+  subscription_end_date   DateTime                                   @genienou_live.Date
+  subscription_duration   Int
+  sub_short_info          String                                     @genienou_live.Text
+  tran_track_id           String?                                    @genienou_live.VarChar(100)
+  payment_id              String?                                    @genienou_live.VarChar(100)
+  payment_status          String                                     @genienou_live.VarChar(255)
+  hdfc_response           String                                     @genienou_live.VarChar(100)
+  hdfc_json_response      String                                     @genienou_live.Text
+  ccavenue_status_message String                                     @genienou_live.VarChar(100)
+  transaction_id          String?                                    @genienou_live.VarChar(100)
+  pg_initiation_details   String                                     @genienou_live.VarChar(256)
+  is_fb_share             Int                                        @genienou_live.TinyInt
+  returning_status        Int                                        @genienou_live.TinyInt
+  coupon_id               Int
+  created                 DateTime                                   @genienou_live.DateTime(0)
+  modified                DateTime                                   @genienou_live.DateTime(0)
+  payment_gateway         String                                     @genienou_live.VarChar(128)
+
+  @@index([user_id], map: "user_id")
+  @@index([user_id], map: "user_id_2")
+  @@index([user_id], map: "user_id_3")
+  @@index([user_id], map: "user_id_4")
+}
+
+model np_users_subscriptions_renew {
+  subscription_renew_id   BigInt    @id @default(autoincrement())
+  subscription_id         BigInt
+  user_id                 BigInt
+  payment_mode            String    @genienou_live.VarChar(50)
+  cheque_no               Int?
+  cheque_date             DateTime? @genienou_live.Date
+  payment_status          String    @genienou_live.VarChar(40)
+  payment_plan            String    @genienou_live.VarChar(100)
+  currency                String    @genienou_live.VarChar(10)
+  price                   Int
+  service_tax             Float     @genienou_live.Float
+  total_amount            Float     @genienou_live.Float
+  dollar_value            Float?    @genienou_live.Float
+  subscription_start_date DateTime  @genienou_live.Date
+  subscription_end_date   DateTime  @genienou_live.Date
+  subscription_duration   Int
+  created                 DateTime  @genienou_live.DateTime(0)
+  modified                DateTime  @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  read                    String    @default("no") @genienou_live.VarChar(5)
+}
+
+model np_users_subscriptions_renwal {
+  subscription_renew_id   BigInt                                            @id @default(autoincrement())
+  user_id                 BigInt
+  invoice_no              String                                            @genienou_live.VarChar(40)
+  payment_mode            String                                            @genienou_live.VarChar(50)
+  cheque_no               Int?
+  cheque_date             DateTime?                                         @genienou_live.Date
+  subscription_status     np_users_subscriptions_renwal_subscription_status
+  reference               np_users_subscriptions_renwal_reference           @default(website)
+  package_pricing_id      Int
+  payment_plan            String                                            @genienou_live.VarChar(100)
+  currency                String                                            @genienou_live.VarChar(10)
+  price                   Float
+  service_tax             Float                                             @genienou_live.Float
+  total_amount            Float                                             @genienou_live.Float
+  dollar_value            Float?                                            @genienou_live.Float
+  subscription_start_date DateTime                                          @genienou_live.Date
+  subscription_end_date   DateTime                                          @genienou_live.Date
+  subscription_duration   Int
+  sub_short_info          String                                            @genienou_live.Text
+  tran_track_id           String?                                           @genienou_live.VarChar(100)
+  payment_id              String?                                           @genienou_live.VarChar(100)
+  payment_status          String                                            @genienou_live.VarChar(255)
+  hdfc_response           String                                            @genienou_live.VarChar(100)
+  hdfc_json_response      String                                            @genienou_live.Text
+  ccavenue_status_message String                                            @genienou_live.VarChar(255)
+  transaction_id          String?                                           @genienou_live.VarChar(100)
+  pg_initiation_details   String                                            @genienou_live.VarChar(256)
+  coupon_id               Int
+  created                 DateTime                                          @genienou_live.DateTime(0)
+  modified                DateTime                                          @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  read                    np_users_subscriptions_renwal_read                @default(no)
+  payment_gateway         String                                            @genienou_live.VarChar(255)
+}
+
+model np_users_whatsapp_automation_config {
+  npuwac_id              Int       @id @default(autoincrement())
+  user_id                Int       @unique(map: "user_id")
+  send_auto_message_flag Int       @default(1) @genienou_live.TinyInt
+  last_template_id       Int
+  created_date           DateTime  @genienou_live.Date
+  modified_date          DateTime? @genienou_live.DateTime(0)
+  int_delete_flag        Int       @default(0)
+}
+
+model np_vars {
+  var_id     Int                @id @default(autoincrement())
+  category   String             @genienou_live.VarChar(255)
+  name       String             @unique(map: "var_name") @genienou_live.VarChar(255)
+  value      String             @genienou_live.Text
+  field_type np_vars_field_type
+  is_message Int                @genienou_live.TinyInt
+  is_mail    Int                @genienou_live.TinyInt
+}
+
+model np_water_intake {
+  id      Int      @id @default(autoincrement())
+  user_id Int
+  date    DateTime @genienou_live.Date
+  glass   Int
+
+  @@unique([user_id, date], map: "Composite Primary")
+  @@index([user_id], map: "user_id")
+}
+
+model np_weight_calculator_data {
+  nwcd_id         Int      @id @default(autoincrement())
+  user_id         Int
+  borc            Float
+  aclpd           Float
+  miw             Float
+  viw             Float
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @genienou_live.DateTime(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_weight_check {
+  weight_id        BigInt               @id @default(autoincrement())
+  user_id          BigInt
+  weight           Float                @genienou_live.Float
+  weight_unit      String               @genienou_live.VarChar(10)
+  hip              Float?               @genienou_live.Float
+  hip_unit         String               @genienou_live.VarChar(10)
+  waist            Float?               @genienou_live.Float
+  waist_unit       String               @genienou_live.VarChar(10)
+  comment          String?              @genienou_live.Text
+  date             DateTime             @genienou_live.Date
+  read             np_weight_check_read @default(no)
+  snap_local_path  String               @genienou_live.VarChar(255)
+  platform         Int                  @default(-1) @genienou_live.TinyInt
+  is_subscribed_wt Boolean              @default(true)
+  int_delete_flag  Boolean              @default(false)
+
+  @@index([user_id], map: "user_id")
+}
+
+model np_welcome_text_tips {
+  id              Int      @id @default(autoincrement())
+  tip_info        String   @genienou_live.Text
+  date            DateTime @genienou_live.Date
+  type            Boolean
+  author          String   @genienou_live.VarChar(255)
+  like_count      Int
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @genienou_live.DateTime(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_welcome_voice_tips {
+  id              Int      @id @default(autoincrement())
+  tip_info        String   @genienou_live.Text
+  date            DateTime @genienou_live.Date
+  voice_link      String   @genienou_live.VarChar(255)
+  premium         Boolean
+  like_count      Int
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @genienou_live.DateTime(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_whats_app_chats {
+  id              Int      @id @default(autoincrement())
+  msg_text        String   @genienou_live.MediumText
+  attchment_name  String   @genienou_live.VarChar(250)
+  caption         String   @genienou_live.VarChar(500)
+  delivery_status Int      @genienou_live.TinyInt
+  sent_by         Int      @genienou_live.TinyInt
+  message_id      String   @genienou_live.VarChar(250)
+  nw_ticket_id    Int
+  msg_status      Int
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_whatsapp_account_migration_log {
+  waml_id         Int       @id @default(autoincrement())
+  module_name     String    @genienou_live.VarChar(128)
+  admin_name      String    @genienou_live.VarChar(15)
+  admin_id        Int
+  unknown_user_id Int?
+  new_user_id     Int
+  old_user_id     Int?
+  whatsapp_number String    @genienou_live.VarChar(15)
+  change_logs     String    @genienou_live.VarChar(255)
+  created         DateTime  @genienou_live.DateTime(0)
+  modified        DateTime? @genienou_live.DateTime(0)
+  int_delete_flag Int       @default(0) @genienou_live.TinyInt
+}
+
+model np_whatsapp_api_numbers {
+  id              Int      @id @default(autoincrement())
+  name            String   @genienou_live.VarChar(256)
+  api_key         String   @genienou_live.VarChar(256)
+  api_number      String   @genienou_live.VarChar(256)
+  created_date    DateTime @genienou_live.Date
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+model np_whatsapp_chats_reply {
+  npwcr_id        BigInt    @id @default(autoincrement())
+  npwc_id         BigInt?
+  npwc_reply_id   BigInt?
+  npserl_id       BigInt?
+  created_date    DateTime  @default(now()) @genienou_live.DateTime(0)
+  updated_date    DateTime? @genienou_live.DateTime(0)
+  int_delete_flag Int       @default(0) @genienou_live.TinyInt
+}
+
+model np_whatsapp_template {
+  nwt_id        Int      @id @default(autoincrement())
+  nwt_name      String   @genienou_live.VarChar(100)
+  nwt_temp_type String   @genienou_live.VarChar(100)
+  nwt_text      String   @genienou_live.Text
+  nwt_created   DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+model np_whatsapp_template_body {
+  body_id         Int      @id @default(autoincrement())
+  isDynamic       Int      @genienou_live.TinyInt
+  data            String   @genienou_live.LongText
+  created_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  updated_date    DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  int_delete_flag Int      @genienou_live.TinyInt
+}
+
+model np_whatsapp_template_category {
+  npwtc_id        BigInt    @id @default(autoincrement())
+  category_name   String    @genienou_live.LongText
+  category_desc   String    @genienou_live.LongText
+  is_active       Int       @default(1) @genienou_live.TinyInt
+  created_date    DateTime  @genienou_live.Date
+  modified_date   DateTime? @genienou_live.DateTime(0)
+  int_delete_flag Int       @default(0) @genienou_live.TinyInt
+}
+
+model np_whatsapp_template_header {
+  header_id       BigInt   @id @default(autoincrement())
+  isDynamic       Int      @genienou_live.TinyInt
+  type            String   @genienou_live.LongText
+  data            String   @genienou_live.LongText
+  created_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  updated_date    DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @genienou_live.Timestamp(0)
+  int_delete_flag Int      @genienou_live.TinyInt
+}
+
+model np_whatsapp_templates_variables {
+  id              BigInt   @id @default(autoincrement())
+  type            Boolean
+  variable_value  BigInt
+  variable_for    String   @genienou_live.LongText
+  created_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean
+}
+
+model np_whatsapp_ticket {
+  id                Int      @id @default(autoincrement())
+  wa_api_id         Int
+  template_id       Int
+  admin_id          Int
+  user_id           Int
+  sent_by           Int      @genienou_live.TinyInt
+  category          String   @genienou_live.VarChar(100)
+  short_desc        String   @genienou_live.Text
+  status            String   @genienou_live.VarChar(100)
+  unknown_number_id Int
+  msg_status        Int      @default(0) @genienou_live.TinyInt
+  created_date      DateTime @genienou_live.DateTime(0)
+  updated_date      DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag   Boolean  @default(false)
+}
+
+model np_whatsapp_ticket_tagging {
+  npwtt_id        BigInt   @id @default(autoincrement())
+  user_id         BigInt
+  admin_id        Int
+  ticket_id       BigInt
+  diet_id         BigInt
+  tag_description String?  @genienou_live.LongText
+  tag_reply       String?  @genienou_live.VarChar(3000)
+  created_date    DateTime @default(now()) @genienou_live.DateTime(0)
+  modified_date   DateTime @default(now()) @genienou_live.DateTime(0)
+  int_delete_flag Int      @default(0) @genienou_live.TinyInt
+}
+
+model np_whatsapp_unknown_numbers {
+  nwun_id         Int      @id @default(autoincrement())
+  api_id          Int
+  name            String   @genienou_live.VarChar(256)
+  mobile          String   @genienou_live.VarChar(256)
+  created_date    DateTime @genienou_live.DateTime(0)
+  updated_date    DateTime @default(now()) @genienou_live.Timestamp(0)
+  int_delete_flag Boolean  @default(false)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model password_resets {
+  email      String
+  token      String
+  created_at DateTime? @genienou_live.Timestamp(0)
+
+  @@index([email], map: "password_resets_email_index")
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model test_execution_time {
+  start_time String @genienou_live.Text
+  end_time   String @genienou_live.Text
+  data       String @genienou_live.Text
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model test_table {
+  d  Int
+  dd Bytes @genienou_live.Blob
+
+  @@ignore
+}
+
+model user_custome_message_details {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  admin_id     Int
+  message      String   @genienou_live.Text
+  para_id_list String   @genienou_live.VarChar(128)
+  created_at   DateTime @default(now()) @genienou_live.Timestamp(0)
+}
+
+enum np_clinic_videos_video_type {
+  video1
+  video2
+}
+
+enum np_draft_messages_type {
+  MAIL
+  WHATSAPP
+}
+
+enum np_genie_emails_ticket_status {
+  pending
+  doubt
+  closed
+  saved
+  urgent
+  rework
+  calls
+}
+
+enum np_ticket_ticket_status {
+  pending
+  doubt
+  Saved
+  Urgent
+  Rework
+  Calls
+  Expiry
+  closed
+}
+
+enum np_users_complaints_acidity {
+  yes
+  no
+  sometimes
+}
+
+enum np_calls_source {
+  In
+  Out
+  Missed
+  Dis
+}
+
+enum np_custom_amount_subscription_reference {
+  website
+  clinic
+  testing
+  facetime
+}
+
+enum np_forum_topics_topic_group {
+  Administrators
+  Users
+}
+
+enum np_users_complaints_gas {
+  yes
+  no
+  sometimes
+}
+
+enum np_all_invoices_nai_reference {
+  website
+  facetime
+}
+
+enum np_forum_posts_post_group {
+  Administrators
+  Users
+}
+
+enum np_users_complaints_constipation {
+  yes
+  no
+  sometimes
+}
+
+enum np_users_info_marital_status {
+  single
+  married
+  divorced
+}
+
+enum np_vars_field_type {
+  text
+  editor
+}
+
+enum np_users_complaints_hairfall {
+  yes
+  no
+  sometimes
+}
+
+enum np_users_lifestyle_travel {
+  yes
+  no
+}
+
+enum np_gift_users_subscriptions_reference {
+  website
+  clinic
+  testing
+  facetime
+}
+
+enum np_users_complaints_acne {
+  yes
+  no
+  sometimes
+}
+
+enum np_users_subscriptions_renwal_subscription_status {
+  pending
+  active
+  cancelled
+  expired
+}
+
+enum np_users_complaints_weakness {
+  yes
+  no
+  sometimes
+}
+
+enum np_users_subscriptions_subscription_status {
+  pending
+  active
+  cancelled
+  expired
+}
+
+enum np_users_subscriptions_renwal_reference {
+  website
+  clinic
+  testing
+  facetime
+}
+
+enum np_forum_posts_read {
+  yes
+  no
+}
+
+enum np_users_complaints_insomnia {
+  yes
+  no
+  sometimes
+}
+
+enum np_users_subscriptions_reference {
+  website
+  clinic
+  testing
+  facetime
+}
+
+enum np_forum_topics_read {
+  yes
+  no
+}
+
+enum np_users_lifestyle_program {
+  yes
+  no
+}
+
+enum np_weight_check_read {
+  yes
+  no
+}
+
+enum np_food_diary_read {
+  yes
+  no
+}
+
+enum np_food_diary_deleted_log_read {
+  yes
+  no
+}
+
+enum na_orders_order_status {
+  pending
+  submitted
+  processing
+  cancelled
+  completed
+}
+
+enum np_reach_us_read {
+  yes
+  no
+}
+
+enum np_users_info_diet {
+  veg
+  non_veg @map("non-veg")
+  veg_egg @map("veg+egg")
+}
+
+enum na_orders_read {
+  yes
+  no
+}
+
+enum np_orders_order_status {
+  pending
+  submitted
+  processing
+  cancelled
+  completed
+}
+
+enum nourishable_orders_order_status {
+  pending
+  submitted
+  processing
+  cancelled
+  completed
+}
+
+enum np_users_subscriptions_renwal_read {
+  yes
+  no
+}
+
+enum np_users_status {
+  active
+  deleted
+}
+
+enum np_orders_read {
+  yes
+  no
+}
+
+enum nourishable_orders_read {
+  yes
+  no
+}
