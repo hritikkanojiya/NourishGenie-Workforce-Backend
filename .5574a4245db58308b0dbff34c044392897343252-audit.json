@@ -1,0 +1,35 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 10
+    },
+    "auditLog": "C:\\HR_Module\\.5574a4245db58308b0dbff34c044392897343252-audit.json",
+    "files": [
+        {
+            "date": 1685709150419,
+            "name": "C:\\HR_Module\\all-2023-06-02.log",
+            "hash": "3e36880aaeb0be609f8f9e61c454b1fd1825f2ed1cd9453cfd72578c9aa8aedb"
+        },
+        {
+            "date": 1685774787095,
+            "name": "C:\\HR_Module\\all-2023-06-03.log",
+            "hash": "07fed52d4c4b9e68d4b47d611ce9dbc5e1f3963001ab506ca85fc83fdbe63b97"
+        },
+        {
+            "date": 1685854532266,
+            "name": "C:\\HR_Module\\all-2023-06-04.log",
+            "hash": "11a02d820082d25ce3c13184a3623628307f75d057d20159f230bade848756b5"
+        },
+        {
+            "date": 1685947117248,
+            "name": "C:\\HR_Module\\all-2023-06-05.log",
+            "hash": "49be572c89d0df16c87262dec67c746acde8af9b43de3da1e5b7720f7a54bfff"
+        },
+        {
+            "date": 1686033271808,
+            "name": "C:\\HR_Module\\all-2023-06-06.log",
+            "hash": "a9143b74a14feca51d491f4149750d84146dc240c27bab12b9ac6cb910fdb21c"
+        }
+    ],
+    "hashType": "sha256"
+}

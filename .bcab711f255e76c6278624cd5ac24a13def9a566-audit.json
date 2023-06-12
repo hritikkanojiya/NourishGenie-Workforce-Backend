@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 10
+    },
+    "auditLog": "/home/mamoth/Desktop/genie-services/.bcab711f255e76c6278624cd5ac24a13def9a566-audit.json",
+    "files": [
+        {
+            "date": 1683011280502,
+            "name": "/home/mamoth/Desktop/genie-services/all-2023-05-02.log",
+            "hash": "ffa29b3a3166924f38b8bf005c2cb55b09dafbd4149ed0eb6e19d41b5980f31f"
+        },
+        {
+            "date": 1683114128893,
+            "name": "/home/mamoth/Desktop/genie-services/all-2023-05-03.log",
+            "hash": "27fd8b15c4dc8c0943fddcc4dfbbd0deef706b22d9a228864384eee9c0faca67"
+        }
+    ],
+    "hashType": "sha256"
+}
