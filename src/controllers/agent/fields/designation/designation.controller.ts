@@ -4,12 +4,14 @@ import httpErrors from 'http-errors';
 import {
   CreateAppDesignationType,
   DeleteAppDesignationType,
-  GetAppDesignationType
+  GetAppDesignationType,
+  GetSingleDesignation
 } from '../../../../helpers/joi/permissions/designation/designation.joi.types';
 import {
   createAppDesignationSchema,
   deleteAppDesignationSchema,
   getAppDesignationSchema,
+  getSingleDesignationSchema,
   updateAppDesignationSchema
 } from '../../../../helpers/joi/permissions/designation/designation.validation_schema';
 import {
@@ -111,7 +113,6 @@ export const getAppdesignation = async (req: Request, res: Response, next: NextF
       .limit(limit)
       .lean()
       .catch((error: any) => {
-        console.log('from catch 01');
         throw httpErrors.UnprocessableEntity(
           error?.message ? error.message : 'Unable to retrieve records from Database.'
         );
@@ -146,6 +147,37 @@ export const getAppdesignation = async (req: Request, res: Response, next: NextF
     }
   } catch (error: any) {
     console.log(error);
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
+};
+
+//description: get single designaiton details
+//route: GET /api/v1/department/
+//access: private
+export const getSingleDesignation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const getSingleDesignationDetails: GetSingleDesignation = await getSingleDesignationSchema.validateAsync(req.body);
+    //check if the dept exists
+    const designation = await AppDesignation.findOne({
+      _id: stringToObjectId(getSingleDesignationDetails.appDesignationId),
+      isDeleted: false
+    }).catch((error: any) => {
+      throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+    });
+    if (!designation) throw httpErrors.UnprocessableEntity(`Invalid Designation ID.`);
+    const designationtDetails = designation.toObject();
+    if (res.headersSent === false) {
+      res.status(200).send({
+        error: false,
+        data: {
+          designation: designationtDetails,
+          message: `Designation details fetched successfully.`
+        }
+      });
+    }
+  } catch (error: any) {
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
     if (error?.isJoi === true) error.status = 422;
     next(error);

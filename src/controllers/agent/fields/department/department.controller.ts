@@ -19,12 +19,14 @@ import {
   CreateAppDepartmentType,
   DeleteAppDepartmentType,
   GetAppDepartmentType,
+  GetSingleDepartment,
   UpdateAppDepartmentType
 } from '../../../../helpers/joi/permissions/department/department.joi.types';
 import {
   createAppDepartmentSchema,
   deleteAppDepartmentSchema,
   getAppDepartmentSchema,
+  getSingleDepartmentSchema,
   updateAppDepartmentSchema
 } from '../../../../helpers/joi/permissions/department/department.validation_schema';
 import { GetRequestObject } from 'helpers/shared/shared.type';
@@ -147,6 +149,37 @@ export const getAppdepartment = async (req: Request, res: Response, next: NextFu
     }
   } catch (error: any) {
     console.log(error);
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
+};
+
+//description: get single department details
+//route: GET /api/v1/department/
+//access: private
+export const getSingleDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const getSingleDepartmentDetails: GetSingleDepartment = await getSingleDepartmentSchema.validateAsync(req.body);
+    //check if the dept exists
+    const department = await Appdepartment.findOne({
+      _id: stringToObjectId(getSingleDepartmentDetails.appDepartmentId),
+      isDeleted: false
+    }).catch((error: any) => {
+      throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+    });
+    if (!department) throw httpErrors.UnprocessableEntity(`Invalid Department ID.`);
+    const departmentDetails = department.toObject();
+    if (res.headersSent === false) {
+      res.status(200).send({
+        error: false,
+        data: {
+          department: departmentDetails,
+          message: `Department details fetched successfully.`
+        }
+      });
+    }
+  } catch (error: any) {
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
     if (error?.isJoi === true) error.status = 422;
     next(error);

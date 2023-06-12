@@ -19,3 +19,7 @@ export interface UpdateAppDesignationType {
   name: string;
   description: string;
 }
+
+export interface GetSingleDesignation {
+  appDesignationId: string;
+}

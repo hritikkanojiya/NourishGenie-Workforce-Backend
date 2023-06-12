@@ -5,7 +5,12 @@ const AppReportingManagerSchema = new mongoose.Schema(
     //foreign key
     appUserId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'AppUser'
+      ref: 'app_agents',
+      required: true
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false
     }
   },
   {

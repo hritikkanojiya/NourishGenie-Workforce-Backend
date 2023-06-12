@@ -26,4 +26,14 @@ const updateAppDepartmentSchema = Joi.object({
   description: Joi.string().trim().required()
 });
 
-export { createAppDepartmentSchema, getAppDepartmentSchema, deleteAppDepartmentSchema, updateAppDepartmentSchema };
+const getSingleDepartmentSchema = Joi.object({
+  appDepartmentId: Joi.string().length(24).required()
+});
+
+export {
+  createAppDepartmentSchema,
+  getSingleDepartmentSchema,
+  getAppDepartmentSchema,
+  deleteAppDepartmentSchema,
+  updateAppDepartmentSchema
+};

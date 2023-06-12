@@ -13,12 +13,18 @@ appAgentDesignationRouterV1.post(
   //validateRouteAccess,
   appAgentDesignationController.getAppdesignation
 );
+
+appAgentDesignationRouterV1.post(
+  '/getSingleDesignation',
+  //validateRouteAccess,
+  appAgentDesignationController.getSingleDesignation
+);
 appAgentDesignationRouterV1.patch(
   '/updateAppDesignation',
   //validateRouteAccess,
   appAgentDesignationController.updateAppdesignation
 );
-appAgentDesignationRouterV1.delete(
+appAgentDesignationRouterV1.post(
   '/deleteAppDesignation',
   //validateRouteAccess,
   appAgentDesignationController.deleteAppdesignation

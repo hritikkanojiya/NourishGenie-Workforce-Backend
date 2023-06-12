@@ -16,6 +16,12 @@ appAgentDepartmentRouterV1.post(
   appAgentDepartmentController.getAppdepartment
 );
 appAgentDepartmentRouterV1.post(
+  '/getSingleDepartment',
+  //validateRouteAccess,
+  appAgentDepartmentController.getSingleDepartment
+);
+
+appAgentDepartmentRouterV1.post(
   '/deleteAppDepartment',
   //validateRouteAccess,
   appAgentDepartmentController.deleteAppdepartment

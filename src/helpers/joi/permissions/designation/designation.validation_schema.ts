@@ -25,4 +25,14 @@ const updateAppDesignationSchema = Joi.object({
   description: Joi.string().trim().required()
 });
 
-export { createAppDesignationSchema, getAppDesignationSchema, deleteAppDesignationSchema, updateAppDesignationSchema };
+const getSingleDesignationSchema = Joi.object({
+  appDesignationId: Joi.string().length(24).required()
+});
+
+export {
+  getSingleDesignationSchema,
+  createAppDesignationSchema,
+  getAppDesignationSchema,
+  deleteAppDesignationSchema,
+  updateAppDesignationSchema
+};

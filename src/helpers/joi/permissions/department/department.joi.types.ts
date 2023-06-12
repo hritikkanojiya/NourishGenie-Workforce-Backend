@@ -20,3 +20,7 @@ export interface UpdateAppDepartmentType {
   name: string;
   description: string;
 }
+
+export interface GetSingleDepartment {
+  appDepartmentId: string;
+}
