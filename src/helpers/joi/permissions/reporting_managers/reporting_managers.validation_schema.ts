@@ -1,25 +1,34 @@
-import Joi from 'joi';
+import joi from 'joi';
 
-const createAppReportingManagerSchema = Joi.object({
-  ReportingManagerId: Joi.string().trim().required()
+import joiObjectId from 'joi-objectid';
+const objectId = joiObjectId(joi);
+
+const createAppReportingManagerSchema = joi.object({
+  appAgentId: objectId().required(),
+  isDeleted: joi.boolean().default(false)
 });
 
-const getAppReportingManagerSchema = Joi.object({
-  metaData: Joi.object().keys({
-    sortBy: Joi.string().trim().allow(null).default(null),
-    sortOn: Joi.string().trim().allow(null).default(null),
-    limit: Joi.number().allow(null).default(null),
-    offset: Joi.number().allow(null).default(null),
-    fields: Joi.array().unique().allow(null).default(null)
+const getAppReportingManagerSchema = joi.object({
+  appManagerId: objectId().allow(null),
+  appAgentId: objectId().allow(null),
+  search: joi.string().trim().allow(null),
+  metaData: joi.object().keys({
+    sortBy: joi.string().trim().allow(null).default(null),
+    sortOn: joi.string().trim().allow(null).default(null),
+    limit: joi.number().allow(null).default(null),
+    offset: joi.number().allow(null).default(null),
+    fields: joi.array().unique().allow(null).default(null)
   })
 });
 
-const deleteAppReportingManagerSchema = Joi.object({
-  ReportingManagerId: Joi.array().unique().items(Joi.string().hex().length(24)).min(1).required()
+const deleteAppReportingManagerSchema = joi.object({
+  appManagerIds: joi.array().unique().items(objectId()).min(1).required()
 });
 
-const updateAppReportingManagerSchema = Joi.object({
-  ReportingManagerId: Joi.string().hex().length(24).required()
+const updateAppReportingManagerSchema = joi.object({
+  appManagerId: objectId().required(),
+  appAgentId: objectId().required(),
+  isDeleted: joi.boolean().default(false)
 });
 
 export {

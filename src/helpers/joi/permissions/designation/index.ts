@@ -1,2 +1,2 @@
 export * from './designation.joi.types';
-export * from './designation.validation_schema';
+export * as joiAppDesignation from './designation.validation_schema';

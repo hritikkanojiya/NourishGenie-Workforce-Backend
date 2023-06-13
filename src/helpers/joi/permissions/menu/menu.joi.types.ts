@@ -1,4 +1,4 @@
-import { IQuerySchema, MetaDataBody } from '../../../shared/shared.type';
+import { QuerySchemaType, MetaDataBody } from '../../../shared/shared.type';
 import mongoose from 'mongoose';
 
 
@@ -75,7 +75,7 @@ export interface DeleteAppMenuType {
     appMenuIds: mongoose.Types.ObjectId[];
 }
 
-export interface AppMenuQuery extends IQuerySchema {
+export interface AppMenuQuery extends QuerySchemaType {
     $or?: Array<mongoose.FilterQuery<AppMenuType>>;
 }
 
@@ -105,7 +105,7 @@ export interface DeleteAppSubMenuType {
     appSubMenuIds: mongoose.Types.ObjectId[],
 };
 
-export interface AppSubMenuQuery extends IQuerySchema {
+export interface AppSubMenuQuery extends QuerySchemaType {
     appMenuId?: mongoose.Types.ObjectId;
     $or?: Array<mongoose.FilterQuery<AppSubMenuType>>;
 }

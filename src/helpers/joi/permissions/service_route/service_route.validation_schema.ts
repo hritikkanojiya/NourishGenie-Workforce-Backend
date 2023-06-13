@@ -8,6 +8,7 @@ const objectId = joiObjectId(joi);
 const createAppRouteSchema = joi.object({
     method: joi.string().trim().uppercase().required().valid('GET', 'POST', 'PUT', 'DELETE', 'PATCH'),
     path: joi.string().trim().required(),
+    type: joi.string().trim().uppercase().required().valid('MANUAL', 'AUTOMATED'),
     secure: joi.boolean().allow(true, false).required(),
     appAccessGroupIds: joi.when('secure', {
         is: true,
@@ -20,6 +21,7 @@ const createAppRouteSchema = joi.object({
 const getAppRoutesSchema = joi.object({
     appRouteId: objectId().allow(null).allow(null).default(null),
     method: joi.string().trim().uppercase().allow(null).valid('GET', 'POST', 'PUT', 'DELETE', 'PATCH').default(null),
+    type: joi.string().trim().uppercase().allow(null).valid('MANUAL', 'AUTOMATED').default(null),
     search: joi.string().trim().allow(null).default(null),
     secure: joi.boolean().allow(null).default(null),
     appAccessGroupIds: joi.array().unique().items(objectId()).default(null),
@@ -37,6 +39,7 @@ const getAppRoutesSchema = joi.object({
 const updateAppRouteSchema = joi.object({
     appRouteId: objectId().required(),
     method: joi.string().trim().uppercase().valid('GET', 'POST', 'PUT', 'DELETE', 'PATCH'),
+    type: joi.string().trim().uppercase().required().valid('MANUAL', 'AUTOMATED'),
     path: joi.string().trim(),
     secure: joi.boolean().allow(true, false),
     appAccessGroupIds: joi.when('secure', {

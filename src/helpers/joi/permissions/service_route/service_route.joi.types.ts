@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
-import { IQuerySchema, MetaDataResponse } from '../../../shared/shared.type';
+import { QuerySchemaType, MetaDataResponse } from '../../../shared/shared.type';
 
 export interface CreateAppServiceRouteType {
     path: string;
+    type: string;
     method: string;
     secure: boolean;
     appAccessGroupIds: mongoose.Types.ObjectId[];
@@ -14,6 +15,7 @@ export interface AppServiceRouteType {
     _id?: mongoose.Types.ObjectId;
     appRouteId?: mongoose.Types.ObjectId;
     method?: string;
+    type?: string;
     path?: string;
     secure?: boolean;
     appAccessGroupIds?: mongoose.Types.ObjectId[];
@@ -28,6 +30,7 @@ export interface AppServiceRouteType {
 export interface GetAppServiceRouteType {
     appRouteId: mongoose.Types.ObjectId;
     method: string;
+    type: string;
     search: string;
     secure: boolean;
     appAccessGroupIds: mongoose.Types.ObjectId[];
@@ -57,8 +60,9 @@ export interface ToggleGroupType {
     toggleAction: string;
 }
 
-export interface AppServiceRouteQuery extends IQuerySchema {
+export interface AppServiceRouteQuery extends QuerySchemaType {
     method?: string;
+    type?: string;
     secure?: boolean;
     $or?: Array<mongoose.FilterQuery<AppServiceRouteType>>;
 }

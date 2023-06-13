@@ -4,20 +4,11 @@ import {
   configureMetaData,
   convertDateTimeFormat,
   getFieldsToInclude,
-  // compactObject,
-  // configureMetaData,
-  // getFieldsToInclude,
-  // configureMetaData,
-  // convertDateTimeFormat,
-  // getFieldsToInclude,
   logBackendError,
-  stringToObjectId
-  // stringToObjectId
-  // stringToObjectId
 } from '../../../../helpers/common/backend.functions';
 import httpErrors from 'http-errors';
-import AppUserSchema from '../../../../models/accounts/app_user.model';
-import AppReportingManager from '../../../../models/account_fields/app_reporting_managers.model';
+import appAgentModel from '../../../../models/accounts/app_user.model';
+import appReportingManagerModel from '../../../../models/account_fields/app_reporting_managers.model';
 import {
   createAppReportingManagerSchema,
   deleteAppReportingManagerSchema,
@@ -26,11 +17,12 @@ import {
 import {
   CreateAppReportingManagerType,
   DeleteAppReportingManagerType,
-  GetAppReportingManagerType
-} from '../../../../helpers/joi/permissions/reporting_managers/reporting_managers.joi.types';
-import { GetRequestObject } from '../../../../helpers/shared/shared.type';
-import { FilterQuery, SortOrder } from 'mongoose';
-
+  GetAppReportingManagerQueryType,
+  GetAppReportingManagerType,
+  UpdateAppReportingManagerType,
+  joiAppReportingManager
+} from '../../../../helpers/joi/permissions/reporting_managers/index'
+import { MetaDataBody } from '../../../../helpers/shared/shared.type';
 // //description: add a reporting manager
 // //route: POST /api/v1/reporting_manager/
 // //access: private
@@ -40,31 +32,48 @@ export const createAppReportingManager = async (req: Request, res: Response, nex
     const appReportingManagerDetails: CreateAppReportingManagerType =
       await createAppReportingManagerSchema.validateAsync(req.body);
     // Check if reporting manager exist in Collection
-    const doesReportingManagerExist = await AppReportingManager.find({
-      _id: stringToObjectId(appReportingManagerDetails.ReportingManagerId)
+    const doesReportingManagerExist = await appReportingManagerModel.findOne({
+      appAgentId: appReportingManagerDetails.appAgentId,
+      isDeleted: false
     });
-    if (doesReportingManagerExist?.length > 0)
-      throw httpErrors.Conflict(`Reporting Manager [${appReportingManagerDetails.ReportingManagerId}] already exist.`);
+    if (doesReportingManagerExist)
+      throw httpErrors.Conflict(`Reporting Manager with app agent Id [${appReportingManagerDetails.appAgentId}] already exist.`);
+    // Check if Agent exist in Collection
+    const doesAgentExist = await appAgentModel.findOne({
+      _id: appReportingManagerDetails.appAgentId,
+      isDeleted: false,
+    });
+    if (!doesAgentExist)
+      throw httpErrors.Conflict(`Agent with Id [${appReportingManagerDetails.appAgentId}] does not exist.`);
+
+
     // Else Construct Data
-    const appReportingManager = new AppReportingManager({
-      appUserId: appReportingManagerDetails.ReportingManagerId
+    const appReportingManager = new appReportingManagerModel({
+      appAgentId: appReportingManagerDetails.appAgentId
     });
     // Save Record in Collection
-    await appReportingManager.save().catch((error: any) => {
+    const storeAppReportingManagerDetails = await appReportingManager.save().catch((error: any) => {
       throw httpErrors.UnprocessableEntity(error?.message ? error.message : 'Unable to save record in Database.');
     });
     // Construct Response
     //fetch the user details from the database using the reporting manager id
-    const reportingManagerDetails = await AppUserSchema.findOne({
-      _id: stringToObjectId(appReportingManagerDetails.ReportingManagerId)
-    });
-    //send response as user's details
 
-    res.status(201).json({
-      error: false,
-      message: `Reporting Manager [${appReportingManagerDetails.ReportingManagerId}] created successfully.`,
-      data: reportingManagerDetails
-    });
+    //send response as user's details
+    if (res.headersSent === false) {
+      res.status(200).send({
+        error: false,
+        data: {
+          appReportingManager: {
+            appManagerId: storeAppReportingManagerDetails._id,
+            appAgentId: storeAppReportingManagerDetails.appAgentId,
+            createdAt: storeAppReportingManagerDetails.createdAt,
+            updatedAt: storeAppReportingManagerDetails.updatedAt
+          },
+          message: 'Reporting Manager created successfully.',
+
+        }
+      });
+    }
   } catch (error: any) {
     console.log(error);
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
@@ -72,11 +81,7 @@ export const createAppReportingManager = async (req: Request, res: Response, nex
     next(error);
   }
 };
-type GetReportingManagerQuery = {
-  _id?: string;
-  $or?: unknown;
-  isDeleted?: boolean;
-};
+
 
 // description: get all reporting managers
 // route: POST /api/v1/reporting_manager/
@@ -86,43 +91,98 @@ export const getAppReportingManager = async (req: Request, res: Response, next: 
     //validate joi schema
     const querySchema: GetAppReportingManagerType = await getAppReportingManagerSchema.validateAsync(req.body);
     compactObject(querySchema);
-    const { sortBy, sortOn, limit, offset, fields } = await configureMetaData(
-      querySchema as unknown as GetRequestObject
-    );
-    const fieldsToInclude = getFieldsToInclude(fields);
-    const query: GetReportingManagerQuery = { isDeleted: false };
+    const metaData: MetaDataBody = await configureMetaData(querySchema);
+    const fieldsToInclude = getFieldsToInclude(metaData.fields);
+    const query: GetAppReportingManagerQueryType = { isDeleted: false };
+    if (querySchema.appManagerId) query._id = querySchema.appManagerId;
+    if (querySchema.appAgentId) query.appAgentId = querySchema.appAgentId;
     // Execute the Query
-    const appmanager = await AppReportingManager.find(query as FilterQuery<GetReportingManagerQuery>, {}, {})
+    const appManagers = await appReportingManagerModel
+      .find(query, {}, {})
       .select(fieldsToInclude)
-      .sort({ [sortOn]: sortBy } as { [key: string]: SortOrder })
-      .skip(offset)
-      .limit(limit)
-      .populate('appUserId', 'email')
+      .sort({ [metaData.sortOn]: metaData.sortBy })
+      .skip(metaData.offset)
+      .limit(metaData.limit)
       .lean()
-      .catch((error: any) => {
+      .catch(error => {
         throw httpErrors.UnprocessableEntity(
           error?.message ? error.message : 'Unable to retrieve records from Database.'
         );
       });
-    const totalRecords = await AppReportingManager.find(
-      query as FilterQuery<GetReportingManagerQuery>
-    ).countDocuments();
+    await Promise.all(
+      appManagers.map(async (appManager: any) => {
+        appManager.appManagerId = appManager._id;
+        delete appManager._id;
+        delete appManager.__v;
+        return appManager;
+      })
+    );
+    const totalRecords = await appReportingManagerModel
+      .find(query)
+      .countDocuments();
 
-    convertDateTimeFormat(appmanager);
+    convertDateTimeFormat(appManagers);
+
+
     // Send Response
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
         data: {
-          AppReportingManager: appmanager,
+          appReportingManager: appManagers,
           metaData: {
-            sortBy: sortBy,
-            sortOn: sortOn,
-            limit: limit,
-            offset: offset,
+            sortBy: metaData.sortBy,
+            sortOn: metaData.sortOn,
+            limit: metaData.limit,
+            offset: metaData.offset,
             total_records: totalRecords
           },
           message: 'Reporting Managers fetched successfully.'
+        }
+      });
+    }
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
+};
+
+export const updateAppReportingManager = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    //validate joi schema
+    const appReportingManagerDetails: UpdateAppReportingManagerType = await joiAppReportingManager.updateAppReportingManagerSchema.validateAsync(req.body);
+    // Check if Reporting Manager exist in Collection
+    const doesReportingManagerExist = await appReportingManagerModel.findOne({
+      _id: { $in: appReportingManagerDetails.appManagerId },
+      isDeleted: false
+    });
+
+    if (!doesReportingManagerExist) throw httpErrors.Conflict(`Reporting Manager with Id [${appReportingManagerDetails.appManagerId}] does not exist.`);
+    // Check if Agent exist in Collection
+    const doesAgentExist = await appAgentModel.findOne({
+      _id: appReportingManagerDetails.appAgentId,
+      isDeleted: false,
+    });
+    if (!doesAgentExist)
+      throw httpErrors.Conflict(`Agent with Id [${appReportingManagerDetails.appAgentId}] does not exist.`);
+
+    // Update records in Collection
+    await appReportingManagerModel.updateOne(
+      { _id: { $in: appReportingManagerDetails.appManagerId } },
+      {
+        appAgentId: appReportingManagerDetails.appAgentId,
+      }
+    ).catch((error: any) => {
+      throw httpErrors.UnprocessableEntity(error.message);
+    });
+
+    // Send Response
+    if (res.headersSent === false) {
+      res.status(200).send({
+        error: false,
+        data: {
+          message: 'Reporting  Manager updated successfully.'
         }
       });
     }
@@ -141,22 +201,31 @@ export const deleteAppReportingManager = async (req: Request, res: Response, nex
     const appReportingManagerDetails: DeleteAppReportingManagerType =
       await deleteAppReportingManagerSchema.validateAsync(req.body);
     // Check if reporting manager exist in Collection
-    const doesReportingManagerExist = await AppReportingManager.find({
-      _id: stringToObjectId(appReportingManagerDetails.ReportingManagerId)
+    const appReportingManagers = await appReportingManagerModel.find({
+      _id: { $in: appReportingManagerDetails.appManagerIds },
+      isDeleted: false
+    }).catch((error: any) => {
+      throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
     });
-    if (!doesReportingManagerExist)
-      throw httpErrors.Conflict(`Reporting Manager [${appReportingManagerDetails.ReportingManagerId}] does not exist.`);
+    if (appReportingManagers.length <= 0)
+      throw httpErrors.UnprocessableEntity(`Invalid Designation IDs.`);
     //update the isDeleted field to true
-    const deleteReportingManager = await AppReportingManager.updateOne(
-      { _id: stringToObjectId(appReportingManagerDetails.ReportingManagerId) },
-      { $set: { isDeleted: true } }
-    );
-    //send response
-    res.status(201).json({
-      error: false,
-      message: `Reporting Manager [${appReportingManagerDetails.ReportingManagerId}] deleted successfully.`,
-      data: deleteReportingManager
+    appReportingManagers.forEach(async appReportingManager => {
+      await appReportingManager
+        .updateOne({
+          isDeleted: true
+        })
+        .catch((error: any) => {
+          throw httpErrors.UnprocessableEntity(error.message);
+        });
     });
+    //send response
+    if (res.headersSent === false) {
+      res.status(200).send({
+        error: false,
+        message: 'Reporting Managers deleted successfully.',
+      });
+    }
   } catch (error: any) {
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
     if (error?.isJoi === true) error.status = 422;
@@ -169,13 +238,13 @@ export const deleteAppReportingManager = async (req: Request, res: Response, nex
 //access: private
 export const getNonReportingManager = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const reportingManagers = await AppReportingManager.find({ isDeleted: false }).catch((error: any) => {
+    const reportingManagers = await appReportingManagerModel.find({ isDeleted: false }).catch((error: any) => {
       throw httpErrors.UnprocessableEntity(
         error?.message ? error.message : 'Unable to retrieve records from Database.'
       );
     });
-    const userIds = reportingManagers.map(manager => manager.appUserId);
-    const users = await AppUserSchema.find({ _id: { $nin: userIds } });
+    const userIds = reportingManagers.map(manager => manager.appAgentId);
+    const users = await appAgentModel.find({ _id: { $nin: userIds } });
     //send response
     res.status(201).json({
       message: `Non Reporting Managers fetched successfully.`,

@@ -1,16 +1,30 @@
 import { Router } from 'express';
-import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
 import * as appAgentAuthController from '../../../controllers/agent/auth/auth.controller';
+import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
+import permissionsModule from '../../../middlewares/permissions/permissions.middleware';
 
 const appAgentAuthRouterV1 = Router();
 
-appAgentAuthRouterV1.post('/login', appAgentAuthController.appAgentLogin);
+appAgentAuthRouterV1.post(
+  '/login',
+  appAgentAuthController.appAgentLogin
+);
+
+appAgentAuthRouterV1.post(
+  '/refresh',
+  jwtModule.verifyRefreshToken,
+  appAgentAuthController.appAgentRefresh
+);
 
 appAgentAuthRouterV1.post(
   '/logout',
   jwtModule.verifyAccessToken,
-  // permissionsModule.validateRouteAccess,
   appAgentAuthController.appAgentLogout
 );
-appAgentAuthRouterV1.post('/getAgentByToken', appAgentAuthController.getAgentByToken);
+appAgentAuthRouterV1.post(
+  '/getAgentByToken',
+  jwtModule.verifyAccessToken,
+  permissionsModule.validateRouteAccess,
+  appAgentAuthController.getAgentByToken
+);
 export { appAgentAuthRouterV1 };

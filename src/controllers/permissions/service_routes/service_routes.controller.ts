@@ -23,8 +23,7 @@ import {
     ToggleGroupType,
     DeleteAppServiceRouteType,
     AppServiceRouteType
-}
-    from '../../../helpers/joi/permissions/service_route/index';
+} from '../../../helpers/joi/permissions/service_route/index';
 import mongoose from 'mongoose';
 // const APP_FRONTEND = process.env.APP_FRONTEND!;
 
@@ -124,6 +123,7 @@ const getAppServiceRoutes = async (req: Request, res: Response, next: NextFuncti
 
         if (querySchema.appRouteId) query._id = querySchema.appRouteId;
         if (querySchema.method) query.method = querySchema.method;
+        if (querySchema.type) query.type = querySchema.type;
         if (typeof querySchema?.secure === 'boolean') query.secure = querySchema.secure;
         if (
             querySchema?.appAccessGroupIds != null &&

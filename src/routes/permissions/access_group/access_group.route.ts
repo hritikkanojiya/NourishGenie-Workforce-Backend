@@ -12,11 +12,15 @@ appAccessGroupRouterV1.post(
 
 appAccessGroupRouterV1.post(
   '/get-group',
-  //jwtModule.verifyAccessToken,
+  jwtModule.verifyAccessToken,
   appAccessGroupController.getAppAccessGroup
 );
 
-appAccessGroupRouterV1.put('/update-group', jwtModule.verifyAccessToken, appAccessGroupController.updateAppAccessGroup);
+appAccessGroupRouterV1.put(
+  '/update-group',
+  jwtModule.verifyAccessToken,
+  appAccessGroupController.updateAppAccessGroup
+);
 
 appAccessGroupRouterV1.delete(
   '/delete-group',

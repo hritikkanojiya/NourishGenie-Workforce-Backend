@@ -1,33 +1,36 @@
-import Joi from 'joi';
+import joi from 'joi';
+import joiObjectId from 'joi-objectid';
+const objectId = joiObjectId(joi);
 
-const createAppDepartmentSchema = Joi.object({
-  name: Joi.string().trim().required(),
-  description: Joi.string().trim().required()
+const createAppDepartmentSchema = joi.object({
+  name: joi.string().trim().required(),
+  description: joi.string().trim().required()
 });
 
-const getAppDepartmentSchema = Joi.object({
-  search: Joi.string().trim().allow(''),
-  metaData: Joi.object().keys({
-    sortBy: Joi.string().trim().allow(null).default(null),
-    sortOn: Joi.string().trim().allow(null).default(null),
-    limit: Joi.number().allow(null).default(null),
-    offset: Joi.number().allow(null).default(null),
-    fields: Joi.array().unique().allow(null).default(null)
+const getAppDepartmentSchema = joi.object({
+  appDepartmentId: objectId().allow(null),
+  search: joi.string().trim().allow(null),
+  metaData: joi.object().keys({
+    sortBy: joi.string().trim().allow(null).default(null),
+    sortOn: joi.string().trim().allow(null).default(null),
+    limit: joi.number().allow(null).default(null),
+    offset: joi.number().allow(null).default(null),
+    fields: joi.array().unique().allow(null).default(null)
   })
 });
 
-const deleteAppDepartmentSchema = Joi.object({
-  appDepartmentId: Joi.array().unique().items(Joi.string().hex().length(24)).min(1).required()
+const deleteAppDepartmentSchema = joi.object({
+  appDepartmentIds: joi.array().unique().items(objectId()).min(1).required()
 });
 
-const updateAppDepartmentSchema = Joi.object({
-  appDepartmentId: Joi.string().hex().length(24).required(),
-  name: Joi.string().trim().required(),
-  description: Joi.string().trim().required()
+const updateAppDepartmentSchema = joi.object({
+  appDepartmentId: objectId().required(),
+  name: joi.string().trim().required(),
+  description: joi.string().trim().required()
 });
 
-const getSingleDepartmentSchema = Joi.object({
-  appDepartmentId: Joi.string().length(24).required()
+const getSingleDepartmentSchema = joi.object({
+  appDepartmentId: objectId().required(),
 });
 
 export {

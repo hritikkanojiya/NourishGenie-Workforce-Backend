@@ -6,69 +6,59 @@ import {
   configureMetaData,
   convertDateTimeFormat,
   getFieldsToInclude,
-  // configureMetaData,
-  // convertDateTimeFormat,
-  // getFieldsToInclude,
   logBackendError,
-  stringToObjectId
-  // stringToObjectId
 } from '../../../../helpers/common/backend.functions';
-import Appdepartment from '../../../../models/account_fields/app_department.model';
+import appDepartmentModel from '../../../../models/account_fields/app_department.model';
 import httpErrors from 'http-errors';
 import {
+  joiAppDepartment,
   CreateAppDepartmentType,
   DeleteAppDepartmentType,
+  GetAppDepartmentQueryType,
   GetAppDepartmentType,
   GetSingleDepartment,
-  UpdateAppDepartmentType
-} from '../../../../helpers/joi/permissions/department/department.joi.types';
-import {
-  createAppDepartmentSchema,
-  deleteAppDepartmentSchema,
-  getAppDepartmentSchema,
-  getSingleDepartmentSchema,
-  updateAppDepartmentSchema
-} from '../../../../helpers/joi/permissions/department/department.validation_schema';
-import { GetRequestObject } from 'helpers/shared/shared.type';
-import { FilterQuery, SortOrder } from 'mongoose';
+  UpdateAppDepartmentType,
+} from '../../../../helpers/joi/permissions/department/index';
 
-type GetDepartmentQuery = {
-  _id?: string;
-  $or?: unknown;
-  isDeleted?: boolean;
-};
+import { MetaDataBody } from '../../../../helpers/shared/shared.type';
 
 //description: create a new department
 //route: POST /api/v1/department
 //access: private
-export const createAppdepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const createAppDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Validate Joi Schema
-    const appdepartmentDetails: CreateAppDepartmentType = await createAppDepartmentSchema.validateAsync(req.body);
+    const appDepartmentDetails: CreateAppDepartmentType = await joiAppDepartment.createAppDepartmentSchema.validateAsync(req.body);
     // Check if department exist in Collection
-    const doesdepartmentExist = await Appdepartment.find({
-      name: appdepartmentDetails.name
+    const doesDepartmentExist = await appDepartmentModel.find({
+      name: appDepartmentDetails.name
     });
-    if (doesdepartmentExist?.length > 0)
-      throw httpErrors.Conflict(`department [${appdepartmentDetails.name}] already exist.`);
+    if (doesDepartmentExist?.length > 0)
+      throw httpErrors.Conflict(`department [${appDepartmentDetails.name}] already exist.`);
     // Else Construct Data
-    const appdepartment = new Appdepartment({
-      name: appdepartmentDetails.name,
-      description: appdepartmentDetails.description
+    const appDepartment = new appDepartmentModel({
+      name: appDepartmentDetails.name,
+      description: appDepartmentDetails.description
     });
     // Save Record in Collection
-    const storedepartmentDetails = (
-      await appdepartment.save({}).catch((error: any) => {
+    const storeDepartmentDetails = (
+      await appDepartment.save({}).catch((error: any) => {
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
     // Send Response
     res.status(201).json({
-      status: 'success',
-      message: 'department created successfully',
+      error: false,
       data: {
-        department: storedepartmentDetails
-      }
+        appDepartment: {
+          appDepartmentId: storeDepartmentDetails._id,
+          name: storeDepartmentDetails.name,
+          description: storeDepartmentDetails.description,
+          createdAt: storeDepartmentDetails.createdAt,
+          updatedAt: storeDepartmentDetails.updatedAt
+        }
+      },
+      message: 'department created successfully',
     });
   } catch (error: any) {
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
@@ -80,67 +70,66 @@ export const createAppdepartment = async (req: Request, res: Response, next: Nex
 //description: get all departments
 //route: GET /api/v1/department
 //access: private
-export const getAppdepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAppDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
-    const querySchema: GetAppDepartmentType = await getAppDepartmentSchema.validateAsync(req.body);
+    const querySchema: GetAppDepartmentType = await joiAppDepartment.getAppDepartmentSchema.validateAsync(req.body);
     compactObject(querySchema);
-    const { sortBy, sortOn, limit, offset, fields } = await configureMetaData(
-      querySchema as unknown as GetRequestObject
-    );
-    const fieldsToInclude = getFieldsToInclude(fields);
-    const query: GetDepartmentQuery = { isDeleted: false };
+    const metaData: MetaDataBody = await configureMetaData(querySchema);
+    const fieldsToInclude = getFieldsToInclude(metaData.fields);
+    const query: GetAppDepartmentQueryType = { isDeleted: false };
     if (querySchema.appDepartmentId) query._id = querySchema.appDepartmentId;
-    //if (querySchema.isAdministrator) query.isAdministrator = querySchema.isAdministrator;
-    query.$or = [
-      {
-        name: {
-          $regex: querySchema.search,
-          $options: 'is'
+    if (querySchema.search)
+      query.$or = [
+        {
+          name: {
+            $regex: querySchema.search,
+            $options: 'is'
+          }
+        },
+        {
+          description: {
+            $regex: querySchema.search,
+            $options: 'is'
+          }
         }
-      },
-      {
-        description: {
-          $regex: querySchema.search,
-          $options: 'is'
-        }
-      }
-    ];
+      ];
     // Execute the Query
-    const appdepartment = await Appdepartment.find(query as FilterQuery<GetDepartmentQuery>, {}, {})
+    const appDepartments = await appDepartmentModel
+      .find(query, {}, {})
       .select(fieldsToInclude)
-      .sort({ [sortOn]: sortBy } as { [key: string]: SortOrder })
-      .skip(offset)
-      .limit(limit)
+      .sort({ [metaData.sortOn]: metaData.sortBy })
+      .skip(metaData.offset)
+      .limit(metaData.limit)
       .lean()
-      .catch((error: any) => {
+      .catch(error => {
         throw httpErrors.UnprocessableEntity(
           error?.message ? error.message : 'Unable to retrieve records from Database.'
         );
       });
 
     await Promise.all(
-      appdepartment.map(async (AppDepartment: any) => {
-        AppDepartment.AppDepartmentId = AppDepartment._id;
-        delete AppDepartment._id;
-        delete AppDepartment.__v;
-        return AppDepartment;
+      appDepartments.map(async (appDepartment: any) => {
+        appDepartment.appDepartmentId = appDepartment._id;
+        delete appDepartment._id;
+        delete appDepartment.__v;
+        return appDepartment;
       })
     );
-    const totalRecords = await Appdepartment.find(query as FilterQuery<GetDepartmentQuery>).countDocuments();
+    const totalRecords = await appDepartmentModel.find(query).countDocuments();
 
-    convertDateTimeFormat(appdepartment);
+    convertDateTimeFormat(appDepartments);
     // Send Response
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
         data: {
-          AppDepartment: appdepartment,
+          AppDepartment: appDepartments,
           metaData: {
-            sortBy: sortBy,
-            sortOn: sortOn,
-            limit: limit,
-            offset: offset,
+            sortBy: metaData.sortBy,
+            sortOn: metaData.sortOn,
+            limit: metaData.limit,
+            offset: metaData.offset,
             total_records: totalRecords
           },
           message: 'Department fetched successfully.'
@@ -160,21 +149,26 @@ export const getAppdepartment = async (req: Request, res: Response, next: NextFu
 //access: private
 export const getSingleDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const getSingleDepartmentDetails: GetSingleDepartment = await getSingleDepartmentSchema.validateAsync(req.body);
+    const getSingleDepartmentDetails: GetSingleDepartment = await joiAppDepartment.getSingleDepartmentSchema.validateAsync(req.body);
     //check if the dept exists
-    const department = await Appdepartment.findOne({
-      _id: stringToObjectId(getSingleDepartmentDetails.appDepartmentId),
+    const department = await appDepartmentModel.findOne({
+      _id: getSingleDepartmentDetails.appDepartmentId,
       isDeleted: false
     }).catch((error: any) => {
       throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
     });
     if (!department) throw httpErrors.UnprocessableEntity(`Invalid Department ID.`);
-    const departmentDetails = department.toObject();
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
         data: {
-          department: departmentDetails,
+          appDepartment: {
+            appDepartmentId: department._id,
+            name: department.name,
+            description: department.description,
+            createdAt: department.createdAt,
+            updatedAt: department.updatedAt
+          },
           message: `Department details fetched successfully.`
         }
       });
@@ -189,20 +183,20 @@ export const getSingleDepartment = async (req: Request, res: Response, next: Nex
 //description: delete a department
 //route: DELETE /api/v1/department/:id
 //access: private
-export const deleteAppdepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const deleteAppDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const appdepartmentDetails: DeleteAppDepartmentType = await deleteAppDepartmentSchema.validateAsync(req.body);
+    const appDepartmentDetails: DeleteAppDepartmentType = await joiAppDepartment.deleteAppDepartmentSchema.validateAsync(req.body);
     // Update records in Collection
-    const appdepartment = await Appdepartment.find({
-      _id: { $in: stringToObjectId(appdepartmentDetails.appDepartmentId) },
+    const appDepartment = await appDepartmentModel.find({
+      _id: { $in: appDepartmentDetails.appDepartmentIds },
       isDeleted: false
     }).catch((error: any) => {
       throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
     });
 
-    if (appdepartment?.length <= 0) throw httpErrors.UnprocessableEntity(`Invalid Department ID.`);
+    if (appDepartment?.length <= 0) throw httpErrors.UnprocessableEntity(`Invalid Department ID.`);
     //Delete record by updating the isDelete value to true
-    appdepartment.forEach(async department => {
+    appDepartment.forEach(async department => {
       await department
         .updateOne({
           isDeleted: true
@@ -230,23 +224,23 @@ export const deleteAppdepartment = async (req: Request, res: Response, next: Nex
 //description: update a department
 //route: PUT /api/v1/department/
 //access: private
-export const updateAppdepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateAppDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
-    const appdepartmentDetails: UpdateAppDepartmentType = await updateAppDepartmentSchema.validateAsync(req.body);
+    const appDepartmentDetails: UpdateAppDepartmentType = await joiAppDepartment.updateAppDepartmentSchema.validateAsync(req.body);
     // Check if department exist in Collection
-    const doesdepartmentExist = await Appdepartment.findOne({
-      _id: { $in: stringToObjectId(appdepartmentDetails.appDepartmentId) },
+    const doesDepartmentExist = await appDepartmentModel.findOne({
+      _id: appDepartmentDetails.appDepartmentId,
       isDeleted: false
     });
 
-    if (!doesdepartmentExist) throw httpErrors.Conflict(`Group [${appdepartmentDetails.name}] does not exist.`);
+    if (!doesDepartmentExist) throw httpErrors.Conflict(`Group [${appDepartmentDetails.name}] does not exist.`);
     // Update records in Collection
-    await Appdepartment.updateOne(
-      { _id: { $in: stringToObjectId(appdepartmentDetails.appDepartmentId) } },
+    await appDepartmentModel.updateOne(
+      { _id: { $in: appDepartmentDetails.appDepartmentId } },
       {
-        name: appdepartmentDetails.name,
-        description: appdepartmentDetails.description
+        name: appDepartmentDetails.name,
+        description: appDepartmentDetails.description
       }
     ).catch((error: any) => {
       throw httpErrors.UnprocessableEntity(error.message);

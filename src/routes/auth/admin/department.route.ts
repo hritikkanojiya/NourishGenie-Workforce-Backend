@@ -1,33 +1,38 @@
 //department routes
 import { Router } from 'express';
-
 import * as appAgentDepartmentController from '../../../controllers/agent/fields/department/department.controller';
-//import validateRouteAccess from '../../../middlewares/permissions/permissions.middleware';
+import permissionModule from '../../../middlewares/permissions/permissions.middleware';
+import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
 
 export const appAgentDepartmentRouterV1 = Router();
 appAgentDepartmentRouterV1.post(
-  '/createAppDepartment',
-  //validateRouteAccess,
-  appAgentDepartmentController.createAppdepartment
+  '/create-department',
+  jwtModule.verifyAccessToken,
+  permissionModule.validateRouteAccess,
+  appAgentDepartmentController.createAppDepartment
 );
 appAgentDepartmentRouterV1.post(
-  '/getAppDepartment',
-  //validateRouteAccess,
-  appAgentDepartmentController.getAppdepartment
+  '/get-department',
+  jwtModule.verifyAccessToken,
+  permissionModule.validateRouteAccess,
+  appAgentDepartmentController.getAppDepartment
 );
 appAgentDepartmentRouterV1.post(
-  '/getSingleDepartment',
-  //validateRouteAccess,
+  '/get-department',
+  jwtModule.verifyAccessToken,
+  permissionModule.validateRouteAccess,
   appAgentDepartmentController.getSingleDepartment
 );
 
 appAgentDepartmentRouterV1.post(
-  '/deleteAppDepartment',
-  //validateRouteAccess,
-  appAgentDepartmentController.deleteAppdepartment
+  '/delete-department',
+  jwtModule.verifyAccessToken,
+  permissionModule.validateRouteAccess,
+  appAgentDepartmentController.deleteAppDepartment
 );
 appAgentDepartmentRouterV1.patch(
-  '/updateAppDepartment',
-  //validateRouteAccess,
-  appAgentDepartmentController.updateAppdepartment
+  '/update-department',
+  jwtModule.verifyAccessToken,
+  permissionModule.validateRouteAccess,
+  appAgentDepartmentController.updateAppDepartment
 );

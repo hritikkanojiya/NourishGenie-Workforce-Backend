@@ -23,7 +23,7 @@ export interface MetaDataBody {
   offset: number;
   fields: string[];
 }
-export interface IQuerySchema {
+export interface QuerySchemaType {
   _id?: mongoose.Types.ObjectId;
   isDeleted?: boolean;
 }

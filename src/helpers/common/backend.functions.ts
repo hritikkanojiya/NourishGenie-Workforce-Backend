@@ -29,7 +29,7 @@ function stringToObjectId(rawData: string | string[] | undefined): Types.ObjectI
 
 function sanitizeUrl(url: string): string {
   // Remove Parameters [:id,etc] => i.e (Gives raw route without any Parameters or Query String)
-  return (url.split(':')[0].endsWith('/') ? url.split(':')[0] : url + '/').toString().replace(/\/{2,}/g, '/');
+  return (url.split(':')[0].endsWith('/') ? url.split(':')[0] : url).toString().replace(/\/{2,}/g, '/');
 }
 
 

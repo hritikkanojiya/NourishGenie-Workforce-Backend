@@ -115,7 +115,6 @@ const verifyAccessToken = async (req: RequestType, res: Response, next: NextFunc
 
     const refreshTokenHeader = JWT_ACCESS_TOKEN_HEADER;
     if (!req.headers?.[refreshTokenHeader]) throw httpErrors.Unauthorized(notAuthorized);
-    console.log(refreshTokenHeader);
     const authHeader = req.headers?.[refreshTokenHeader];
     let bearerToken: string[] = [];
     if (typeof authHeader === 'string') {
@@ -130,7 +129,6 @@ const verifyAccessToken = async (req: RequestType, res: Response, next: NextFunc
       throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_ACCESS_TOKEN_SECRET]`);
     JWT.verify(accessToken, JWT_ACCESS_TOKEN_SECRET, (error: any, payload: any) => {
       if (error || payload?.payloadData?.requestIP != req.ip) {
-        console.log(error);
         throw httpErrors.Unauthorized(notAuthorized);
       }
       req.payload = payload.payloadData;
