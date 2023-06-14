@@ -1,4 +1,4 @@
-import appDesignationModel from '../../../../models/account_fields/app_designation.model';
+import appDesignationModel from '../../../../models/agent/fields/app_designation.model';
 import { NextFunction, Request, Response } from 'express';
 import httpErrors from 'http-errors';
 import {
@@ -9,7 +9,7 @@ import {
   GetSingleDesignation,
   UpdateAppDesignationType,
   GetAppDesignationQueryType
-} from '../../../../helpers/joi/permissions/designation/index';
+} from '../../../../helpers/joi/agent/fields/designation/index';
 
 import {
   compactObject,
@@ -72,28 +72,34 @@ export const getAppDesignation = async (req: Request, res: Response, next: NextF
   try {
     //validate joi schema
     const querySchema: GetAppDesignationType = await joiAppDesignation.getAppDesignationSchema.validateAsync(req.body);
+
     compactObject(querySchema);
+
     const metaData: MetaDataBody = await configureMetaData(querySchema);
+
     const fieldsToInclude = getFieldsToInclude(metaData.fields);
+
     const query: GetAppDesignationQueryType = { isDeleted: false };
 
     if (querySchema.appDesignationId) query._id = querySchema.appDesignationId;
-    query.$or = [
-      {
-        name: {
-          $regex: querySchema.search,
-          $options: 'is'
+
+    if (querySchema.search)
+      query.$or = [
+        {
+          name: {
+            $regex: querySchema.search,
+            $options: 'is'
+          }
+        },
+        {
+          description: {
+            $regex: querySchema.search,
+            $options: 'is'
+          }
         }
-      },
-      {
-        description: {
-          $regex: querySchema.search,
-          $options: 'is'
-        }
-      }
-    ];
+      ];
     // Execute the Query
-    const appdesignation = await appDesignationModel
+    const appDesignations = await appDesignationModel
       .find(query, {}, {})
       .select(fieldsToInclude)
       .sort({ [metaData.sortOn]: metaData.sortBy })
@@ -107,7 +113,7 @@ export const getAppDesignation = async (req: Request, res: Response, next: NextF
       });
 
     await Promise.all(
-      appdesignation.map(async (appDesignation: any) => {
+      appDesignations.map(async (appDesignation: any) => {
         appDesignation.appDesignationId = appDesignation._id;
         delete appDesignation._id;
         delete appDesignation.__v;
@@ -116,13 +122,13 @@ export const getAppDesignation = async (req: Request, res: Response, next: NextF
     );
     const totalRecords = await appDesignationModel
       .find(query).countDocuments();
-    convertDateTimeFormat(appdesignation);
+    convertDateTimeFormat(appDesignations);
     // Send Response
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
         data: {
-          AppDesignation: appdesignation,
+          appDesignations: appDesignations,
           metaData: {
             sortBy: metaData.sortBy,
             sortOn: metaData.sortOn,

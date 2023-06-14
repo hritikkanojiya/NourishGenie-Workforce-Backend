@@ -7,13 +7,9 @@ import {
   logBackendError,
 } from '../../../../helpers/common/backend.functions';
 import httpErrors from 'http-errors';
-import appAgentModel from '../../../../models/accounts/app_user.model';
-import appReportingManagerModel from '../../../../models/account_fields/app_reporting_managers.model';
-import {
-  createAppReportingManagerSchema,
-  deleteAppReportingManagerSchema,
-  getAppReportingManagerSchema
-} from '../../../../helpers/joi/permissions/reporting_managers/reporting_managers.validation_schema';
+import appAgentModel from '../../../../models/agent/agent.model';
+import appReportingManagerModel from '../../../../models/agent/fields/app_reporting_managers.model';
+
 import {
   CreateAppReportingManagerType,
   DeleteAppReportingManagerType,
@@ -21,7 +17,7 @@ import {
   GetAppReportingManagerType,
   UpdateAppReportingManagerType,
   joiAppReportingManager
-} from '../../../../helpers/joi/permissions/reporting_managers/index'
+} from '../../../../helpers/joi/agent/fields/reporting_managers/index'
 import { MetaDataBody } from '../../../../helpers/shared/shared.type';
 // //description: add a reporting manager
 // //route: POST /api/v1/reporting_manager/
@@ -30,7 +26,7 @@ export const createAppReportingManager = async (req: Request, res: Response, nex
   try {
     // Validate Joi Schema
     const appReportingManagerDetails: CreateAppReportingManagerType =
-      await createAppReportingManagerSchema.validateAsync(req.body);
+      await joiAppReportingManager.createAppReportingManagerSchema.validateAsync(req.body);
     // Check if reporting manager exist in Collection
     const doesReportingManagerExist = await appReportingManagerModel.findOne({
       appAgentId: appReportingManagerDetails.appAgentId,
@@ -89,7 +85,7 @@ export const createAppReportingManager = async (req: Request, res: Response, nex
 export const getAppReportingManager = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
-    const querySchema: GetAppReportingManagerType = await getAppReportingManagerSchema.validateAsync(req.body);
+    const querySchema: GetAppReportingManagerType = await joiAppReportingManager.getAppReportingManagerSchema.validateAsync(req.body);
     compactObject(querySchema);
     const metaData: MetaDataBody = await configureMetaData(querySchema);
     const fieldsToInclude = getFieldsToInclude(metaData.fields);
@@ -199,7 +195,7 @@ export const updateAppReportingManager = async (req: Request, res: Response, nex
 export const deleteAppReportingManager = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const appReportingManagerDetails: DeleteAppReportingManagerType =
-      await deleteAppReportingManagerSchema.validateAsync(req.body);
+      await joiAppReportingManager.deleteAppReportingManagerSchema.validateAsync(req.body);
     // Check if reporting manager exist in Collection
     const appReportingManagers = await appReportingManagerModel.find({
       _id: { $in: appReportingManagerDetails.appManagerIds },

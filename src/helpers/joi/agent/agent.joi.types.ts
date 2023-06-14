@@ -1,4 +1,28 @@
 import { MetaDataResponse } from 'helpers/shared/shared.type';
+import mongoose from 'mongoose';
+
+
+export interface AppAgentType {
+  _id: mongoose.Types.ObjectId;
+  appAgentId?: mongoose.Types.ObjectId;
+  first_name?: string;
+  last_name?: string
+  email?: string
+  password?: string
+  appReportingManagerId?: mongoose.Types.ObjectId;
+  appAccessGroupId: mongoose.Types.ObjectId;
+  appDepartmentId?: mongoose.Types.ObjectId;
+  appDesignationId?: mongoose.Types.ObjectId;
+  employee_type?: string;
+  isDeleted?: string
+  isAdminstrator: boolean,
+  __v?: number;
+  createdAt?: Date;
+  isValidPassword?: (plainPassword: string) => Promise<boolean>;
+  updatedAt?: Date;
+  isAdded?: boolean;
+  updateOne?: any;
+}
 
 export interface AppAgentRegistrationType {
   username: string;

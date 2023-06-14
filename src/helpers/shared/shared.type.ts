@@ -32,10 +32,10 @@ export interface GetRequestObject {
   message: string;
 }
 
-interface PayloadData {
-  requestIP: string,
-  appAgentId: string,
-  appAccessGroupId: string
+export interface PayloadData {
+  requestIP?: string,
+  appAgentId?: string,
+  appAccessGroupId?: string
 }
 
 export interface RequestType extends Request {

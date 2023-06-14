@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { appAccessGroupRouterV1 } from '../../../routes/permissions/access_group/access_group.route';
 import { appAgentAuthRouterV1 } from '../../../routes/agent/auth/auth.route';
-import { appAgentDepartmentRouterV1 } from '../../../routes/auth/admin/department.route';
-import { appAgentDesignationRouterV1 } from '../../../routes/auth/admin/designation.route';
+import { appAgentDepartmentRouterV1 } from '../../../routes/agent/fields/department.route';
+import { appAgentDesignationRouterV1 } from '../../../routes/agent/fields/designation.route';
 import { appRouteRouterV1 } from '../../../routes/permissions/service_route/service_route.route';
 import { menuRouterV1 } from '../../../routes/permissions/menu/menu.route';
-import { appAccountRouterV1 } from '../../../routes/accounts/account.route';
-import { appAccountFileRouterV1 } from '../../../routes/accounts/account_files.route';
-import { appReportingManagerRouterV1 } from '../../../routes/auth/admin/reporting_manager.route';
+import { appAccountRouterV1 } from '../../../routes/agent/accounts/account.route';
+import { appAccountFileRouterV1 } from '../../../routes/agent/accounts/account_files.route';
+import { appReportingManagerRouterV1 } from '../../../routes/agent/fields/reporting_manager.route';
 
 const v1 = Router();
 

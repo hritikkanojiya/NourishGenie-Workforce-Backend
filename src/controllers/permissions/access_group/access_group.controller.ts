@@ -1,6 +1,6 @@
 import httpErrors from 'http-errors';
 import appAccessGroupModel from '../../../models/permissions/access_group/access_group.model';
-import appAgentModel from '../../../models/accounts/app_user.model'
+import appAgentModel from '../../../models/agent/agent.model'
 import {
   compactObject,
   configureMetaData,
@@ -17,7 +17,7 @@ import {
   GetAppAccessGroupType,
   UpdateAppAccessGroupType,
   GetAccessGroupQueryType
-} from '../../../helpers/joi/permissions/accessGroup';
+} from '../../../helpers/joi/permissions/access_group';
 
 
 const createAppAccessGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

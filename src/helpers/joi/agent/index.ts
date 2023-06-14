@@ -1,2 +1,2 @@
 export * from './agent.joi.types'
-export * from './agent.validation_schema'
+export * as joiAgent from './agent.validation_schema'

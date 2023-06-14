@@ -13,18 +13,35 @@ appAgentAuthRouterV1.post(
 appAgentAuthRouterV1.post(
   '/refresh',
   jwtModule.verifyRefreshToken,
+  permissionsModule.validateRouteAccess,
   appAgentAuthController.appAgentRefresh
 );
 
 appAgentAuthRouterV1.post(
   '/logout',
   jwtModule.verifyAccessToken,
+  permissionsModule.validateRouteAccess,
   appAgentAuthController.appAgentLogout
 );
-appAgentAuthRouterV1.post(
-  '/getAgentByToken',
+
+appAgentAuthRouterV1.delete(
+  '/force-logout',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
-  appAgentAuthController.getAgentByToken
+  appAgentAuthController.appAgentForceLogout
 );
+
+
+// appAgentAuthRouterV1.post(
+//   '/get-details',
+//   jwtModule.verifyAccessToken,
+//   permissionsModule.validateRouteAccess,
+//   appAgentAuthController.
+// );
+// appAgentAuthRouterV1.post(
+//   '/getAgentByToken',
+//   jwtModule.verifyAccessToken,
+//   permissionsModule.validateRouteAccess,
+//   appAgentAuthController.getAgentByToken
+// );
 export { appAgentAuthRouterV1 };

@@ -8,7 +8,7 @@ import {
   getFieldsToInclude,
   logBackendError,
 } from '../../../../helpers/common/backend.functions';
-import appDepartmentModel from '../../../../models/account_fields/app_department.model';
+import appDepartmentModel from '../../../../models/agent/fields/app_department.model';
 import httpErrors from 'http-errors';
 import {
   joiAppDepartment,
@@ -18,7 +18,7 @@ import {
   GetAppDepartmentType,
   GetSingleDepartment,
   UpdateAppDepartmentType,
-} from '../../../../helpers/joi/permissions/department/index';
+} from '../../../../helpers/joi/agent/fields/department/index';
 
 import { MetaDataBody } from '../../../../helpers/shared/shared.type';
 
@@ -74,11 +74,17 @@ export const getAppDepartment = async (req: Request, res: Response, next: NextFu
   try {
     //validate joi schema
     const querySchema: GetAppDepartmentType = await joiAppDepartment.getAppDepartmentSchema.validateAsync(req.body);
+
     compactObject(querySchema);
+
     const metaData: MetaDataBody = await configureMetaData(querySchema);
+
     const fieldsToInclude = getFieldsToInclude(metaData.fields);
+
     const query: GetAppDepartmentQueryType = { isDeleted: false };
+
     if (querySchema.appDepartmentId) query._id = querySchema.appDepartmentId;
+
     if (querySchema.search)
       query.$or = [
         {
