@@ -272,17 +272,14 @@ export const deleteAccount = async (req: Request, res: Response, next: NextFunct
   try {
     const appuserDetails: DeleteAppUserType = await joiAgentAccount.deleteAppUserSchema.validateAsync(req.body);
     // Update records in Collection
-    const appuser = await appAgentModel.findOne({
-      _id: { $in: stringToObjectId(appuserDetails.appAgentId) },
-      isDeleted: false
-    }).catch((error: any) => {
-      throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-    });
+    const appuser = await appAgentModel
+      .findOne({
         _id: { $in: stringToObjectId(appuserDetails.appAgentId) },
         isDeleted: false
       })
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
 
     if (!appuser) throw httpErrors.UnprocessableEntity(`Invalid user ID.`);
 
@@ -348,11 +345,13 @@ export const getSingleAccount = async (req: Request, res: Response, next: NextFu
 //access: private
 export const getAllAppUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const appusers = await appAgentModel.find({
-      isDeleted: false
-    }).catch((error: any) => {
-      throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-    });
+    const appusers = await appAgentModel
+      .find({
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
     // Send Response
     if (res.headersSent === false) {
       res.status(200).send({
@@ -419,15 +418,17 @@ export const updateAppUserDetails = async (req: Request, res: Response, next: Ne
       appuserDetails.appDesignationId ||
       appuserDetails.employee_type
     ) {
-      const updateuserbasicdetails = await appAgentModel.findOneAndUpdate(
-        { _id: appuserDetails.appAgentId },
-        {
-          $set: basicdetailsquery
-        },
-        { new: true }
-      ).catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
-      });
+      const updateuserbasicdetails = await appAgentModel
+        .findOneAndUpdate(
+          { _id: appuserDetails.appAgentId },
+          {
+            $set: basicdetailsquery
+          },
+          { new: true }
+        )
+        .catch((error: any) => {
+          throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
+        });
       responseQuery['basicDetails'] = updateuserbasicdetails;
     }
 
@@ -467,24 +468,26 @@ export const updateAppUserDetails = async (req: Request, res: Response, next: Ne
       appuserDetails.salary ||
       appuserDetails.marital_status
     ) {
-      const appusercompanydetails = await appAgentModel.findOneAndUpdate(
-        { appAgentId: appuserDetails.appAgentId },
-        {
-          $set: {
-            primary_email: appuserDetails.primary_email,
-            company_email: appuserDetails.company_email,
-            gender: appuserDetails.gender,
-            date_of_birth: appuserDetails.date_of_birth,
-            date_of_joining: appuserDetails.date_of_joining,
-            working_hours: appuserDetails.working_hours,
-            salary: appuserDetails.salary,
-            marital_status: appuserDetails.marital_status
-          }
-        },
-        { new: true }
-      ).catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
-      });
+      const appusercompanydetails = await appAgentModel
+        .findOneAndUpdate(
+          { appAgentId: appuserDetails.appAgentId },
+          {
+            $set: {
+              primary_email: appuserDetails.primary_email,
+              company_email: appuserDetails.company_email,
+              gender: appuserDetails.gender,
+              date_of_birth: appuserDetails.date_of_birth,
+              date_of_joining: appuserDetails.date_of_joining,
+              working_hours: appuserDetails.working_hours,
+              salary: appuserDetails.salary,
+              marital_status: appuserDetails.marital_status
+            }
+          },
+          { new: true }
+        )
+        .catch((error: any) => {
+          throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
+        });
       responseQuery['companyDetails'] = appusercompanydetails;
     }
     //if there is an update in the contact info details
@@ -496,18 +499,20 @@ export const updateAppUserDetails = async (req: Request, res: Response, next: Ne
       contactDetailsQuery['relation'] = appuserDetails.relation;
     }
     if (appuserDetails.number || appuserDetails.relation) {
-      const appusercontactdetails = await appAgentContactModel.findOneAndUpdate(
-        { appAgentId: appuserDetails.appAgentId },
-        {
-          $set: {
-            number: appuserDetails.number,
-            relation: appuserDetails.relation
-          }
-        },
-        { new: true }
-      ).catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
-      });
+      const appusercontactdetails = await appAgentContactModel
+        .findOneAndUpdate(
+          { appAgentId: appuserDetails.appAgentId },
+          {
+            $set: {
+              number: appuserDetails.number,
+              relation: appuserDetails.relation
+            }
+          },
+          { new: true }
+        )
+        .catch((error: any) => {
+          throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
+        });
       responseQuery['contactDetails'] = appusercontactdetails;
     }
     //if there is an update in the address info details
@@ -539,22 +544,24 @@ export const updateAppUserDetails = async (req: Request, res: Response, next: Ne
       appuserDetails.pincode ||
       appuserDetails.landmark
     ) {
-      const appuseraddressdetails = await appAgentAddressModel.findOneAndUpdate(
-        { appAgentId: appuserDetails.appAgentId },
-        {
-          $set: {
-            address: appuserDetails.address,
-            city: appuserDetails.city,
-            state: appuserDetails.state,
-            country: appuserDetails.country,
-            pincode: appuserDetails.pincode,
-            landmark: appuserDetails.landmark
-          }
-        },
-        { new: true }
-      ).catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
-      });
+      const appuseraddressdetails = await appAgentAddressModel
+        .findOneAndUpdate(
+          { appAgentId: appuserDetails.appAgentId },
+          {
+            $set: {
+              address: appuserDetails.address,
+              city: appuserDetails.city,
+              state: appuserDetails.state,
+              country: appuserDetails.country,
+              pincode: appuserDetails.pincode,
+              landmark: appuserDetails.landmark
+            }
+          },
+          { new: true }
+        )
+        .catch((error: any) => {
+          throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
+        });
       responseQuery['addressDetails'] = appuseraddressdetails;
     }
     //if there is an update in the bank info details
@@ -564,20 +571,22 @@ export const updateAppUserDetails = async (req: Request, res: Response, next: Ne
       appuserDetails.bank_name ||
       appuserDetails.ifsc_code
     ) {
-      const appuserbankdetails = await appAgentBanksModel.findOneAndUpdate(
-        { appAgentId: appuserDetails.appAgentId },
-        {
-          $set: {
-            name_as_per_bank: appuserDetails.name_as_per_bank,
-            account_number: appuserDetails.account_number,
-            bank_name: appuserDetails.bank_name,
-            ifsc_code: appuserDetails.ifsc_code
-          }
-        },
-        { new: true }
-      ).catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
-      });
+      const appuserbankdetails = await appAgentBanksModel
+        .findOneAndUpdate(
+          { appAgentId: appuserDetails.appAgentId },
+          {
+            $set: {
+              name_as_per_bank: appuserDetails.name_as_per_bank,
+              account_number: appuserDetails.account_number,
+              bank_name: appuserDetails.bank_name,
+              ifsc_code: appuserDetails.ifsc_code
+            }
+          },
+          { new: true }
+        )
+        .catch((error: any) => {
+          throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
+        });
       responseQuery['bankDetails'] = appuserbankdetails;
     }
     // Send Response
