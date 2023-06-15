@@ -3,294 +3,288 @@ import moment from 'moment';
 import httpErrors from 'http-errors';
 // import JWT from 'jsonwebtoken';
 import appAgentModel from '../../../models/agent/agent.model';
-import appAccessGroupModel from '../../../models/permissions/access_group/access_group.model'
+import appAccessGroupModel from '../../../models/permissions/access_group/access_group.model';
 import { appConstantsModel } from '../../../models/constants/constants.model';
 import { objectIdToString, logBackendError } from '../../../helpers/common/backend.functions';
 import { RequestType } from '../../../helpers/shared/shared.type';
 // import { GlobalConfig } from '../../../helpers/common/environment';
 import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
 import {
-    joiAgent,
-    // AppAgentDetailsType,
-    AppAgentLoginType,
-    AppAgentType
+  joiAgent,
+  // AppAgentDetailsType,
+  AppAgentLoginType,
+  AppAgentType
 } from '../../../helpers/joi/agent/index';
 import { forceLogoutAgent, getAppAgentConnectionDetails } from '../../../helpers/service/socket.io/socket.io.service';
 
-
-
-
 // Controller Methods
 const appAgentLogin = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        // Validate Joi Schema
-        const agentLoginDetails: AppAgentLoginType = await joiAgent.appAgentLoginSchema.validateAsync(req.body);
+  try {
+    // Validate Joi Schema
+    const agentLoginDetails: AppAgentLoginType = await joiAgent.appAgentLoginSchema.validateAsync(req.body);
 
-        // Check if agent exist in Collection
-        const getAgent: AppAgentType | null = await appAgentModel.findOne({
-            email: agentLoginDetails.email,
-            isDeleted: false
+    // Check if agent exist in Collection
+    const getAgent: AppAgentType | null = await appAgentModel.findOne({
+      email: agentLoginDetails.email,
+      isDeleted: false
+    });
+
+    if (!getAgent) throw httpErrors.Forbidden(`Invalid Email or Password. Please try again.`);
+
+    // Check if password matches to the agent details
+    const doesPassMatch = await getAgent.isValidPassword?.(agentLoginDetails.password);
+
+    if (!doesPassMatch) throw httpErrors.Forbidden(`Invalid Email or Password. Please try again.`);
+
+    // Check if access group exist in Collection
+    const doesAccessGroupExist = await appAccessGroupModel
+      .findOne({
+        _id: getAgent.appAccessGroupId,
+        isDeleted: false
+      })
+      .select({ name: 1, description: 1, isAdministrator: 1 })
+      .lean();
+
+    if (!doesAccessGroupExist)
+      throw httpErrors.Forbidden(`Access Group Id : ${getAgent.appAccessGroupId} does not Exist.`);
+
+    const jwtToken = await jwtModule
+      .signAccessToken({
+        requestIP: req.ip,
+        appAgentId: objectIdToString(getAgent._id),
+        appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
+      })
+      .catch((error: any) => {
+        throw httpErrors.InternalServerError(`JWT Access Token error : ${error.message}`);
+      });
+
+    const jwtRefreshToken = await jwtModule
+      .signRefreshToken({
+        requestIP: req.ip,
+        appAgentId: objectIdToString(getAgent._id),
+        appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
+      })
+      .catch((error: any) => {
+        throw httpErrors.InternalServerError(`JWT Refresh Token error : ${error.message}`);
+      });
+
+    const JWT_REFRESH_TOKEN_HEADER = await appConstantsModel
+      .findOne({
+        name: 'JWT_REFRESH_TOKEN_HEADER',
+        isDeleted: false
+      })
+      .select('value');
+
+    if (!JWT_REFRESH_TOKEN_HEADER)
+      throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_REFRESH_TOKEN_HEADER]`);
+
+    if (res.headersSent === false) {
+      res
+        .cookie(JWT_REFRESH_TOKEN_HEADER.value, jwtRefreshToken, {
+          secure: process.env.NODE_ENV == 'production',
+          signed: true,
+          httpOnly: true,
+          sameSite: true,
+          expires: new Date(moment().endOf('day').toDate())
+        })
+        .send({
+          error: false,
+          data: {
+            appAgentAccDetails: {
+              appAgentId: getAgent._id,
+              email: getAgent.email,
+              username: getAgent.first_name && getAgent.last_name ? getAgent.first_name + ' ' + getAgent.last_name : '',
+              appAccessGroup: {
+                appAccessGroupId: doesAccessGroupExist._id,
+                name: doesAccessGroupExist.name,
+                description: doesAccessGroupExist.description,
+                isAdministrator: doesAccessGroupExist.isAdministrator
+              }
+            },
+            jwtToken: jwtToken
+          },
+          message: 'Agent Logged in successfully.'
         });
-
-        if (!getAgent) throw httpErrors.Forbidden(`Invalid Email or Password. Please try again.`);
-
-        // Check if password matches to the agent details
-        const doesPassMatch = await getAgent.isValidPassword?.(agentLoginDetails.password);
-
-        if (!doesPassMatch) throw httpErrors.Forbidden(`Invalid Email or Password. Please try again.`);
-
-        // Check if access group exist in Collection
-        const doesAccessGroupExist = await appAccessGroupModel
-            .findOne({
-                _id: getAgent.appAccessGroupId,
-                isDeleted: false
-            })
-            .select({ name: 1, description: 1, isAdministrator: 1 })
-            .lean();
-
-        if (!doesAccessGroupExist)
-            throw httpErrors.Forbidden(`Access Group Id : ${getAgent.appAccessGroupId} does not Exist.`);
-
-        const jwtToken = await jwtModule
-            .signAccessToken({
-                requestIP: req.ip,
-                appAgentId: objectIdToString(getAgent._id),
-                appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
-            })
-            .catch((error: any) => {
-                throw httpErrors.InternalServerError(`JWT Access Token error : ${error.message}`);
-            });
-
-        const jwtRefreshToken = await jwtModule
-            .signRefreshToken({
-                requestIP: req.ip,
-                appAgentId: objectIdToString(getAgent._id),
-                appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
-            })
-            .catch((error: any) => {
-                throw httpErrors.InternalServerError(`JWT Refresh Token error : ${error.message}`);
-            });
-
-
-        const JWT_REFRESH_TOKEN_HEADER = await appConstantsModel
-            .findOne({
-                name: 'JWT_REFRESH_TOKEN_HEADER',
-                isDeleted: false
-            })
-            .select('value');
-
-        if (!JWT_REFRESH_TOKEN_HEADER)
-            throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_REFRESH_TOKEN_HEADER]`);
-
-
-
-        if (res.headersSent === false) {
-            res
-                .cookie(JWT_REFRESH_TOKEN_HEADER.value, jwtRefreshToken, {
-                    secure: process.env.NODE_ENV == 'production',
-                    signed: true,
-                    httpOnly: true,
-                    sameSite: true,
-                    expires: new Date(moment().endOf('day').toDate())
-                })
-                .send({
-                    error: false,
-                    data: {
-                        appAgentAccDetails: {
-                            appAgentId: getAgent._id,
-                            email: getAgent.email,
-                            username: getAgent.first_name && getAgent.last_name ? getAgent.first_name + ' ' + getAgent.last_name : '',
-                            appAccessGroup: {
-                                appAccessGroupId: doesAccessGroupExist._id,
-                                name: doesAccessGroupExist.name,
-                                description: doesAccessGroupExist.description,
-                                isAdministrator: doesAccessGroupExist.isAdministrator
-                            }
-                        },
-                        jwtToken: jwtToken
-                    },
-                    message: 'Agent Logged in successfully.'
-                });
-        }
-    } catch (error: any) {
-        logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
-        if (error?.isJoi === true) error.status = 422;
-        next(error);
     }
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
 };
 
 const appAgentRefresh = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        // Check if Payload contains appAgentId
-        if (!req?.payload?.appAgentId) {
-            throw httpErrors.UnprocessableEntity(`JWT Refresh Token error : Missing Payload Data`);
-        }
-
-        // Check if agent exist in Collection
-        const getAgent = await appAgentModel.findOne({
-            _id: (req.payload.appAgentId),
-            isDeleted: false
-        });
-
-        if (!getAgent) throw httpErrors.UnprocessableEntity(`Unable to process Agent's Data.`);
-
-        // Check if access group exist in Collection
-        const doesAccessGroupExist = await appAccessGroupModel
-            .findOne({
-                _id: getAgent.appAccessGroupId,
-                isDeleted: false
-            })
-            .select({ name: 1, description: 1, isAdministrator: 1 })
-            .lean();
-
-        if (!doesAccessGroupExist)
-            throw httpErrors.Forbidden(`Access Group Id : ${getAgent.appAccessGroupId} does not Exist.`);
-
-        // Sign new Access Token
-        const newJwtToken = await jwtModule
-            .signAccessToken({
-                requestIP: req.ip,
-                appAgentId: objectIdToString(getAgent._id),
-                appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
-            })
-            .catch((error: any) => {
-                throw httpErrors.InternalServerError(`JWT Access Token error : ${error.message}`);
-            });
-
-        // Sign new Refresh Token
-        const newJwtRefreshToken = await jwtModule
-            .signRefreshToken({
-                requestIP: req.ip,
-                appAgentId: objectIdToString(getAgent._id),
-                appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
-            })
-            .catch((error: any) => {
-                throw httpErrors.InternalServerError(`JWT Refresh Token error : ${error.message}`);
-            });
-
-        const JWT_REFRESH_TOKEN_HEADER = await appConstantsModel
-            .findOne({
-                name: 'JWT_REFRESH_TOKEN_HEADER',
-                isDeleted: false
-            })
-            .select('value');
-
-        if (!JWT_REFRESH_TOKEN_HEADER)
-            throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_REFRESH_TOKEN_HEADER]`);
-        // Attach cookies & send response
-        res
-            .cookie(JWT_REFRESH_TOKEN_HEADER.value, newJwtRefreshToken, {
-                secure: process.env.NODE_ENV == 'production',
-                signed: true,
-                httpOnly: true,
-                sameSite: true,
-                expires: new Date(moment().endOf('day').toString())
-            })
-            .send({
-                error: false,
-                data: {
-                    appAgentAccDetails: {
-                        appAgentId: getAgent._id,
-                        email: getAgent.email,
-                        username: getAgent.first_name && getAgent.last_name ? getAgent.first_name + ' ' + getAgent.last_name : '',
-                        appAccessGroup: {
-                            appAccessGroupId: doesAccessGroupExist._id,
-                            name: doesAccessGroupExist.name,
-                            description: doesAccessGroupExist.description,
-                            isAdministrator: doesAccessGroupExist.isAdministrator
-                        }
-                    },
-                    jwtToken: newJwtToken
-                },
-                message: 'Token refreshed successfully.'
-            });
-    } catch (error: any) {
-        console.log(error.message);
-        logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
-        next(error);
+  try {
+    // Check if Payload contains appAgentId
+    if (!req?.payload?.appAgentId) {
+      throw httpErrors.UnprocessableEntity(`JWT Refresh Token error : Missing Payload Data`);
     }
+
+    // Check if agent exist in Collection
+    const getAgent = await appAgentModel.findOne({
+      _id: req.payload.appAgentId,
+      isDeleted: false
+    });
+
+    if (!getAgent) throw httpErrors.UnprocessableEntity(`Unable to process Agent's Data.`);
+
+    // Check if access group exist in Collection
+    const doesAccessGroupExist = await appAccessGroupModel
+      .findOne({
+        _id: getAgent.appAccessGroupId,
+        isDeleted: false
+      })
+      .select({ name: 1, description: 1, isAdministrator: 1 })
+      .lean();
+
+    if (!doesAccessGroupExist)
+      throw httpErrors.Forbidden(`Access Group Id : ${getAgent.appAccessGroupId} does not Exist.`);
+
+    // Sign new Access Token
+    const newJwtToken = await jwtModule
+      .signAccessToken({
+        requestIP: req.ip,
+        appAgentId: objectIdToString(getAgent._id),
+        appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
+      })
+      .catch((error: any) => {
+        throw httpErrors.InternalServerError(`JWT Access Token error : ${error.message}`);
+      });
+
+    // Sign new Refresh Token
+    const newJwtRefreshToken = await jwtModule
+      .signRefreshToken({
+        requestIP: req.ip,
+        appAgentId: objectIdToString(getAgent._id),
+        appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
+      })
+      .catch((error: any) => {
+        throw httpErrors.InternalServerError(`JWT Refresh Token error : ${error.message}`);
+      });
+
+    const JWT_REFRESH_TOKEN_HEADER = await appConstantsModel
+      .findOne({
+        name: 'JWT_REFRESH_TOKEN_HEADER',
+        isDeleted: false
+      })
+      .select('value');
+
+    if (!JWT_REFRESH_TOKEN_HEADER)
+      throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_REFRESH_TOKEN_HEADER]`);
+    // Attach cookies & send response
+    res
+      .cookie(JWT_REFRESH_TOKEN_HEADER.value, newJwtRefreshToken, {
+        secure: process.env.NODE_ENV == 'production',
+        signed: true,
+        httpOnly: true,
+        sameSite: true,
+        expires: new Date(moment().endOf('day').toString())
+      })
+      .send({
+        error: false,
+        data: {
+          appAgentAccDetails: {
+            appAgentId: getAgent._id,
+            email: getAgent.email,
+            username: getAgent.first_name && getAgent.last_name ? getAgent.first_name + ' ' + getAgent.last_name : '',
+            appAccessGroup: {
+              appAccessGroupId: doesAccessGroupExist._id,
+              name: doesAccessGroupExist.name,
+              description: doesAccessGroupExist.description,
+              isAdministrator: doesAccessGroupExist.isAdministrator
+            }
+          },
+          jwtToken: newJwtToken
+        },
+        message: 'Token refreshed successfully.'
+      });
+  } catch (error: any) {
+    console.log(error.message);
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
+    next(error);
+  }
 };
 
 const appAgentLogout = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        // Check if Payload contains appAgentId
-        if (!req?.payload?.appAgentId) {
-            throw httpErrors.UnprocessableEntity(`JWT Refresh Token error : Missing Payload Data`);
-        }
-        // const getAgent: IAgent | null = await appAgentModel.findOne({
-        //   _id: req.payload.appAgentId,
-        //   isDeleted: false,
-        // });
-
-        // Delete Refresh Token from Redis DB
-        await jwtModule
-            .removeToken({
-                appAgentId: req.payload.appAgentId,
-                requestIP: '',
-                appAccessGroupId: ''
-            })
-            .catch((error: any) => {
-                throw httpErrors.InternalServerError(`JWT Refresh Token error : ${error.message}`);
-            });
-
-        // await new appAgentTimeLogModel({
-        //   appAgentId: getAgent._id,
-        //   type: 'LOGGED_OUT',
-        // }).save({});
-
-        const JWT_REFRESH_TOKEN_HEADER = await appConstantsModel
-            .findOne({
-                name: 'JWT_REFRESH_TOKEN_HEADER',
-                isDeleted: false
-            })
-            .select('value');
-
-        if (!JWT_REFRESH_TOKEN_HEADER)
-            throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_REFRESH_TOKEN_HEADER]`);
-
-        // Delete cookies & send response
-        res
-            .clearCookie(JWT_REFRESH_TOKEN_HEADER.value, {
-                secure: process.env.NODE_ENV == 'production',
-                signed: true,
-                httpOnly: true,
-                sameSite: true
-            })
-            .send({
-                error: false,
-                data: {
-                    message: 'Agent logged out successfully.'
-                }
-            });
-    } catch (error: any) {
-        logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
-        next(error);
+  try {
+    // Check if Payload contains appAgentId
+    if (!req?.payload?.appAgentId) {
+      throw httpErrors.UnprocessableEntity(`JWT Refresh Token error : Missing Payload Data`);
     }
+    // const getAgent: IAgent | null = await appAgentModel.findOne({
+    //   _id: req.payload.appAgentId,
+    //   isDeleted: false,
+    // });
+
+    // Delete Refresh Token from Redis DB
+    await jwtModule
+      .removeToken({
+        appAgentId: req.payload.appAgentId,
+        requestIP: '',
+        appAccessGroupId: ''
+      })
+      .catch((error: any) => {
+        throw httpErrors.InternalServerError(`JWT Refresh Token error : ${error.message}`);
+      });
+
+    // await new appAgentTimeLogModel({
+    //   appAgentId: getAgent._id,
+    //   type: 'LOGGED_OUT',
+    // }).save({});
+
+    const JWT_REFRESH_TOKEN_HEADER = await appConstantsModel
+      .findOne({
+        name: 'JWT_REFRESH_TOKEN_HEADER',
+        isDeleted: false
+      })
+      .select('value');
+
+    if (!JWT_REFRESH_TOKEN_HEADER)
+      throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_REFRESH_TOKEN_HEADER]`);
+
+    // Delete cookies & send response
+    res
+      .clearCookie(JWT_REFRESH_TOKEN_HEADER.value, {
+        secure: process.env.NODE_ENV == 'production',
+        signed: true,
+        httpOnly: true,
+        sameSite: true
+      })
+      .send({
+        error: false,
+        data: {
+          message: 'Agent logged out successfully.'
+        }
+      });
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
+    next(error);
+  }
 };
 
 const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        // Validate Joi Schema
-        const appAgentDetails = await joiAgent.forceLogoutAppAgentsSchema.validateAsync(req.body);
+  try {
+    // Validate Joi Schema
+    const appAgentDetails = await joiAgent.forceLogoutAppAgentsSchema.validateAsync(req.body);
 
-        await Promise.all(
-            appAgentDetails.appAgentIds.map(async (appAgentId: string) => {
-                const agentConnectionDetails = await getAppAgentConnectionDetails(appAgentId);
-                forceLogoutAgent(agentConnectionDetails);
-            })
-        );
+    await Promise.all(
+      appAgentDetails.appAgentIds.map(async (appAgentId: string) => {
+        const agentConnectionDetails = await getAppAgentConnectionDetails(appAgentId);
+        forceLogoutAgent(agentConnectionDetails);
+      })
+    );
 
-        // Send Response
-        res.send({
-            error: false,
-            data: {
-                message: 'Logout request sent successfully.'
-            }
-        });
-    } catch (error: any) {
-        logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
-        next(error);
-    }
+    // Send Response
+    res.send({
+      error: false,
+      data: {
+        message: 'Logout request sent successfully.'
+      }
+    });
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
+    next(error);
+  }
 };
 
 // const appAgentResetPasswordToken = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
@@ -816,14 +810,14 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 
 // Export Methods
 export {
-    appAgentLogin,
-    appAgentRefresh,
-    appAgentLogout,
-    appAgentForceLogout,
-    // appAgentResetPasswordToken,
-    // appAgentUpdatePassword,
-    // appAgentVerifyPassToken,
-    // getAppAgents,
-    // getAppAgentDetails,
-    // getAppActivities
+  appAgentLogin,
+  appAgentRefresh,
+  appAgentLogout,
+  appAgentForceLogout
+  // appAgentResetPasswordToken,
+  // appAgentUpdatePassword,
+  // appAgentVerifyPassToken,
+  // getAppAgents,
+  // getAppAgentDetails,
+  // getAppActivities
 };

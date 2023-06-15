@@ -278,6 +278,11 @@ export const deleteAccount = async (req: Request, res: Response, next: NextFunct
     }).catch((error: any) => {
       throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
     });
+        _id: { $in: stringToObjectId(appuserDetails.appAgentId) },
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
 
     if (!appuser) throw httpErrors.UnprocessableEntity(`Invalid user ID.`);
 

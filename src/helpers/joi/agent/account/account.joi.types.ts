@@ -1,5 +1,6 @@
 export interface CreateAppUserType {
   //user basic details
+  directory: string;
   first_name: string;
   last_name: string;
   email: string;

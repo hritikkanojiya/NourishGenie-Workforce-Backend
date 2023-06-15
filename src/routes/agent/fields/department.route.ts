@@ -18,7 +18,7 @@ appAgentDepartmentRouterV1.post(
   appAgentDepartmentController.getAppDepartment
 );
 appAgentDepartmentRouterV1.post(
-  '/get-department',
+  '/get-single-department',
   jwtModule.verifyAccessToken,
   permissionModule.validateRouteAccess,
   appAgentDepartmentController.getSingleDepartment

@@ -11,8 +11,8 @@ import { v1 } from './helpers/common/route_versions/v1';
 import { GlobalConfig } from './helpers/common/environment';
 import { LOGGER } from './helpers/common/init_winston';
 import './helpers/common/init_mongodb';
-import endPoints from 'express-list-endpoints';
-import appServiceRouteModel from './models/permissions/service_routes/service_routes.model'
+// import endPoints from 'express-list-endpoints';
+// import appServiceRouteModel from './models/permissions/service_routes/service_routes.model';
 
 require('dotenv');
 
@@ -61,33 +61,33 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Import Route Modules
 marketingBackendApp.use('/v1', v1);
-const getAllRoutes = async (): Promise<void> => {
-  try {
-    const allEndPoints = endPoints(marketingBackendApp);
-    await Promise.all(
-      allEndPoints.map(async (endPoint: any) => {
-        endPoint.methods.map(async (method: any) => {
-          const doesExist = await appServiceRouteModel.findOne({ path: endPoint.path, method: method, });
-          if (!doesExist) {
-            const serviceRoute = new appServiceRouteModel({
-              secure: false,
-              type: 'AUTOMATED',
-              path: endPoint.path,
-              method: method,
-              appAccessGroupIds: [],
-              isDeleted: false
-            })
-            await serviceRoute.save();
-          }
-        })
-      })
-    )
-  } catch (error) {
-    LOGGER.error(`Unable to get all routes Error : ${error}`);
-    console.log(error);
-  }
-}
-getAllRoutes();
+// const getAllRoutes = async (): Promise<void> => {
+//   try {
+//     const allEndPoints = endPoints(marketingBackendApp);
+//     await Promise.all(
+//       allEndPoints.map(async (endPoint: any) => {
+//         endPoint.methods.map(async (method: any) => {
+//           const doesExist = await appServiceRouteModel.findOne({ path: endPoint.path, method: method, });
+//           if (!doesExist) {
+//             const serviceRoute = new appServiceRouteModel({
+//               secure: false,
+//               type: 'AUTOMATED',
+//               path: endPoint.path,
+//               method: method,
+//               appAccessGroupIds: [],
+//               isDeleted: false
+//             })
+//             await serviceRoute.save();
+//           }
+//         })
+//       })
+//     )
+//   } catch (error) {
+//     LOGGER.error(`Unable to get all routes Error : ${error}`);
+//     console.log(error);
+//   }
+// }
+// getAllRoutes();
 
 // Setup Error Handler for unhandled Route Requests.
 marketingBackendApp.use(async (req, _res, next) => {

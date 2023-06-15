@@ -6,7 +6,7 @@ import {
   configureMetaData,
   convertDateTimeFormat,
   getFieldsToInclude,
-  logBackendError,
+  logBackendError
 } from '../../../../helpers/common/backend.functions';
 import appDepartmentModel from '../../../../models/agent/fields/app_department.model';
 import httpErrors from 'http-errors';
@@ -17,7 +17,7 @@ import {
   GetAppDepartmentQueryType,
   GetAppDepartmentType,
   GetSingleDepartment,
-  UpdateAppDepartmentType,
+  UpdateAppDepartmentType
 } from '../../../../helpers/joi/agent/fields/department/index';
 
 import { MetaDataBody } from '../../../../helpers/shared/shared.type';
@@ -28,7 +28,8 @@ import { MetaDataBody } from '../../../../helpers/shared/shared.type';
 export const createAppDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Validate Joi Schema
-    const appDepartmentDetails: CreateAppDepartmentType = await joiAppDepartment.createAppDepartmentSchema.validateAsync(req.body);
+    const appDepartmentDetails: CreateAppDepartmentType =
+      await joiAppDepartment.createAppDepartmentSchema.validateAsync(req.body);
     // Check if department exist in Collection
     const doesDepartmentExist = await appDepartmentModel.find({
       name: appDepartmentDetails.name
@@ -58,7 +59,7 @@ export const createAppDepartment = async (req: Request, res: Response, next: Nex
           updatedAt: storeDepartmentDetails.updatedAt
         }
       },
-      message: 'department created successfully',
+      message: 'department created successfully'
     });
   } catch (error: any) {
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
@@ -155,14 +156,18 @@ export const getAppDepartment = async (req: Request, res: Response, next: NextFu
 //access: private
 export const getSingleDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const getSingleDepartmentDetails: GetSingleDepartment = await joiAppDepartment.getSingleDepartmentSchema.validateAsync(req.body);
+    const getSingleDepartmentDetails: GetSingleDepartment =
+      await joiAppDepartment.getSingleDepartmentSchema.validateAsync(req.body);
     //check if the dept exists
-    const department = await appDepartmentModel.findOne({
-      _id: getSingleDepartmentDetails.appDepartmentId,
-      isDeleted: false
-    }).catch((error: any) => {
-      throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-    });
+    console.log(getSingleDepartmentDetails);
+    const department = await appDepartmentModel
+      .findOne({
+        _id: getSingleDepartmentDetails.appDepartmentId,
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
     if (!department) throw httpErrors.UnprocessableEntity(`Invalid Department ID.`);
     if (res.headersSent === false) {
       res.status(200).send({
@@ -191,14 +196,17 @@ export const getSingleDepartment = async (req: Request, res: Response, next: Nex
 //access: private
 export const deleteAppDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const appDepartmentDetails: DeleteAppDepartmentType = await joiAppDepartment.deleteAppDepartmentSchema.validateAsync(req.body);
+    const appDepartmentDetails: DeleteAppDepartmentType =
+      await joiAppDepartment.deleteAppDepartmentSchema.validateAsync(req.body);
     // Update records in Collection
-    const appDepartment = await appDepartmentModel.find({
-      _id: { $in: appDepartmentDetails.appDepartmentIds },
-      isDeleted: false
-    }).catch((error: any) => {
-      throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-    });
+    const appDepartment = await appDepartmentModel
+      .find({
+        _id: { $in: appDepartmentDetails.appDepartmentIds },
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
 
     if (appDepartment?.length <= 0) throw httpErrors.UnprocessableEntity(`Invalid Department ID.`);
     //Delete record by updating the isDelete value to true
@@ -233,7 +241,8 @@ export const deleteAppDepartment = async (req: Request, res: Response, next: Nex
 export const updateAppDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
-    const appDepartmentDetails: UpdateAppDepartmentType = await joiAppDepartment.updateAppDepartmentSchema.validateAsync(req.body);
+    const appDepartmentDetails: UpdateAppDepartmentType =
+      await joiAppDepartment.updateAppDepartmentSchema.validateAsync(req.body);
     // Check if department exist in Collection
     const doesDepartmentExist = await appDepartmentModel.findOne({
       _id: appDepartmentDetails.appDepartmentId,
@@ -242,15 +251,17 @@ export const updateAppDepartment = async (req: Request, res: Response, next: Nex
 
     if (!doesDepartmentExist) throw httpErrors.Conflict(`Group [${appDepartmentDetails.name}] does not exist.`);
     // Update records in Collection
-    await appDepartmentModel.updateOne(
-      { _id: { $in: appDepartmentDetails.appDepartmentId } },
-      {
-        name: appDepartmentDetails.name,
-        description: appDepartmentDetails.description
-      }
-    ).catch((error: any) => {
-      throw httpErrors.UnprocessableEntity(error.message);
-    });
+    await appDepartmentModel
+      .updateOne(
+        { _id: { $in: appDepartmentDetails.appDepartmentId } },
+        {
+          name: appDepartmentDetails.name,
+          description: appDepartmentDetails.description
+        }
+      )
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(error.message);
+      });
 
     // Send Response
     if (res.headersSent === false) {

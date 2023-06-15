@@ -16,7 +16,7 @@ import {
   configureMetaData,
   convertDateTimeFormat,
   getFieldsToInclude,
-  logBackendError,
+  logBackendError
 } from '../../../../helpers/common/backend.functions';
 import { MetaDataBody } from '../../../../helpers/shared/shared.type';
 
@@ -26,7 +26,8 @@ import { MetaDataBody } from '../../../../helpers/shared/shared.type';
 export const createAppDesignation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Validate Joi Schema
-    const appDesignationDetails: CreateAppDesignationType = await joiAppDesignation.createAppDesignationSchema.validateAsync(req.body);
+    const appDesignationDetails: CreateAppDesignationType =
+      await joiAppDesignation.createAppDesignationSchema.validateAsync(req.body);
     // Check if designation exist in Collection
     const doesDesignationExist = await appDesignationModel.find({
       name: appDesignationDetails.name
@@ -40,10 +41,9 @@ export const createAppDesignation = async (req: Request, res: Response, next: Ne
       isDeleted: false
     });
     // Save Record in Collection
-    const storeDesignationDetails = await appDesignation.save({})
-      .catch((error: any) => {
-        throw httpErrors.InternalServerError(error.message);
-      })
+    const storeDesignationDetails = await appDesignation.save({}).catch((error: any) => {
+      throw httpErrors.InternalServerError(error.message);
+    });
     // Send Response
     res.status(200).send({
       error: false,
@@ -56,7 +56,7 @@ export const createAppDesignation = async (req: Request, res: Response, next: Ne
           updatedAt: storeDesignationDetails.updatedAt
         }
       },
-      message: 'designation created successfully',
+      message: 'designation created successfully'
     });
   } catch (error: any) {
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
@@ -120,8 +120,7 @@ export const getAppDesignation = async (req: Request, res: Response, next: NextF
         return appDesignation;
       })
     );
-    const totalRecords = await appDesignationModel
-      .find(query).countDocuments();
+    const totalRecords = await appDesignationModel.find(query).countDocuments();
     convertDateTimeFormat(appDesignations);
     // Send Response
     if (res.headersSent === false) {
@@ -153,14 +152,17 @@ export const getAppDesignation = async (req: Request, res: Response, next: NextF
 //access: private
 export const getSingleDesignation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const getSingleDesignationDetails: GetSingleDesignation = await joiAppDesignation.getSingleDesignationSchema.validateAsync(req.body);
+    const getSingleDesignationDetails: GetSingleDesignation =
+      await joiAppDesignation.getSingleDesignationSchema.validateAsync(req.body);
     //check if the dept exists
-    const designation = await appDesignationModel.findOne({
-      _id: getSingleDesignationDetails.appDesignationId,
-      isDeleted: false
-    }).catch((error: any) => {
-      throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-    });
+    const designation = await appDesignationModel
+      .findOne({
+        _id: getSingleDesignationDetails.appDesignationId,
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
     if (!designation) throw httpErrors.UnprocessableEntity(`Invalid Designation ID.`);
     const designationtDetails = designation;
     if (res.headersSent === false) {
@@ -191,7 +193,8 @@ export const getSingleDesignation = async (req: Request, res: Response, next: Ne
 export const updateAppDesignation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
-    const appdesignationDetails: UpdateAppDesignationType = await joiAppDesignation.updateAppDesignationSchema.validateAsync(req.body);
+    const appdesignationDetails: UpdateAppDesignationType =
+      await joiAppDesignation.updateAppDesignationSchema.validateAsync(req.body);
     // Check if designation exist in Collection
     const doesdesignationExist = await appDesignationModel.findOne({
       _id: { $in: appdesignationDetails.appDesignationId },
@@ -200,15 +203,17 @@ export const updateAppDesignation = async (req: Request, res: Response, next: Ne
 
     if (!doesdesignationExist) throw httpErrors.Conflict(`Group [${appdesignationDetails.name}] does not exist.`);
     // Update records in Collection
-    await appDesignationModel.updateOne(
-      { _id: { $in: appdesignationDetails.appDesignationId } },
-      {
-        name: appdesignationDetails.name,
-        description: appdesignationDetails.description
-      }
-    ).catch((error: any) => {
-      throw httpErrors.UnprocessableEntity(error.message);
-    });
+    await appDesignationModel
+      .updateOne(
+        { _id: { $in: appdesignationDetails.appDesignationId } },
+        {
+          name: appdesignationDetails.name,
+          description: appdesignationDetails.description
+        }
+      )
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(error.message);
+      });
 
     // Send Response
     if (res.headersSent === false) {
@@ -231,14 +236,17 @@ export const updateAppDesignation = async (req: Request, res: Response, next: Ne
 //access: private
 export const deleteAppDesignation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const appDesignationDetails: DeleteAppDesignationType = await joiAppDesignation.deleteAppDesignationSchema.validateAsync(req.body);
+    const appDesignationDetails: DeleteAppDesignationType =
+      await joiAppDesignation.deleteAppDesignationSchema.validateAsync(req.body);
     // Update records in Collection
-    const appDesignation = await appDesignationModel.find({
-      _id: { $in: appDesignationDetails.appDesignationIds },
-      isDeleted: false
-    }).catch((error: any) => {
-      throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-    });
+    const appDesignation = await appDesignationModel
+      .find({
+        _id: { $in: appDesignationDetails.appDesignationIds },
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
 
     if (appDesignation?.length <= 0) throw httpErrors.UnprocessableEntity(`Invalid Designation IDs.`);
     //Delete record by updating the isDelete value to true
