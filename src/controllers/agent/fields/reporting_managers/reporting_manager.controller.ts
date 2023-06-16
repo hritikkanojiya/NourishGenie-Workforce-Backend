@@ -4,7 +4,7 @@ import {
   configureMetaData,
   convertDateTimeFormat,
   getFieldsToInclude,
-  logBackendError,
+  logBackendError
 } from '../../../../helpers/common/backend.functions';
 import httpErrors from 'http-errors';
 import appAgentModel from '../../../../models/agent/agent.model';
@@ -17,7 +17,7 @@ import {
   GetAppReportingManagerType,
   UpdateAppReportingManagerType,
   joiAppReportingManager
-} from '../../../../helpers/joi/agent/fields/reporting_managers/index'
+} from '../../../../helpers/joi/agent/fields/reporting_managers/index';
 import { MetaDataBody } from '../../../../helpers/shared/shared.type';
 // //description: add a reporting manager
 // //route: POST /api/v1/reporting_manager/
@@ -33,15 +33,16 @@ export const createAppReportingManager = async (req: Request, res: Response, nex
       isDeleted: false
     });
     if (doesReportingManagerExist)
-      throw httpErrors.Conflict(`Reporting Manager with app agent Id [${appReportingManagerDetails.appAgentId}] already exist.`);
+      throw httpErrors.Conflict(
+        `Reporting Manager with app agent Id [${appReportingManagerDetails.appAgentId}] already exist.`
+      );
     // Check if Agent exist in Collection
     const doesAgentExist = await appAgentModel.findOne({
       _id: appReportingManagerDetails.appAgentId,
-      isDeleted: false,
+      isDeleted: false
     });
     if (!doesAgentExist)
       throw httpErrors.Conflict(`Agent with Id [${appReportingManagerDetails.appAgentId}] does not exist.`);
-
 
     // Else Construct Data
     const appReportingManager = new appReportingManagerModel({
@@ -65,8 +66,7 @@ export const createAppReportingManager = async (req: Request, res: Response, nex
             createdAt: storeAppReportingManagerDetails.createdAt,
             updatedAt: storeAppReportingManagerDetails.updatedAt
           },
-          message: 'Reporting Manager created successfully.',
-
+          message: 'Reporting Manager created successfully.'
         }
       });
     }
@@ -78,14 +78,14 @@ export const createAppReportingManager = async (req: Request, res: Response, nex
   }
 };
 
-
 // description: get all reporting managers
 // route: POST /api/v1/reporting_manager/
 // access: private
 export const getAppReportingManager = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
-    const querySchema: GetAppReportingManagerType = await joiAppReportingManager.getAppReportingManagerSchema.validateAsync(req.body);
+    const querySchema: GetAppReportingManagerType =
+      await joiAppReportingManager.getAppReportingManagerSchema.validateAsync(req.body);
     compactObject(querySchema);
     const metaData: MetaDataBody = await configureMetaData(querySchema);
     const fieldsToInclude = getFieldsToInclude(metaData.fields);
@@ -95,6 +95,7 @@ export const getAppReportingManager = async (req: Request, res: Response, next: 
     // Execute the Query
     const appManagers = await appReportingManagerModel
       .find(query, {}, {})
+      .populate('appAgentId', 'email')
       .select(fieldsToInclude)
       .sort({ [metaData.sortOn]: metaData.sortBy })
       .skip(metaData.offset)
@@ -113,12 +114,9 @@ export const getAppReportingManager = async (req: Request, res: Response, next: 
         return appManager;
       })
     );
-    const totalRecords = await appReportingManagerModel
-      .find(query)
-      .countDocuments();
+    const totalRecords = await appReportingManagerModel.find(query).countDocuments();
 
     convertDateTimeFormat(appManagers);
-
 
     // Send Response
     if (res.headersSent === false) {
@@ -147,31 +145,37 @@ export const getAppReportingManager = async (req: Request, res: Response, next: 
 export const updateAppReportingManager = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
-    const appReportingManagerDetails: UpdateAppReportingManagerType = await joiAppReportingManager.updateAppReportingManagerSchema.validateAsync(req.body);
+    const appReportingManagerDetails: UpdateAppReportingManagerType =
+      await joiAppReportingManager.updateAppReportingManagerSchema.validateAsync(req.body);
     // Check if Reporting Manager exist in Collection
     const doesReportingManagerExist = await appReportingManagerModel.findOne({
       _id: { $in: appReportingManagerDetails.appManagerId },
       isDeleted: false
     });
 
-    if (!doesReportingManagerExist) throw httpErrors.Conflict(`Reporting Manager with Id [${appReportingManagerDetails.appManagerId}] does not exist.`);
+    if (!doesReportingManagerExist)
+      throw httpErrors.Conflict(
+        `Reporting Manager with Id [${appReportingManagerDetails.appManagerId}] does not exist.`
+      );
     // Check if Agent exist in Collection
     const doesAgentExist = await appAgentModel.findOne({
       _id: appReportingManagerDetails.appAgentId,
-      isDeleted: false,
+      isDeleted: false
     });
     if (!doesAgentExist)
       throw httpErrors.Conflict(`Agent with Id [${appReportingManagerDetails.appAgentId}] does not exist.`);
 
     // Update records in Collection
-    await appReportingManagerModel.updateOne(
-      { _id: { $in: appReportingManagerDetails.appManagerId } },
-      {
-        appAgentId: appReportingManagerDetails.appAgentId,
-      }
-    ).catch((error: any) => {
-      throw httpErrors.UnprocessableEntity(error.message);
-    });
+    await appReportingManagerModel
+      .updateOne(
+        { _id: { $in: appReportingManagerDetails.appManagerId } },
+        {
+          appAgentId: appReportingManagerDetails.appAgentId
+        }
+      )
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(error.message);
+      });
 
     // Send Response
     if (res.headersSent === false) {
@@ -194,17 +198,19 @@ export const updateAppReportingManager = async (req: Request, res: Response, nex
 //access: private
 export const deleteAppReportingManager = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    console.log(req.body);
     const appReportingManagerDetails: DeleteAppReportingManagerType =
       await joiAppReportingManager.deleteAppReportingManagerSchema.validateAsync(req.body);
     // Check if reporting manager exist in Collection
-    const appReportingManagers = await appReportingManagerModel.find({
-      _id: { $in: appReportingManagerDetails.appManagerIds },
-      isDeleted: false
-    }).catch((error: any) => {
-      throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-    });
-    if (appReportingManagers.length <= 0)
-      throw httpErrors.UnprocessableEntity(`Invalid Designation IDs.`);
+    const appReportingManagers = await appReportingManagerModel
+      .find({
+        _id: { $in: appReportingManagerDetails.appManagerIds },
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
+    if (appReportingManagers.length <= 0) throw httpErrors.UnprocessableEntity(`Invalid Designation IDs.`);
     //update the isDeleted field to true
     appReportingManagers.forEach(async appReportingManager => {
       await appReportingManager
@@ -219,7 +225,7 @@ export const deleteAppReportingManager = async (req: Request, res: Response, nex
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
-        message: 'Reporting Managers deleted successfully.',
+        message: 'Reporting Managers deleted successfully.'
       });
     }
   } catch (error: any) {

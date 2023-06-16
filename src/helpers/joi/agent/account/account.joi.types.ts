@@ -1,19 +1,19 @@
 export interface CreateAppUserType {
   //user basic details
-  directory: string;
+  //directory: string;
   first_name: string;
   last_name: string;
   email: string;
   password: string;
   appAccessGroupId: string;
-  appReportingManagerId: string | null;
+  appReportingManagerId: string;
   appDepartmentId: string;
   appDesignationId: string;
   employee_type: string;
 
   //user company details
   primary_email: string;
-  company_email: string | null;
+  company_email: string;
   gender: string;
   contact_number: number;
   date_of_birth: Date;
@@ -41,8 +41,8 @@ export interface CreateAppUserType {
   relation: string;
 
   //user file
-  aadhar_number: string;
-  pan_number: string;
+  //aadhar_number: string;
+  //pan_number: string;
 }
 export interface GetAppUserType {
   appAgentId: string;

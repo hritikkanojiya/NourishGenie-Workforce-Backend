@@ -6,19 +6,20 @@ import appAgentDetailsModel from '../../../models/agent/fields/app_user_details.
 import appAgentBanksModel from '../../../models/agent/fields/app_user_banks.model';
 import appAgentAddressModel from '../../../models/agent/fields/app_user_address.model';
 import appAgentContactModel from '../../../models/agent/fields/app_user_contacts.model';
-import appAgentFilesModel from '../../../models/agent/fields/app_user_files.model';
-import appAttachmentsModel from '../../../models/agent/fields/app_attachments.model';
+//import appAgentFilesModel from '../../../models/agent/fields/app_user_files.model';
+//import appAttachmentsModel from '../../../models/agent/fields/app_attachments.model';
 import {
   joiAgentAccount,
   CreateAppUserType,
   GetAppUserType,
-  UpdateAppUserType,
-  UploadedFiles
+  UpdateAppUserType
+  //UploadedFiles
 } from '../../../helpers/joi/agent/account/index';
-import { Types } from 'mongoose';
+import { getAllDetailSchema } from '../../../helpers/joi/agent/account/account.validation_schema';
+//import { Types } from 'mongoose';
 import { DeleteAppUserType } from '../../../helpers/joi/agent/account/account.joi.types';
-import fs from 'fs';
-const FILE_UPLOAD_PATH: any = process.env.FILE_UPLOAD_PATH;
+//import fs from 'fs';
+//const FILE_UPLOAD_PATH: any = process.env.FILE_UPLOAD_PATH;
 
 //description: create a new account
 //route: POST /api/v1/createAccount
@@ -31,7 +32,7 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
     console.log(req.files);
     const appuserDetails: CreateAppUserType = await joiAgentAccount.createAppUserSchema.validateAsync(req.body);
     console.log('deepak2');
-    const appuserFileDetails: UploadedFiles = await joiAgentAccount.uploadedFilesSchema.validateAsync(req.files);
+    //const appuserFileDetails: UploadedFiles = await joiAgentAccount.uploadedFilesSchema.validateAsync(req.files);
     console.log('deepak3');
     //check if user exist in collection
     const doesAppUserExist = await appAgentModel.find({
@@ -49,6 +50,7 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
       password: appuserDetails.password,
       appAccessGroupId: stringToObjectId(appuserDetails.appAccessGroupId),
       appDepartmentId: stringToObjectId(appuserDetails.appDepartmentId),
+      appReportingManagerId: stringToObjectId(appuserDetails.appReportingManagerId),
       appDesignationId: stringToObjectId(appuserDetails.appDesignationId),
       employee_type: appuserDetails.employee_type
     });
@@ -121,105 +123,105 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
     ).toObject();
 
     //extracting the file metadata first
-    const profile_picture = appuserFileDetails.profile_picture;
-    const aadhar_card = appuserFileDetails.aadhar_card;
-    const pan_card = appuserFileDetails.pan_card;
-    const documents = appuserFileDetails.documents;
-    //profile picture
-    const profileattatchments = new appAttachmentsModel({
-      original_name: profile_picture[0].originalname,
-      name: profile_picture[0].filename,
-      type: profile_picture[0].mimetype,
-      uploadedBy: storeAppUserBasicDetails._id,
-      extension: profile_picture[0].originalname.split('.')[1]
-    });
+    // const profile_picture = appuserFileDetails.profile_picture;
+    // const aadhar_card = appuserFileDetails.aadhar_card;
+    // const pan_card = appuserFileDetails.pan_card;
+    // const documents = appuserFileDetails.documents;
+    // //profile picture
+    // const profileattatchments = new appAttachmentsModel({
+    //   original_name: profile_picture[0].originalname,
+    //   name: profile_picture[0].filename,
+    //   type: profile_picture[0].mimetype,
+    //   uploadedBy: storeAppUserBasicDetails._id,
+    //   extension: profile_picture[0].originalname.split('.')[1]
+    // });
+    // //save
+    // const storeProfilePicture = (
+    //   await profileattatchments.save({}).catch((error: any) => {
+    //     throw httpErrors.InternalServerError(error.message);
+    //   })
+    // ).toObject();
+
+    // //aadhar card
+    // const aadharattatchments = new appAttachmentsModel({
+    //   original_name: aadhar_card[0].originalname,
+    //   name: aadhar_card[0].filename,
+    //   type: aadhar_card[0].mimetype,
+    //   uploadedBy: storeAppUserBasicDetails._id,
+    //   extension: aadhar_card[0].originalname.split('.')[1]
+    // });
+    // //save
+    // const storeAadharCard = (
+    //   await aadharattatchments.save({}).catch((error: any) => {
+    //     throw httpErrors.InternalServerError(error.message);
+    //   })
+    // ).toObject();
+
+    // //pan card
+    // const panattatchments = new appAttachmentsModel({
+    //   original_name: pan_card[0].originalname,
+    //   name: pan_card[0].filename,
+    //   type: pan_card[0].mimetype,
+    //   uploadedBy: storeAppUserBasicDetails._id,
+    //   extension: pan_card[0].originalname.split('.')[1]
+    // });
+    // //save
+    // const storePanCard = (
+    //   await panattatchments.save({}).catch((error: any) => {
+    //     throw httpErrors.InternalServerError(error.message);
+    //   })
+    // ).toObject();
+
+    // const object_ids: Types.ObjectId[] = [];
+
+    // // Create an array of promises
+    // const savePromises = documents.map(async document => {
+    //   const documentattatchments = new appAttachmentsModel({
+    //     original_name: document.originalname,
+    //     name: document.filename,
+    //     type: document.mimetype,
+    //     uploadedBy: storeAppUserBasicDetails._id,
+    //     extension: document.originalname.split('.')[1]
+    //   });
+
+    //   // Save the document and return the saved object
+    //   const storeDocuments = await documentattatchments.save().catch((error: any) => {
+    //     throw httpErrors.InternalServerError(error.message);
+    //   });
+
+    //   return storeDocuments.toObject();
+    // });
+
+    // // Wait for all the promises to resolve
+    // const savedDocuments = await Promise.all(savePromises);
+
+    // // Push the _id of each saved document to object_ids array
+    // savedDocuments.forEach(document => {
+    //   object_ids.push(document._id);
+    // });
+
+    // console.log(object_ids);
+
+    // //storing the aadhar and pan card numbers in the file schema
+    // const appuserfiles = new appAgentFilesModel({
+    //   appAgentId: storeAppUserBasicDetails._id,
+    //   profile_picture: storeProfilePicture._id,
+    //   aadhar_card_number: appuserDetails.aadhar_number,
+    //   aadhar_card_file: storeAadharCard._id,
+    //   pan_card_number: appuserDetails.pan_number,
+    //   pan_card_file: storePanCard._id,
+    //   documents: object_ids
+    // });
+    // //locate the files directory
+    // const dir = req.body.directory;
+    // //rename the directory with the user's objectID
+    // fs.renameSync(dir, `${FILE_UPLOAD_PATH}/${storeAppUserBasicDetails._id}`);
     //save
-    const storeProfilePicture = (
-      await profileattatchments.save({}).catch((error: any) => {
-        throw httpErrors.InternalServerError(error.message);
-      })
-    ).toObject();
-
-    //aadhar card
-    const aadharattatchments = new appAttachmentsModel({
-      original_name: aadhar_card[0].originalname,
-      name: aadhar_card[0].filename,
-      type: aadhar_card[0].mimetype,
-      uploadedBy: storeAppUserBasicDetails._id,
-      extension: aadhar_card[0].originalname.split('.')[1]
-    });
-    //save
-    const storeAadharCard = (
-      await aadharattatchments.save({}).catch((error: any) => {
-        throw httpErrors.InternalServerError(error.message);
-      })
-    ).toObject();
-
-    //pan card
-    const panattatchments = new appAttachmentsModel({
-      original_name: pan_card[0].originalname,
-      name: pan_card[0].filename,
-      type: pan_card[0].mimetype,
-      uploadedBy: storeAppUserBasicDetails._id,
-      extension: pan_card[0].originalname.split('.')[1]
-    });
-    //save
-    const storePanCard = (
-      await panattatchments.save({}).catch((error: any) => {
-        throw httpErrors.InternalServerError(error.message);
-      })
-    ).toObject();
-
-    const object_ids: Types.ObjectId[] = [];
-
-    // Create an array of promises
-    const savePromises = documents.map(async document => {
-      const documentattatchments = new appAttachmentsModel({
-        original_name: document.originalname,
-        name: document.filename,
-        type: document.mimetype,
-        uploadedBy: storeAppUserBasicDetails._id,
-        extension: document.originalname.split('.')[1]
-      });
-
-      // Save the document and return the saved object
-      const storeDocuments = await documentattatchments.save().catch((error: any) => {
-        throw httpErrors.InternalServerError(error.message);
-      });
-
-      return storeDocuments.toObject();
-    });
-
-    // Wait for all the promises to resolve
-    const savedDocuments = await Promise.all(savePromises);
-
-    // Push the _id of each saved document to object_ids array
-    savedDocuments.forEach(document => {
-      object_ids.push(document._id);
-    });
-
-    console.log(object_ids);
-
-    //storing the aadhar and pan card numbers in the file schema
-    const appuserfiles = new appAgentFilesModel({
-      appAgentId: storeAppUserBasicDetails._id,
-      profile_picture: storeProfilePicture._id,
-      aadhar_card_number: appuserDetails.aadhar_number,
-      aadhar_card_file: storeAadharCard._id,
-      pan_card_number: appuserDetails.pan_number,
-      pan_card_file: storePanCard._id,
-      documents: object_ids
-    });
-    //locate the files directory
-    const dir = req.body.directory;
-    //rename the directory with the user's objectID
-    fs.renameSync(dir, `${FILE_UPLOAD_PATH}/${storeAppUserBasicDetails._id}`);
-    //save
-    const storeAppUserFileInfo = (
-      await appuserfiles.save({}).catch((error: any) => {
-        throw httpErrors.InternalServerError(error.message);
-      })
-    ).toObject();
+    // const storeAppUserFileInfo = (
+    //   await appuserfiles.save({}).catch((error: any) => {
+    //     throw httpErrors.InternalServerError(error.message);
+    //   })
+    // ).toObject();
 
     // Send Response
     if (res.headersSent === false) {
@@ -247,11 +249,11 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
             appAgentContactId: storeAppUserContactDetails._id,
             number: storeAppUserContactDetails.number
           },
-          appAgentFiles: {
-            appAgentFileId: storeAppUserFileInfo._id,
-            aadhar_number: storeAppUserFileInfo.aadhar_card_number,
-            pan_number: storeAppUserFileInfo.pan_card_number
-          },
+          // appAgentFiles: {
+          //   appAgentFileId: storeAppUserFileInfo._id,
+          //   aadhar_number: storeAppUserFileInfo.aadhar_card_number,
+          //   pan_number: storeAppUserFileInfo.pan_card_number
+          // },
 
           message: 'Agent created successfully and files uploaded successfully.'
         }
@@ -606,60 +608,71 @@ export const updateAppUserDetails = async (req: Request, res: Response, next: Ne
   }
 };
 
-//description: get single users all details
-//route: GET /api/v1/getSingleAppUserDetails
-//access: private
-// export const getSingleAppUserDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-//   try {
-//     //validate joi schema
-//     const appuserDetails: GetAppUserType = await getAppUserSchema.validateAsync(req.body);
-//     //check if user exist in collection
-//     const doesAppUserExist = await AppUser.findOne({
-//       _id: appuserDetails.appAgentId,
-//       isDeleted: false
-//     }).populate('appAccessGroupId appDepartmentId appDesignationId');
-//     if (!doesAppUserExist) throw httpErrors.Conflict(`user [${appuserDetails.appAgentId}] does not exist.`);
-//     //get user company details
-//     const singleusercompanydetails = await AppUserDetails.findOne({
-//       appAgentId: appuserDetails.appAgentId
-//     }).catch((error: any) => {
-//       throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-//     });
-//     //get user bank details
-//     const singleuserbankdetails = await AppUserBank.findOne({
-//       appAgentId: appuserDetails.appAgentId
-//     }).catch((error: any) => {
-//       throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-//     });
-//     //get user address details
-//     const singleuseraddressdetails = await AppUserAddress.findOne({
-//       appAgentId: appuserDetails.appAgentId
-//     }).catch((error: any) => {
-//       throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-//     });
-//     //get user contact details
-//     const singleusercontactdetails = await AppUserContact.findOne({
-//       appAgentId: appuserDetails.appAgentId
-//     }).catch((error: any) => {
-//       throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-//     });
+// description: get single users all details
+// route: GET /api/v1/getSingleAppUserDetails
+// access: private
+export const getSingleAppUserDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    //validate joi schema
+    const appuserDetails: GetAppUserType = await getAllDetailSchema.validateAsync(req.body);
+    //check if user exist in collection
+    const doesAppUserExist = await appAgentModel
+      .findOne({
+        _id: appuserDetails.appAgentId,
+        isDeleted: false
+      })
+      .populate('appAccessGroupId appDepartmentId appDesignationId');
+    if (!doesAppUserExist) throw httpErrors.Conflict(`user [${appuserDetails.appAgentId}] does not exist.`);
+    //get user company details
+    const singleusercompanydetails = await appAgentDetailsModel
+      .findOne({
+        appUserId: appuserDetails.appAgentId
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
+    console.log(appuserDetails.appAgentId);
+    //get user bank details
+    const singleuserbankdetails = await appAgentBanksModel
+      .findOne({
+        appUserId: appuserDetails.appAgentId
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
+    //get user address details
+    const singleuseraddressdetails = await appAgentAddressModel
+      .findOne({
+        appUserId: appuserDetails.appAgentId
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
+    //get user contact details
+    const singleusercontactdetails = await appAgentContactModel
+      .findOne({
+        appUserId: appuserDetails.appAgentId
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
 
-//     //send response
-//     if (res.headersSent === false) {
-//       res.status(200).send({
-//         error: false,
-//         data: {
-//           user_details: doesAppUserExist,
-//           company_details: singleusercompanydetails,
-//           bank_details: singleuserbankdetails,
-//           address_details: singleuseraddressdetails,
-//           contact_details: singleusercontactdetails
-//         }
-//       });
-//     }
-//   } catch (error: any) {
-//     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
-//     if (error?.isJoi === true) error.status = 422;
-//     next(error);
-//   }
-// };
+    //send response
+    if (res.headersSent === false) {
+      res.status(200).send({
+        error: false,
+        data: {
+          user_details: doesAppUserExist,
+          company_details: singleusercompanydetails,
+          bank_details: singleuserbankdetails,
+          address_details: singleuseraddressdetails,
+          contact_details: singleusercontactdetails
+        }
+      });
+    }
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
+};

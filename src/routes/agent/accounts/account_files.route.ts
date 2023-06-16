@@ -4,30 +4,29 @@ import upload_file from '../../../middlewares/files/upload_file.middleware';
 import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
 import permissionsModule from '../../../middlewares/permissions/permissions.middleware';
 
-
 export const appAccountFileRouterV1 = Router();
 
 appAccountFileRouterV1.post(
   '/delete-file',
-  jwtModule.verifyRefreshToken,
+  jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
   appAccountFileController.deleteFile
 );
 appAccountFileRouterV1.post(
   '/get-files',
-  jwtModule.verifyRefreshToken,
+  jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
   appAccountFileController.getAllFiles
 );
 appAccountFileRouterV1.post(
   '/get-file-details',
-  jwtModule.verifyRefreshToken,
+  jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
   appAccountFileController.getOneFile
 );
 appAccountFileRouterV1.post(
   '/update-file',
-  jwtModule.verifyRefreshToken,
+  jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
   upload_file.fields([
     { name: 'profile_picture', maxCount: 1 },
@@ -39,7 +38,7 @@ appAccountFileRouterV1.post(
 );
 appAccountFileRouterV1.post(
   '/test-file',
-  jwtModule.verifyRefreshToken,
+  jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
   upload_file.fields([
     { name: 'profile_picture', maxCount: 1 },

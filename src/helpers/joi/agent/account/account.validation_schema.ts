@@ -4,7 +4,7 @@ import { joiPasswordExtendCore } from 'joi-password';
 
 const JoiPassword = Joi.extend(joiPasswordExtendCore);
 export const createAppUserSchema = Joi.object({
-  directory: Joi.string().trim(),
+  //directory: Joi.string().trim(),
   first_name: Joi.string().trim().required(),
   last_name: Joi.string().trim().required(),
   email: Joi.string().trim().email().lowercase().required(),
@@ -19,7 +19,7 @@ export const createAppUserSchema = Joi.object({
     .noWhiteSpaces()
     .required(),
   appAccessGroupId: Joi.string().hex().length(24).required(),
-  appReportingManagerId: Joi.string().hex().length(24).allow(null).default(null),
+  appReportingManagerId: Joi.string().hex().length(24),
   appDepartmentId: Joi.string().hex().length(24).required(),
   appDesignationId: Joi.string().hex().length(24).required(),
   employee_type: Joi.string().trim().required(),
@@ -29,7 +29,7 @@ export const createAppUserSchema = Joi.object({
   company_email: Joi.string().trim().email().lowercase().allow(null).default(null),
   gender: Joi.string().trim().required(),
   contact_number: Joi.number().required(),
-  date_of_birth: Joi.date().empty('').default(moment().add(1, 'days').format('YYYY-MM-DD')).required(),
+  date_of_birth: Joi.date().required(),
   date_of_joining: Joi.date().required(),
   working_hours: Joi.string().trim().required(),
   salary: Joi.number().required(),
@@ -49,10 +49,10 @@ export const createAppUserSchema = Joi.object({
   landmark: Joi.string().trim().required(),
   //contact
   number: Joi.number().required(),
-  relation: Joi.string().trim().required(),
+  relation: Joi.string().trim().required()
   //document
-  aadhar_number: Joi.string().trim().required(),
-  pan_number: Joi.string().trim().required()
+  // aadhar_number: Joi.string().trim().required(),
+  // pan_number: Joi.string().trim().required()
 });
 
 export const fileSchema = Joi.object({
@@ -74,6 +74,10 @@ export const uploadedFilesSchema = Joi.object({
 });
 
 export const getAppUserSchema = Joi.object({
+  appAgentId: Joi.string().hex().length(24).required()
+});
+
+export const getAllDetailSchema = Joi.object({
   appAgentId: Joi.string().hex().length(24).required()
 });
 
