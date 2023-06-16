@@ -5,6 +5,11 @@ import { Request } from 'express';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import bson from 'bson';
+import { RequestType } from '../../helpers/shared/shared.type';
+import { GlobalConfig } from '../../helpers/common/environment';
+// import { appAgentFilesFolderModel } from '../../models/agent/agent_files_folder.model'
+// import { objectIdToString } from '../../helpers/common/backend.functions';
+
 dotenv.config();
 function generateUniqueFileName(fileExtension: string): string {
   const timestamp = Date.now().toString();
@@ -13,27 +18,33 @@ function generateUniqueFileName(fileExtension: string): string {
     .createHash('sha1')
     .update(timestamp + randomBytes)
     .digest('hex');
-  return `${hash}.${fileExtension}`;
+  return `${hash}${fileExtension}`;
 }
-const FILE_UPLOAD_PATH: any = process.env.FILE_UPLOAD_PATH;
+const FILE_UPLOAD_PATH: any = GlobalConfig.FILE_UPLOAD_PATH;
 //make a new directory with the user's objectID inside the HR_Module_Files folder
 const users: any = {};
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const makeDirectory = (req: Request) => {
+const makeDirectory = async (req: RequestType) => {
   //create a temporary objectID using bson
   const ObjectId = bson.ObjectId;
-  if (!users[req.body.email]) {
-    // Create a new ObjectId for the user
-    users[req.body.email] = new ObjectId();
+
+  let filesFolderName;
+
+  if (!users['name']) {
+    filesFolderName = new ObjectId()
+    users['name'] = filesFolderName;
   }
-  const id = users[req.body.email];
+  else {
+    filesFolderName = users['name']
+  }
+
   //create a new directory with the user's objectID
-  const dir = `${FILE_UPLOAD_PATH}\\${id}`;
+  const dir = `${FILE_UPLOAD_PATH}/${filesFolderName}`;
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir),
-      {
-        recursive: true
-      };
+    {
+      recursive: true
+    };
   }
   //store the directory path in the request object
   req.body.directory = dir;
@@ -42,21 +53,17 @@ const makeDirectory = (req: Request) => {
 
 // Set the storage engine to save the files in the uploads folder
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const dir = makeDirectory(_req);
-    //make another sub directory named documents inside the user's directory
-    const documentsDir = `${dir}\\documents`;
+  destination: async (_req, _file, cb) => {
+    const dir = await makeDirectory(_req);
+    const documentsDir = `${dir}/documents`;
     if (!fs.existsSync(documentsDir)) {
       fs.mkdirSync(documentsDir),
-        {
-          recursive: true
-        };
+      {
+        recursive: true
+      };
     }
-    if (_file.fieldname === 'documents') {
-      cb(null, documentsDir);
-    } else {
-      cb(null, dir);
-    }
+    //make another sub directory named documents inside the user's directory
+    cb(null, documentsDir);
   },
 
   filename: (_req, file, cb) => {

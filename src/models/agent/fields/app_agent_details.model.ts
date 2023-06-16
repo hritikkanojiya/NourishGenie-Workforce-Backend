@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
-const AppUserDetailsSchema = new mongoose.Schema(
+const appAgentDetailsSchema = new mongoose.Schema(
   {
     //foreign key
-    appUserId: {
+    appAgentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'AppUserSchema'
+      ref: 'app_agent'
     },
     primary_email: {
       type: String,
@@ -57,6 +57,10 @@ const AppUserDetailsSchema = new mongoose.Schema(
       required: [true, 'must provide a marital status'],
       trim: true,
       enum: ['Married', 'Single', 'Divorced', 'Widowed', 'Separated', 'Other']
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     }
   },
   {
@@ -64,4 +68,4 @@ const AppUserDetailsSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_agent_details', AppUserDetailsSchema);
+export default mongoose.model('app_agent_detail', appAgentDetailsSchema);

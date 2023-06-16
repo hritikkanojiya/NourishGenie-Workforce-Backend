@@ -36,22 +36,22 @@ const agentSchema = new mongoose.Schema({
   //linking with other schema fields
   appReportingManagerId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'app_reporting_managers',
+    ref: 'app_reporting_manager',
     default: null
   },
   appAccessGroupId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'app_access_groups',
+    ref: 'app_access_group',
     required: true
   },
   appDepartmentId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'app_departments',
+    ref: 'app_department',
     required: true
   },
   appDesignationId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'app_designations',
+    ref: 'app_designation',
     required: true
   },
   employee_type: {

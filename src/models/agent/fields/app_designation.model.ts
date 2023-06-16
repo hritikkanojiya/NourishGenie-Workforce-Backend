@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const AppDesignationSchema = new mongoose.Schema(
+const appDesignationSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -24,4 +24,4 @@ const AppDesignationSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_designations', AppDesignationSchema);
+export default mongoose.model('app_designation', appDesignationSchema);

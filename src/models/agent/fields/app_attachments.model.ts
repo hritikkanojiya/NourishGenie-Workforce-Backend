@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const AppAttatchmentsSchema = new mongoose.Schema(
+const appAttachmentsSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -36,4 +36,4 @@ const AppAttatchmentsSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_attachments', AppAttatchmentsSchema);
+export default mongoose.model('app_attachment', appAttachmentsSchema);

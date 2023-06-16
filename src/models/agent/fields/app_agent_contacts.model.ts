@@ -3,9 +3,9 @@ import mongoose from 'mongoose';
 const AppUserContactsSchema = new mongoose.Schema(
   {
     //foreign key
-    appUserId: {
+    appAgentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'AppUserSchema'
+      ref: 'appUserSchema'
     },
     number: {
       type: Number,
@@ -14,6 +14,10 @@ const AppUserContactsSchema = new mongoose.Schema(
     },
     relation: {
       type: String
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     }
   },
   {
@@ -21,4 +25,4 @@ const AppUserContactsSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_agent_contacts', AppUserContactsSchema);
+export default mongoose.model('app_agent_contact', AppUserContactsSchema);

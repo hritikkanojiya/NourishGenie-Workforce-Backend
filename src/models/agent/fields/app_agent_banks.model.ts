@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
-const AppUserBanksSchema = new mongoose.Schema(
+const appAgentBanksSchema = new mongoose.Schema(
   {
     //foreign key
-    appUserId: {
+    appAgentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'AppUserSchema'
+      ref: 'appAgentSchema'
     },
     account_number: {
       type: Number,
@@ -26,6 +26,10 @@ const AppUserBanksSchema = new mongoose.Schema(
       type: String,
       required: [true, 'must provide a ifsc code'],
       trim: true
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     }
   },
   {
@@ -33,4 +37,4 @@ const AppUserBanksSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_agent_banks', AppUserBanksSchema);
+export default mongoose.model('app_agent_bank', appAgentBanksSchema);

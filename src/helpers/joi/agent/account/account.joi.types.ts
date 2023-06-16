@@ -1,14 +1,16 @@
+import mongoose from 'mongoose';
+
 export interface CreateAppUserType {
   //user basic details
-  directory: string;
+  // directory: string;
   first_name: string;
   last_name: string;
   email: string;
   password: string;
-  appAccessGroupId: string;
-  appReportingManagerId: string | null;
-  appDepartmentId: string;
-  appDesignationId: string;
+  appAccessGroupId: mongoose.Types.ObjectId;
+  appReportingManagerId: mongoose.Types.ObjectId | null;
+  appDepartmentId: mongoose.Types.ObjectId;
+  appDesignationId: mongoose.Types.ObjectId;
   employee_type: string;
 
   //user company details
@@ -45,7 +47,7 @@ export interface CreateAppUserType {
   pan_number: string;
 }
 export interface GetAppUserType {
-  appAgentId: string;
+  appAgentId: mongoose.Types.ObjectId;
 }
 export interface File {
   mv: any;
@@ -63,31 +65,31 @@ export interface UploadedFiles {
   profile_picture: File[];
   aadhar_card: File[];
   pan_card: File[];
-  documents: File[];
+  // documents: File[];
 }
 
 export interface DeleteAppUserType {
-  appAgentId: string;
+  appAgentId: mongoose.Types.ObjectId;
 }
 
-export interface UpdateAppUserType {
-  appAgentId: string;
+export interface UpdateAppAgentType {
+  appAgentId: mongoose.Types.ObjectId;
   //user basic details
   first_name: string;
   last_name: string;
   email: string;
   password: string;
-  appAccessGroupId: string;
-  appReportingManagerId: string | null;
-  appDepartmentId: string;
-  appDesignationId: string;
+  appAccessGroupId: mongoose.Types.ObjectId;
+  appReportingManagerId: mongoose.Types.ObjectId | null;
+  appDepartmentId: mongoose.Types.ObjectId;
+  appDesignationId: mongoose.Types.ObjectId;
   employee_type: string;
 
   //user company details
   primary_email: string;
   company_email: string | null;
   gender: string;
-  contact_number: number;
+  contact_number: string;
   date_of_birth: Date;
   date_of_joining: Date;
   working_hours: string;
@@ -96,7 +98,7 @@ export interface UpdateAppUserType {
 
   //user bank details
   name_as_per_bank: string;
-  account_number: number;
+  account_number: string;
   ifsc_code: string;
   bank_name: string;
 
@@ -105,14 +107,16 @@ export interface UpdateAppUserType {
   city: string;
   state: string;
   country: string;
-  pincode: number;
+  pincode: string;
   landmark: string;
 
   //user contact details
-  number: number;
+  number: string;
   relation: string;
 
   //user file
   aadhar_number: string;
   pan_number: string;
+
+  isDeleted: boolean;
 }
