@@ -34,12 +34,12 @@ appAccountRouterV1.post(
   '/get-agents',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
-  appAccountController.getAllAppUsers
+  appAccountController.getAllAppAgents
 );
 appAccountRouterV1.put(
   '/update-agents',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
-  appAccountController.updateAppUserDetails
+  appAccountController.updateAppAgentDetails
 );
 appAccountRouterV1.post('/get-all-details', appAccountController.getSingleAppUserDetails);

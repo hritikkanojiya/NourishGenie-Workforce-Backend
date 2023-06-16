@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const AppAccessGroupSchema = new mongoose.Schema({
+const appAccessGroupSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'must provide a name'],
@@ -23,4 +23,4 @@ const AppAccessGroupSchema = new mongoose.Schema({
   }
 });
 
-export default mongoose.model('app_access_groups', AppAccessGroupSchema);
+export default mongoose.model('app_access_group', appAccessGroupSchema);

@@ -1,15 +1,15 @@
 import mongoose from 'mongoose';
 
-const AppUserFilesSchema = new mongoose.Schema(
+const appAgentFilesSchema = new mongoose.Schema(
   {
     //foreign key
-    appUserId: {
+    appAgentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'AppUserSchema'
+      ref: 'appAgentSchema'
     },
     profile_picture: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'AppAttatchments'
+      ref: 'app_attachment'
     },
     aadhar_card_number: {
       type: String,
@@ -18,7 +18,7 @@ const AppUserFilesSchema = new mongoose.Schema(
     },
     aadhar_card_file: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'AppAttatchments'
+      ref: 'app_attachment'
     },
     pan_card_number: {
       type: String,
@@ -26,18 +26,23 @@ const AppUserFilesSchema = new mongoose.Schema(
     },
     pan_card_file: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'AppAttatchments'
+      ref: 'app_attachment'
     },
     documents: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'AppAttatchments'
+        ref: 'app_attachment'
       }
-    ]
+    ],
+    isDeleted: {
+      type: Boolean,
+      require: true,
+      default: false
+    }
   },
   {
     timestamps: true
   }
 );
 
-export default mongoose.model('app_agent_files', AppUserFilesSchema);
+export default mongoose.model('app_agent_file', appAgentFilesSchema);

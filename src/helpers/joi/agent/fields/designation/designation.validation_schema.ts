@@ -8,7 +8,7 @@ const createAppDesignationSchema = joi.object({
 });
 const getAppDesignationSchema = joi.object({
   appDesignationId: objectId().allow(null),
-  search: joi.string().trim().allow(null),
+  search: joi.string().trim().allow(null, ''),
   metaData: joi.object().keys({
     sortBy: joi.string().trim().allow(null).default(null),
     sortOn: joi.string().trim().allow(null).default(null),

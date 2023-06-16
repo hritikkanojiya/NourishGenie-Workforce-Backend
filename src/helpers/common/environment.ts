@@ -49,7 +49,8 @@ const GlobalConfig = {
   JWT_ACCESS_TOKEN_HEADER: environment.getEnvironmentString('JWT_ACCESS_TOKEN_HEADER'),
   JWT_REFRESH_TOKEN_HEADER: environment.getEnvironmentString('JWT_REFRESH_TOKEN_HEADER'),
   JWT_EXPIRES_IN: environment.getEnvironmentString('JWT_EXPIRES_IN'),
-  JWT_SECRET_KEY: environment.getEnvironmentString('JWT_SECRET_KEY')
+  JWT_SECRET_KEY: environment.getEnvironmentString('JWT_SECRET_KEY'),
+  FILE_UPLOAD_PATH: environment.getEnvironmentString('FILE_UPLOAD_PATH')
 };
 
 const MongoDBConfig = {

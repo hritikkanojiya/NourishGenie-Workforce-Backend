@@ -2,22 +2,21 @@ import { NextFunction, Request, Response } from 'express';
 import { logBackendError, stringToObjectId } from '../../../helpers/common/backend.functions';
 import httpErrors from 'http-errors';
 import appAgentModel from '../../../models/agent/agent.model';
-import appAgentDetailsModel from '../../../models/agent/fields/app_user_details.model';
-import appAgentBanksModel from '../../../models/agent/fields/app_user_banks.model';
-import appAgentAddressModel from '../../../models/agent/fields/app_user_address.model';
-import appAgentContactModel from '../../../models/agent/fields/app_user_contacts.model';
+import appAgentDetailsModel from '../../../models/agent/fields/app_agent_details.model';
+import appAgentBanksModel from '../../../models/agent/fields/app_agent_banks.model';
+import appAgentAddressModel from '../../../models/agent/fields/app_agent_address.model';
+import appAgentContactModel from '../../../models/agent/fields/app_agent_contacts.model';
 //import appAgentFilesModel from '../../../models/agent/fields/app_user_files.model';
 //import appAttachmentsModel from '../../../models/agent/fields/app_attachments.model';
 import {
   joiAgentAccount,
   CreateAppUserType,
-  GetAppUserType,
-  UpdateAppUserType
+  GetAppUserType
   //UploadedFiles
 } from '../../../helpers/joi/agent/account/index';
 import { getAllDetailSchema } from '../../../helpers/joi/agent/account/account.validation_schema';
 //import { Types } from 'mongoose';
-import { DeleteAppUserType } from '../../../helpers/joi/agent/account/account.joi.types';
+import { DeleteAppUserType, UpdateAppAgentType } from '../../../helpers/joi/agent/account/account.joi.types';
 //import fs from 'fs';
 //const FILE_UPLOAD_PATH: any = process.env.FILE_UPLOAD_PATH;
 
@@ -27,97 +26,96 @@ import { DeleteAppUserType } from '../../../helpers/joi/agent/account/account.jo
 export const createAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
-    console.log('deepak1');
     console.log(req.body);
     console.log(req.files);
-    const appuserDetails: CreateAppUserType = await joiAgentAccount.createAppUserSchema.validateAsync(req.body);
+    const appAgentDetails: CreateAppUserType = await joiAgentAccount.createAppUserSchema.validateAsync(req.body);
     console.log('deepak2');
     //const appuserFileDetails: UploadedFiles = await joiAgentAccount.uploadedFilesSchema.validateAsync(req.files);
     console.log('deepak3');
     //check if user exist in collection
-    const doesAppUserExist = await appAgentModel.find({
-      email: appuserDetails.email,
+    const doesAppAgentExist = await appAgentModel.find({
+      email: appAgentDetails.email,
       isDeleted: false
     });
-    if (doesAppUserExist?.length > 0) throw httpErrors.Conflict(`user [${appuserDetails.email}] already exist.`);
+    if (doesAppAgentExist?.length > 0) throw httpErrors.Conflict(`user [${appAgentDetails.email}] already exist.`);
     // Else Construct Data
     //user basic details
     const app_agents = new appAgentModel({
       //basic details of user
-      first_name: appuserDetails.first_name,
-      last_name: appuserDetails.last_name,
-      email: appuserDetails.email,
-      password: appuserDetails.password,
-      appAccessGroupId: stringToObjectId(appuserDetails.appAccessGroupId),
-      appDepartmentId: stringToObjectId(appuserDetails.appDepartmentId),
-      appReportingManagerId: stringToObjectId(appuserDetails.appReportingManagerId),
-      appDesignationId: stringToObjectId(appuserDetails.appDesignationId),
-      employee_type: appuserDetails.employee_type
+      first_name: appAgentDetails.first_name,
+      last_name: appAgentDetails.last_name,
+      email: appAgentDetails.email,
+      password: appAgentDetails.password,
+      appAccessGroupId: stringToObjectId(appAgentDetails.appAccessGroupId),
+      appDepartmentId: stringToObjectId(appAgentDetails.appDepartmentId),
+      appReportingManagerId: stringToObjectId(appAgentDetails.appReportingManagerId),
+      appDesignationId: stringToObjectId(appAgentDetails.appDesignationId),
+      employee_type: appAgentDetails.employee_type
     });
     // save
-    const storeAppUserBasicDetails = (
+    const storeAppAgentBasicDetails = (
       await app_agents.save({}).catch((error: any) => {
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
     //user company details
     const app_agent_details = new appAgentDetailsModel({
-      appAgentId: storeAppUserBasicDetails._id,
-      primary_email: appuserDetails.primary_email,
-      company_email: appuserDetails.company_email,
-      gender: appuserDetails.gender,
-      contact_number: appuserDetails.contact_number,
-      date_of_birth: appuserDetails.date_of_birth,
-      marital_status: appuserDetails.marital_status,
-      date_of_joining: appuserDetails.date_of_joining,
-      working_hours: appuserDetails.working_hours,
-      salary: appuserDetails.salary
+      appAgentId: storeAppAgentBasicDetails._id,
+      primary_email: appAgentDetails.primary_email,
+      company_email: appAgentDetails.company_email,
+      gender: appAgentDetails.gender,
+      contact_number: appAgentDetails.contact_number,
+      date_of_birth: appAgentDetails.date_of_birth,
+      marital_status: appAgentDetails.marital_status,
+      date_of_joining: appAgentDetails.date_of_joining,
+      working_hours: appAgentDetails.working_hours,
+      salary: appAgentDetails.salary
     }); //save
-    const storeAppUserPersonalDetails = (
+    const storeAppAgentPersonalDetails = (
       await app_agent_details.save({}).catch((error: any) => {
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
     //user bank details
-    const appuserbank = new appAgentBanksModel({
-      appAgentId: storeAppUserBasicDetails._id,
-      name_as_per_bank: appuserDetails.name_as_per_bank,
-      account_number: appuserDetails.account_number,
-      ifsc_code: appuserDetails.ifsc_code,
-      bank_name: appuserDetails.bank_name
+    const appAgentBank = new appAgentBanksModel({
+      appAgentId: storeAppAgentBasicDetails._id,
+      name_as_per_bank: appAgentDetails.name_as_per_bank,
+      account_number: appAgentDetails.account_number,
+      ifsc_code: appAgentDetails.ifsc_code,
+      bank_name: appAgentDetails.bank_name
     });
     //save
     const storeAppUserBankDetails = (
-      await appuserbank.save({}).catch((error: any) => {
+      await appAgentBank.save({}).catch((error: any) => {
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
 
     //address details
-    const appuseraddress = new appAgentAddressModel({
-      appAgentId: storeAppUserBasicDetails._id,
-      address: appuserDetails.address,
-      city: appuserDetails.city,
-      state: appuserDetails.state,
-      country: appuserDetails.country,
-      pincode: appuserDetails.pincode,
-      landmark: appuserDetails.landmark
+    const appAgentAddress = new appAgentAddressModel({
+      appAgentId: storeAppAgentBasicDetails._id,
+      address: appAgentDetails.address,
+      city: appAgentDetails.city,
+      state: appAgentDetails.state,
+      country: appAgentDetails.country,
+      pincode: appAgentDetails.pincode,
+      landmark: appAgentDetails.landmark
     });
     //save
-    const storeAppUserAddressDetails = (
-      await appuseraddress.save({}).catch((error: any) => {
+    const storeAppAgentAddressDetails = (
+      await appAgentAddress.save({}).catch((error: any) => {
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
     //user contact
-    const appusercontact = new appAgentContactModel({
-      appAgentId: storeAppUserBasicDetails._id,
-      number: appuserDetails.contact_number,
-      relation: appuserDetails.relation
+    const appAgentContact = new appAgentContactModel({
+      appAgentId: storeAppAgentBasicDetails._id,
+      number: appAgentDetails.contact_number,
+      relation: appAgentDetails.relation
     });
     //save
-    const storeAppUserContactDetails = (
-      await appusercontact.save({}).catch((error: any) => {
+    const storeAppAgentContactDetails = (
+      await appAgentContact.save({}).catch((error: any) => {
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
@@ -229,25 +227,25 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
         error: false,
         data: {
           appAgent: {
-            appAgentid: storeAppUserBasicDetails._id,
-            email: storeAppUserBasicDetails.email,
-            password: storeAppUserBasicDetails.password
+            appAgentid: storeAppAgentBasicDetails._id,
+            email: storeAppAgentBasicDetails.email,
+            password: storeAppAgentBasicDetails.password
           },
           appAgentDetails: {
-            appAgentDetailsId: storeAppUserPersonalDetails._id,
-            primary_email: storeAppUserPersonalDetails.primary_email
+            appAgentDetailsId: storeAppAgentPersonalDetails._id,
+            primary_email: storeAppAgentPersonalDetails.primary_email
           },
           appAgentBank: {
             appAgentBankId: storeAppUserBankDetails._id,
             name_as_per_bank: storeAppUserBankDetails.name_as_per_bank
           },
           appAgentAddress: {
-            appAgentAddressId: storeAppUserAddressDetails._id,
-            country: storeAppUserAddressDetails.country
+            appAgentAddressId: storeAppAgentAddressDetails._id,
+            country: storeAppAgentAddressDetails.country
           },
           appAgentContact: {
-            appAgentContactId: storeAppUserContactDetails._id,
-            number: storeAppUserContactDetails.number
+            appAgentContactId: storeAppAgentContactDetails._id,
+            number: storeAppAgentContactDetails.number
           },
           // appAgentFiles: {
           //   appAgentFileId: storeAppUserFileInfo._id,
@@ -260,7 +258,7 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
       });
     }
   } catch (error: any) {
-    console.log(error.message);
+    console.log(error);
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
     if (error?.isJoi === true) error.status = 422;
     next(error);
@@ -272,20 +270,20 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
 //access: private
 export const deleteAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const appuserDetails: DeleteAppUserType = await joiAgentAccount.deleteAppUserSchema.validateAsync(req.body);
+    const appAgentDetails: DeleteAppUserType = await joiAgentAccount.deleteAppUserSchema.validateAsync(req.body);
     // Update records in Collection
-    const appuser = await appAgentModel
+    const appAgent = await appAgentModel
       .findOne({
-        _id: { $in: stringToObjectId(appuserDetails.appAgentId) },
+        _id: { $in: appAgentDetails.appAgentId },
         isDeleted: false
       })
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
       });
 
-    if (!appuser) throw httpErrors.UnprocessableEntity(`Invalid user ID.`);
+    if (!appAgent) throw httpErrors.UnprocessableEntity(`Invalid user ID.`);
 
-    await appuser
+    await appAgent
       .updateOne({
         isDeleted: true
       })
@@ -309,28 +307,70 @@ export const deleteAccount = async (req: Request, res: Response, next: NextFunct
 };
 
 //description: get user details
-//route: GET /api/v1/getAppUserDetails
+//route: GET /api/v1/getappAgentDetails
 //access: private
 export const getSingleAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
-    const appuserDetails: GetAppUserType = await joiAgentAccount.getAppUserSchema.validateAsync(req.body);
+    const appAgentDetails: GetAppUserType = await joiAgentAccount.getAppUserSchema.validateAsync(req.body);
     //check if user exist in collection
-    const doesAppUserExist = await appAgentModel.findOne({
-      _id: appuserDetails.appAgentId,
-      isDeleted: false
-    });
-    if (!doesAppUserExist) throw httpErrors.Conflict(`user [${appuserDetails.appAgentId}] does not exist.`);
-    //get user details
-    // const singleuserdetails = await AppUser.findOne({ appAgentId: appuserDetails.appAgentId }).catch((error: any) => {
-    //   throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-    // });
+    const appAgent = await appAgentModel
+      .findOne({
+        _id: appAgentDetails.appAgentId,
+        isDeleted: false
+      })
+      .populate('appAccessGroupId')
+      .populate('appDepartmentId')
+      .populate('appDesignationId');
+
+    if (!appAgent) throw httpErrors.Conflict(`Agent with Id: [${appAgentDetails.appAgentId}] does not exist.`);
+    console.log(appAgent._id);
+    // console.log(appAgentDetails.appAgentId);
+
+    // const appAgentPersonalDetails = await appAgentDetailsModel.findOne(
+    //   {
+    //     appAgentId: appAgent._id,
+    //     isDeleted: false
+    //   })
+    // console.log(appAgentPersonalDetails);
+
+    // if (!appAgentPersonalDetails)
+    //   throw httpErrors.Conflict(`Agent with Id: [${appAgentDetails.appAgentId}] does not has personal details.`);
+
+    // const appAgentBankDetails = await appAgentBanksModel.findOne(
+    //   {
+    //     appAgentId: appAgentDetails.appAgentId,
+    //   })
+
+    // if (!appAgentBankDetails)
+    //   throw httpErrors.Conflict(`Agent with Id: [${appAgentDetails.appAgentId}] does not has bank details.`);
+
+    // const appAgentAddressDetails = await appAgentAddressModel.findOne(
+    //   {
+    //     appAgentId: appAgentDetails.appAgentId,
+    //   })
+
+    // if (!appAgentAddressDetails)
+    //   throw httpErrors.Conflict(`Agent with Id: [${appAgentDetails.appAgentId}] does not has Address details.`);
+
+    // const appAgentContactDetails = await appAgentContactModel.findOne(
+    //   {
+    //     appAgentId: appAgentDetails.appAgentId,
+    //   })
+
+    // if (!appAgentContactDetails)
+    //   throw httpErrors.Conflict(`Agent with Id: [${appAgentDetails.appAgentId}] does not has contact details.`);
+
     // Send Response
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
         data: {
-          AppUser: doesAppUserExist,
+          appAgentBasicDetails: appAgent,
+          // appAgentPersonalDetails: appAgentPersonalDetails,
+          // appAgentBankDetails: appAgentBankDetails,
+          // appAgentAddressDetails: appAgentAddressDetails,
+          // appAgentContactDetails: appAgentContactDetails,
           message: 'User details fetched successfully.'
         }
       });
@@ -345,9 +385,9 @@ export const getSingleAccount = async (req: Request, res: Response, next: NextFu
 //description: get all users
 //route: GET /api/v1/getAllAppUsers
 //access: private
-export const getAllAppUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllAppAgents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const appusers = await appAgentModel
+    const appAgents = await appAgentModel
       .find({
         isDeleted: false
       })
@@ -359,7 +399,7 @@ export const getAllAppUsers = async (req: Request, res: Response, next: NextFunc
       res.status(200).send({
         error: false,
         data: {
-          AppUsers: appusers,
+          AppUsers: appAgents,
           message: 'All users fetched successfully.'
         }
       });
@@ -372,117 +412,121 @@ export const getAllAppUsers = async (req: Request, res: Response, next: NextFunc
 };
 
 //description: update user details
-//route: PUT /api/v1/updateAppUserDetails
+//route: PUT /api/v1/updateappAgentDetails
 //access: private
-export const updateAppUserDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateAppAgentDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const responseQuery: any = {};
+
     //validate joi schema
-    const appuserDetails: UpdateAppUserType = await joiAgentAccount.updateAppUserSchema.validateAsync(req.body);
+    const appAgentDetails: UpdateAppAgentType = await joiAgentAccount.updateAppUserSchema.validateAsync(req.body);
+
     //check if user exist in collection
-    const doesAppUserExist = await appAgentModel.findOne({
-      _id: appuserDetails.appAgentId
+    const doesAppAgentExist = await appAgentModel.findOne({
+      _id: appAgentDetails.appAgentId
     });
-    if (!doesAppUserExist) throw httpErrors.Conflict(`user [${appuserDetails.appAgentId}] does not exist.`);
+
+    if (!doesAppAgentExist) throw httpErrors.Conflict(`user [${appAgentDetails.appAgentId}] does not exist.`);
     //if there is an upadte in the  user basic details
-    const basicdetailsquery: any = {};
-    if (appuserDetails.first_name) {
-      basicdetailsquery['first_name'] = appuserDetails.first_name;
+
+    const basicDetailsQuery: any = {};
+    if (appAgentDetails.first_name) {
+      basicDetailsQuery['first_name'] = appAgentDetails.first_name;
     }
-    if (appuserDetails.last_name) {
-      basicdetailsquery['last_name'] = appuserDetails.last_name;
+    if (appAgentDetails.last_name) {
+      basicDetailsQuery['last_name'] = appAgentDetails.last_name;
     }
-    if (appuserDetails.email) {
-      basicdetailsquery['email'] = appuserDetails.email;
+    if (appAgentDetails.email) {
+      basicDetailsQuery['email'] = appAgentDetails.email;
     }
-    if (appuserDetails.appReportingManagerId) {
-      basicdetailsquery['appReportingManagerId'] = appuserDetails.appReportingManagerId;
+    if (appAgentDetails.appReportingManagerId) {
+      basicDetailsQuery['appReportingManagerId'] = appAgentDetails.appReportingManagerId;
     }
-    if (appuserDetails.appAccessGroupId) {
-      basicdetailsquery['appAccessGroupId'] = appuserDetails.appAccessGroupId;
+    if (appAgentDetails.appAccessGroupId) {
+      basicDetailsQuery['appAccessGroupId'] = appAgentDetails.appAccessGroupId;
     }
-    if (appuserDetails.appDepartmentId) {
-      basicdetailsquery['appDepartmentId'] = appuserDetails.appDepartmentId;
+    if (appAgentDetails.appDepartmentId) {
+      basicDetailsQuery['appDepartmentId'] = appAgentDetails.appDepartmentId;
     }
-    if (appuserDetails.appDesignationId) {
-      basicdetailsquery['appDesignationId'] = appuserDetails.appDesignationId;
+    if (appAgentDetails.appDesignationId) {
+      basicDetailsQuery['appDesignationId'] = appAgentDetails.appDesignationId;
     }
-    if (appuserDetails.employee_type) {
-      basicdetailsquery['employee_type'] = appuserDetails.employee_type;
+    if (appAgentDetails.employee_type) {
+      basicDetailsQuery['employee_type'] = appAgentDetails.employee_type;
     }
     if (
-      appuserDetails.first_name ||
-      appuserDetails.last_name ||
-      appuserDetails.email ||
-      appuserDetails.appReportingManagerId ||
-      appuserDetails.appAccessGroupId ||
-      appuserDetails.appDepartmentId ||
-      appuserDetails.appDesignationId ||
-      appuserDetails.employee_type
+      appAgentDetails.first_name ||
+      appAgentDetails.last_name ||
+      appAgentDetails.email ||
+      appAgentDetails.appReportingManagerId ||
+      appAgentDetails.appAccessGroupId ||
+      appAgentDetails.appDepartmentId ||
+      appAgentDetails.appDesignationId ||
+      appAgentDetails.employee_type
     ) {
-      const updateuserbasicdetails = await appAgentModel
+      const updateAgentBasicDetails = await appAgentModel
         .findOneAndUpdate(
-          { _id: appuserDetails.appAgentId },
+          { _id: appAgentDetails.appAgentId },
           {
-            $set: basicdetailsquery
+            $set: basicDetailsQuery
           },
           { new: true }
         )
         .catch((error: any) => {
           throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
         });
-      responseQuery['basicDetails'] = updateuserbasicdetails;
+      responseQuery['basicDetails'] = updateAgentBasicDetails;
     }
 
     //if there is an update in the company info details
     const companyDetailsQuery: any = {};
-    if (appuserDetails.primary_email) {
-      companyDetailsQuery['primary_email'] = appuserDetails.primary_email;
+    if (appAgentDetails.primary_email) {
+      companyDetailsQuery['primary_email'] = appAgentDetails.primary_email;
     }
-    if (appuserDetails.company_email) {
-      companyDetailsQuery['company_email'] = appuserDetails.company_email;
+    if (appAgentDetails.company_email) {
+      companyDetailsQuery['company_email'] = appAgentDetails.company_email;
     }
-    if (appuserDetails.gender) {
-      companyDetailsQuery['gender'] = appuserDetails.company_email;
+    if (appAgentDetails.gender) {
+      companyDetailsQuery['gender'] = appAgentDetails.company_email;
     }
-    if (appuserDetails.date_of_birth) {
-      companyDetailsQuery['date_of_birth'] = appuserDetails.date_of_birth;
+    if (appAgentDetails.date_of_birth) {
+      companyDetailsQuery['date_of_birth'] = appAgentDetails.date_of_birth;
     }
-    if (appuserDetails.date_of_joining) {
-      companyDetailsQuery['date_of_joining'] = appuserDetails.date_of_joining;
+    if (appAgentDetails.date_of_joining) {
+      companyDetailsQuery['date_of_joining'] = appAgentDetails.date_of_joining;
     }
-    if (appuserDetails.working_hours) {
-      companyDetailsQuery['working_hours'] = appuserDetails.working_hours;
+    if (appAgentDetails.working_hours) {
+      companyDetailsQuery['working_hours'] = appAgentDetails.working_hours;
     }
-    if (appuserDetails.salary) {
-      companyDetailsQuery['salary'] = appuserDetails.salary;
+    if (appAgentDetails.salary) {
+      companyDetailsQuery['salary'] = appAgentDetails.salary;
     }
-    if (appuserDetails.marital_status) {
-      companyDetailsQuery['marital_status'] = appuserDetails.marital_status;
+    if (appAgentDetails.marital_status) {
+      companyDetailsQuery['marital_status'] = appAgentDetails.marital_status;
     }
     if (
-      appuserDetails.primary_email ||
-      appuserDetails.company_email ||
-      appuserDetails.gender ||
-      appuserDetails.date_of_birth ||
-      appuserDetails.date_of_joining ||
-      appuserDetails.working_hours ||
-      appuserDetails.salary ||
-      appuserDetails.marital_status
+      appAgentDetails.primary_email ||
+      appAgentDetails.company_email ||
+      appAgentDetails.gender ||
+      appAgentDetails.date_of_birth ||
+      appAgentDetails.date_of_joining ||
+      appAgentDetails.working_hours ||
+      appAgentDetails.salary ||
+      appAgentDetails.marital_status
     ) {
-      const appusercompanydetails = await appAgentModel
+      const appAgentCompanyDetails = await appAgentModel
         .findOneAndUpdate(
-          { appAgentId: appuserDetails.appAgentId },
+          { appAgentId: appAgentDetails.appAgentId },
           {
             $set: {
-              primary_email: appuserDetails.primary_email,
-              company_email: appuserDetails.company_email,
-              gender: appuserDetails.gender,
-              date_of_birth: appuserDetails.date_of_birth,
-              date_of_joining: appuserDetails.date_of_joining,
-              working_hours: appuserDetails.working_hours,
-              salary: appuserDetails.salary,
-              marital_status: appuserDetails.marital_status
+              primary_email: appAgentDetails.primary_email,
+              company_email: appAgentDetails.company_email,
+              gender: appAgentDetails.gender,
+              date_of_birth: appAgentDetails.date_of_birth,
+              date_of_joining: appAgentDetails.date_of_joining,
+              working_hours: appAgentDetails.working_hours,
+              salary: appAgentDetails.salary,
+              marital_status: appAgentDetails.marital_status
             }
           },
           { new: true }
@@ -490,24 +534,24 @@ export const updateAppUserDetails = async (req: Request, res: Response, next: Ne
         .catch((error: any) => {
           throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
         });
-      responseQuery['companyDetails'] = appusercompanydetails;
+      responseQuery['companyDetails'] = appAgentCompanyDetails;
     }
     //if there is an update in the contact info details
     const contactDetailsQuery: any = {};
-    if (appuserDetails.number) {
-      contactDetailsQuery['number'] = appuserDetails.number;
+    if (appAgentDetails.number) {
+      contactDetailsQuery['number'] = appAgentDetails.number;
     }
-    if (appuserDetails.relation) {
-      contactDetailsQuery['relation'] = appuserDetails.relation;
+    if (appAgentDetails.relation) {
+      contactDetailsQuery['relation'] = appAgentDetails.relation;
     }
-    if (appuserDetails.number || appuserDetails.relation) {
+    if (appAgentDetails.number || appAgentDetails.relation) {
       const appusercontactdetails = await appAgentContactModel
         .findOneAndUpdate(
-          { appAgentId: appuserDetails.appAgentId },
+          { appAgentId: appAgentDetails.appAgentId },
           {
             $set: {
-              number: appuserDetails.number,
-              relation: appuserDetails.relation
+              number: appAgentDetails.number,
+              relation: appAgentDetails.relation
             }
           },
           { new: true }
@@ -519,44 +563,44 @@ export const updateAppUserDetails = async (req: Request, res: Response, next: Ne
     }
     //if there is an update in the address info details
     const addressDetailsQuery: any = {};
-    if (appuserDetails.address) {
-      addressDetailsQuery['address'] = appuserDetails.address;
+    if (appAgentDetails.address) {
+      addressDetailsQuery['address'] = appAgentDetails.address;
     }
-    if (appuserDetails.city) {
-      addressDetailsQuery['city'] = appuserDetails.city;
+    if (appAgentDetails.city) {
+      addressDetailsQuery['city'] = appAgentDetails.city;
     }
-    if (appuserDetails.state) {
-      addressDetailsQuery['state'] = appuserDetails.state;
+    if (appAgentDetails.state) {
+      addressDetailsQuery['state'] = appAgentDetails.state;
     }
-    if (appuserDetails.country) {
-      addressDetailsQuery['country'] = appuserDetails.country;
+    if (appAgentDetails.country) {
+      addressDetailsQuery['country'] = appAgentDetails.country;
     }
-    if (appuserDetails.pincode) {
-      addressDetailsQuery['pincode'] = appuserDetails.pincode;
+    if (appAgentDetails.pincode) {
+      addressDetailsQuery['pincode'] = appAgentDetails.pincode;
     }
-    if (appuserDetails.landmark) {
-      addressDetailsQuery['landmark'] = appuserDetails.landmark;
+    if (appAgentDetails.landmark) {
+      addressDetailsQuery['landmark'] = appAgentDetails.landmark;
     }
 
     if (
-      appuserDetails.address ||
-      appuserDetails.city ||
-      appuserDetails.state ||
-      appuserDetails.country ||
-      appuserDetails.pincode ||
-      appuserDetails.landmark
+      appAgentDetails.address ||
+      appAgentDetails.city ||
+      appAgentDetails.state ||
+      appAgentDetails.country ||
+      appAgentDetails.pincode ||
+      appAgentDetails.landmark
     ) {
-      const appuseraddressdetails = await appAgentAddressModel
+      const appAgentAddressDetails = await appAgentAddressModel
         .findOneAndUpdate(
-          { appAgentId: appuserDetails.appAgentId },
+          { appAgentId: appAgentDetails.appAgentId },
           {
             $set: {
-              address: appuserDetails.address,
-              city: appuserDetails.city,
-              state: appuserDetails.state,
-              country: appuserDetails.country,
-              pincode: appuserDetails.pincode,
-              landmark: appuserDetails.landmark
+              address: appAgentDetails.address,
+              city: appAgentDetails.city,
+              state: appAgentDetails.state,
+              country: appAgentDetails.country,
+              pincode: appAgentDetails.pincode,
+              landmark: appAgentDetails.landmark
             }
           },
           { new: true }
@@ -564,24 +608,24 @@ export const updateAppUserDetails = async (req: Request, res: Response, next: Ne
         .catch((error: any) => {
           throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
         });
-      responseQuery['addressDetails'] = appuseraddressdetails;
+      responseQuery['addressDetails'] = appAgentAddressDetails;
     }
     //if there is an update in the bank info details
     if (
-      appuserDetails.name_as_per_bank ||
-      appuserDetails.account_number ||
-      appuserDetails.bank_name ||
-      appuserDetails.ifsc_code
+      appAgentDetails.name_as_per_bank ||
+      appAgentDetails.account_number ||
+      appAgentDetails.bank_name ||
+      appAgentDetails.ifsc_code
     ) {
-      const appuserbankdetails = await appAgentBanksModel
+      const appAgentBankDetails = await appAgentBanksModel
         .findOneAndUpdate(
-          { appAgentId: appuserDetails.appAgentId },
+          { appAgentId: appAgentDetails.appAgentId },
           {
             $set: {
-              name_as_per_bank: appuserDetails.name_as_per_bank,
-              account_number: appuserDetails.account_number,
-              bank_name: appuserDetails.bank_name,
-              ifsc_code: appuserDetails.ifsc_code
+              name_as_per_bank: appAgentDetails.name_as_per_bank,
+              account_number: appAgentDetails.account_number,
+              bank_name: appAgentDetails.bank_name,
+              ifsc_code: appAgentDetails.ifsc_code
             }
           },
           { new: true }
@@ -589,7 +633,7 @@ export const updateAppUserDetails = async (req: Request, res: Response, next: Ne
         .catch((error: any) => {
           throw httpErrors.UnprocessableEntity(`Error updating records in DB. ${error?.message}`);
         });
-      responseQuery['bankDetails'] = appuserbankdetails;
+      responseQuery['bankDetails'] = appAgentBankDetails;
     }
     // Send Response
     if (res.headersSent === false) {
@@ -607,6 +651,62 @@ export const updateAppUserDetails = async (req: Request, res: Response, next: Ne
     next(error);
   }
 };
+
+// export const updateAgentDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+//   try {
+//     const appAgentDetails: UpdateAppAgentType = await joiAgentAccount.updateAppUserSchema.validateAsync(req.body);
+//     const doesAgentExist = await appAgentModel.findOne(
+//       {
+//         _id: appAgentDetails.appAgentId,
+//         isDeleted: false
+//       });
+
+//     if (!doesAgentExist) {
+//       throw httpErrors.Conflict(`Agent with Id: ${appAgentDetails.appAgentId} does not exist`);
+//     }
+
+//     //check whether email id already associated with any user in database or not.
+//     const doesEmailExist = await appAgentModel.findOne(
+//       {
+//         email: appAgentDetails.email,
+//         isDeleted: false
+//       });
+
+//     if (doesEmailExist) {
+//       throw httpErrors.Conflict(`Agent with email: ${appAgentDetails.appAgentId} already exist`);
+//     }
+
+//     const appAgent = await appAgentModel.findOne(
+//       {
+//         _id: appAgentDetails.appAgentId,
+//         isDeleted: false
+//       }).catch(() => {
+//         throw httpErrors.UnprocessableEntity(
+//           `Unable to find Agent with id ${appAgentDetails.appAgentId}`
+//         );
+//       });
+
+//     await appAgent?.updateOne(appAgentDetails, {
+//       new: true
+//     }).catch((error: any) => {
+//       throw httpErrors.UnprocessableEntity(error.message);
+//     });
+//     if (res.headersSent === false) {
+//       res.status(200).send({
+//         error: false,
+//         data: {
+//           UpdatedDetails: appAgent,
+//           message: 'Agent details updated successfully.'
+//         }
+//       });
+//     }
+
+//   } catch (error: any) {
+//     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
+//     if (error?.isJoi === true) error.status = 422;
+//     next(error);
+//   }
+// }
 
 // description: get single users all details
 // route: GET /api/v1/getSingleAppUserDetails

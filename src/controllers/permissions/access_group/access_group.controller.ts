@@ -166,7 +166,8 @@ const updateAppAccessGroup = async (req: Request, res: Response, next: NextFunct
     // Check if access group exist in Collection other than current record
     const doesGroupExist = await appAccessGroupModel.find({
       _id: { $ne: [appAccessGroupDetails.appAccessGroupId] },
-      name: appAccessGroupDetails.name
+      name: appAccessGroupDetails.name,
+      isDeleted: false
     });
 
     if (doesGroupExist?.length > 0) throw httpErrors.Conflict(`Group [${appAccessGroupDetails.name}] already exist.`);

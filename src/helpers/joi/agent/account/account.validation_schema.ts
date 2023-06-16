@@ -1,14 +1,17 @@
-import Joi from 'joi';
+import joi from 'joi';
 import moment from 'moment';
 import { joiPasswordExtendCore } from 'joi-password';
+import joiObjectId from 'joi-objectid';
+const objectId = joiObjectId(joi);
 
-const JoiPassword = Joi.extend(joiPasswordExtendCore);
-export const createAppUserSchema = Joi.object({
-  //directory: Joi.string().trim(),
-  first_name: Joi.string().trim().required(),
-  last_name: Joi.string().trim().required(),
-  email: Joi.string().trim().email().lowercase().required(),
-  password: JoiPassword.string()
+const joiPassword = joi.extend(joiPasswordExtendCore);
+export const createAppUserSchema = joi.object({
+  //directory: joi.string().trim(),
+  first_name: joi.string().trim().required(),
+  last_name: joi.string().trim().required(),
+  email: joi.string().trim().email().lowercase().required(),
+  password: joiPassword
+    .string()
     .trim()
     .min(8)
     .max(16)
@@ -18,112 +21,111 @@ export const createAppUserSchema = Joi.object({
     .minOfNumeric(1)
     .noWhiteSpaces()
     .required(),
-  appAccessGroupId: Joi.string().hex().length(24).required(),
-  appReportingManagerId: Joi.string().hex().length(24),
-  appDepartmentId: Joi.string().hex().length(24).required(),
-  appDesignationId: Joi.string().hex().length(24).required(),
-  employee_type: Joi.string().trim().required(),
+  appAccessGroupId: joi.string().hex().length(24).required(),
+  appReportingManagerId: joi.string().hex().length(24),
+  appDepartmentId: joi.string().hex().length(24).required(),
+  appDesignationId: joi.string().hex().length(24).required(),
+  employee_type: joi.string().trim().required(),
 
   //user company
-  primary_email: Joi.string().trim().email().lowercase().required(),
-  company_email: Joi.string().trim().email().lowercase().allow(null).default(null),
-  gender: Joi.string().trim().required(),
-  contact_number: Joi.number().required(),
-  date_of_birth: Joi.date().required(),
-  date_of_joining: Joi.date().required(),
-  working_hours: Joi.string().trim().required(),
-  salary: Joi.number().required(),
-  marital_status: Joi.string().trim().required(),
+  primary_email: joi.string().trim().email().lowercase().required(),
+  company_email: joi.string().trim().email().lowercase().allow(null).default(null),
+  gender: joi.string().trim().required(),
+  contact_number: joi.number().required(),
+  date_of_birth: joi.date().required(),
+  date_of_joining: joi.date().required(),
+  working_hours: joi.string().trim().required(),
+  salary: joi.number().required(),
+  marital_status: joi.string().trim().required(),
 
   //bank details
-  bank_name: Joi.string().trim().required(),
-  account_number: Joi.number().required(),
-  ifsc_code: Joi.string().trim().required(),
-  name_as_per_bank: Joi.string().trim().required(),
+  bank_name: joi.string().trim().required(),
+  account_number: joi.number().required(),
+  ifsc_code: joi.string().trim().required(),
+  name_as_per_bank: joi.string().trim().required(),
   //address
-  address: Joi.string().trim().required(),
-  city: Joi.string().trim().required(),
-  state: Joi.string().trim().required(),
-  country: Joi.string().trim().required(),
-  pincode: Joi.number().required(),
-  landmark: Joi.string().trim().required(),
+  address: joi.string().trim().required(),
+  city: joi.string().trim().required(),
+  state: joi.string().trim().required(),
+  country: joi.string().trim().required(),
+  pincode: joi.number().required(),
+  landmark: joi.string().trim().required(),
   //contact
-  number: Joi.number().required(),
-  relation: Joi.string().trim().required()
+  number: joi.number().required(),
+  relation: joi.string().trim().required()
   //document
-  // aadhar_number: Joi.string().trim().required(),
-  // pan_number: Joi.string().trim().required()
+  // aadhar_number: joi.string().trim().required(),
+  // pan_number: joi.string().trim().required()
 });
 
-export const fileSchema = Joi.object({
-  fieldname: Joi.string().required(),
-  originalname: Joi.string().required(),
-  encoding: Joi.string().required(),
-  mimetype: Joi.string().required(),
-  destination: Joi.string().required(),
-  filename: Joi.string().required(),
-  path: Joi.string().required(),
-  size: Joi.number().required()
+export const fileSchema = joi.object({
+  fieldname: joi.string().required(),
+  originalname: joi.string().required(),
+  encoding: joi.string().required(),
+  mimetype: joi.string().required(),
+  destination: joi.string().required(),
+  filename: joi.string().required(),
+  path: joi.string().required(),
+  size: joi.number().required()
 });
 
-export const uploadedFilesSchema = Joi.object({
-  profile_picture: Joi.array().items(fileSchema).required(),
-  aadhar_card: Joi.array().items(fileSchema).required(),
-  pan_card: Joi.array().items(fileSchema).required(),
-  documents: Joi.array().items(fileSchema).required()
+export const uploadedFilesSchema = joi.object({
+  profile_picture: joi.array().items(fileSchema).required(),
+  aadhar_card: joi.array().items(fileSchema).required(),
+  pan_card: joi.array().items(fileSchema).required()
+  // documents: joi.array().items(fileSchema).required()
 });
 
-export const getAppUserSchema = Joi.object({
-  appAgentId: Joi.string().hex().length(24).required()
+export const getAppUserSchema = joi.object({
+  appAgentId: objectId().required()
 });
 
-export const getAllDetailSchema = Joi.object({
-  appAgentId: Joi.string().hex().length(24).required()
+export const getAllDetailSchema = joi.object({
+  appAgentId: joi.string().hex().length(24).required()
 });
 
-export const updateAppUserSchema = Joi.object({
-  appAgentId: Joi.string().hex().length(24).required(),
-  first_name: Joi.string().trim(),
-  last_name: Joi.string().trim(),
-  email: Joi.string().trim().email().lowercase(),
-  appAccessGroupId: Joi.string().hex().length(24),
-  appReportingManagerId: Joi.string().hex().length(24).allow(null).default(null),
-  appDepartmentId: Joi.string().hex().length(24),
-  appDesignationId: Joi.string().hex().length(24),
-  employee_type: Joi.string().trim(),
-
+export const updateAppUserSchema = joi.object({
+  appAgentId: objectId().required(),
+  first_name: joi.string().trim(),
+  last_name: joi.string().trim(),
+  email: joi.string().trim().email().lowercase(),
+  appAccessGroupId: objectId(),
+  appReportingManagerId: objectId().allow(null).default(null),
+  appDepartmentId: objectId(),
+  appDesignationId: objectId(),
+  employee_type: joi.string().trim(),
   //user company
-  primary_email: Joi.string().trim().email().lowercase(),
-  company_email: Joi.string().trim().email().lowercase().allow(null).default(null),
-  gender: Joi.string().trim(),
-  contact_number: Joi.number(),
-  date_of_birth: Joi.date().empty('').default(moment().add(1, 'days').format('YYYY-MM-DD')),
-  date_of_joining: Joi.date(),
-  working_hours: Joi.string().trim(),
-  salary: Joi.number(),
-  marital_status: Joi.string().trim(),
+  primary_email: joi.string().trim().email().lowercase(),
+  company_email: joi.string().trim().email().lowercase().allow(null).default(null),
+  gender: joi.string().trim(),
+  contact_number: joi.string().trim(),
+  date_of_birth: joi.date().empty('').default(moment().add(1, 'days').format('YYYY-MM-DD')),
+  date_of_joining: joi.date(),
+  working_hours: joi.string().trim(),
+  salary: joi.string().trim(),
+  marital_status: joi.string().trim(),
 
   //bank details
-  bank_name: Joi.string().trim(),
-  account_number: Joi.number(),
-  ifsc_code: Joi.string().trim(),
-  name_as_per_bank: Joi.string().trim(),
+  bank_name: joi.string().trim(),
+  account_number: joi.string().trim(),
+  ifsc_code: joi.string().trim(),
+  name_as_per_bank: joi.string().trim(),
   //address
-  address: Joi.string().trim(),
-  city: Joi.string().trim(),
-  state: Joi.string().trim(),
-  country: Joi.string().trim(),
-  pincode: Joi.number(),
-  landmark: Joi.string().trim(),
+  address: joi.string().trim(),
+  city: joi.string().trim(),
+  state: joi.string().trim(),
+  country: joi.string().trim(),
+  pincode: joi.string().trim(),
+  landmark: joi.string().trim(),
   //contact
-  number: Joi.number(),
-  relation: Joi.string().trim(),
+  number: joi.string().trim(),
+  relation: joi.string().trim(),
   //document
-  aadhar_number: Joi.string().trim(),
-  pan_number: Joi.string().trim()
+  aadhar_number: joi.string().trim(),
+  pan_number: joi.string().trim()
 });
 
-export const deleteAppUserSchema = Joi.object({
-  appAgentId: Joi.string().hex().length(24).required()
+export const deleteAppUserSchema = joi.object({
+  appAgentId: objectId().required()
 });
 //export default { createAppUserSchema, uploadedFilesSchema, fileSchema };

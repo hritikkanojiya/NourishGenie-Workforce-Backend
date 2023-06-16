@@ -1,7 +1,7 @@
 import express from 'express';
 import http from 'http';
-const marketingBackendApp = express();
-const httpServer = http.createServer(marketingBackendApp);
+const hrModuleBackendApp = express();
+const httpServer = http.createServer(hrModuleBackendApp);
 import JWT from 'jsonwebtoken';
 import httpErrors from 'http-errors';
 import { appConstantsModel } from '../../models/constants/constants.model';
@@ -63,4 +63,4 @@ socketio.use(async (socket: any, next) => {
     }
 });
 
-export { marketingBackendApp, httpServer, socketio };
+export { hrModuleBackendApp, httpServer, socketio };

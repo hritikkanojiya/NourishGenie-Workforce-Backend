@@ -1,19 +1,18 @@
 // // Import Packages
-// const Joi = require('Joi');
-// const { JoiPasswordExtendCore } = require('Joi-password');
-// Joi.objectId = require('Joi-objectid')(Joi);
-// const JoiPassword = Joi.extend(JoiPasswordExtendCore);
-import Joi from 'joi';
+// const joi = require('joi');
+// const { joiPasswordExtendCore } = require('joi-password');
+// joi.objectId = require('joi-objectid')(joi);
+// const joiPassword = joi.extend(joiPasswordExtendCore);
+import joi from 'joi';
 import { joiPasswordExtendCore } from 'joi-password';
-
-// const joiObjectId = Joi.string().hex().length(24)
-const JoiPassword = Joi.extend(joiPasswordExtendCore);
-
-// Define Joi Validation Schema
-const appAgentRegistrationSchema = Joi.object({
-  username: Joi.string().trim().required(),
-  email: Joi.string().trim().email().lowercase().required(),
-  password: JoiPassword.string()
+const joiPassword = joi.extend(joiPasswordExtendCore);
+import joiObjectId from 'joi-objectid';
+const objectId = joiObjectId(joi);
+// Define joi Validation Schema
+const appAgentRegistrationSchema = joi.object({
+  username: joi.string().trim().required(),
+  email: joi.string().trim().email().lowercase().required(),
+  password: joiPassword.string()
     .trim()
     .min(8)
     .max(16)
@@ -23,60 +22,60 @@ const appAgentRegistrationSchema = Joi.object({
     .minOfNumeric(1)
     .noWhiteSpaces()
     .required(),
-  appAccessGroupId: Joi.string().hex().length(24).required(),
-  isNonDeleteAble: Joi.boolean(),
-  isDeleted: Joi.boolean().default(false)
+  appAccessGroupId: objectId().required(),
+  isNonDeleteAble: joi.boolean(),
+  isDeleted: joi.boolean().default(false)
 });
 
-const appAgentLoginSchema = Joi.object({
-  email: Joi.string().trim().email().lowercase().required(),
-  password: JoiPassword.string().trim().min(8).max(16).noWhiteSpaces().required()
+const appAgentLoginSchema = joi.object({
+  email: joi.string().trim().email().lowercase().required(),
+  password: joiPassword.string().trim().min(8).max(16).noWhiteSpaces().required()
 });
 
-const getAppAgentsSchema = Joi.object({
-  appAccessGroupId: Joi.string().hex().length(24).allow(null).default(null),
-  search: Joi.string().trim().allow(null).default(null),
-  metaData: Joi.object().keys({
-    sortBy: Joi.string().trim().allow(null).default(null),
-    sortOn: Joi.string().trim().allow(null).default(null),
-    limit: Joi.number().allow(null).default(null),
-    offset: Joi.number().allow(null).default(null),
-    fields: Joi.array().unique().allow(null).default(null)
+const getAppAgentsSchema = joi.object({
+  appAccessGroupId: objectId().allow(null).default(null),
+  search: joi.string().trim().allow(null).default(null),
+  metaData: joi.object().keys({
+    sortBy: joi.string().trim().allow(null).default(null),
+    sortOn: joi.string().trim().allow(null).default(null),
+    limit: joi.number().allow(null).default(null),
+    offset: joi.number().allow(null).default(null),
+    fields: joi.array().unique().allow(null).default(null)
   }),
-  isDeleted: Joi.boolean().default(false)
+  isDeleted: joi.boolean().default(false)
 });
 
-const getAppAgentDetailSchema = Joi.object({
-  appAgentId: Joi.string().hex().length(24).required()
+const getAppAgentDetailSchema = joi.object({
+  appAgentId: objectId().required()
 });
 
-const getAppActivitiesSchema = Joi.object({
-  appActivityId: Joi.string().hex().length(24).allow(null).default(null),
-  appAgentId: Joi.string().hex().length(24).allow(null).default(null),
-  search: Joi.string().trim().allow(null).default(null),
-  metaData: Joi.object().keys({
-    sortBy: Joi.string().trim().allow(null).default(null),
-    sortOn: Joi.string().trim().allow(null).default(null),
-    limit: Joi.number().allow(null).default(null),
-    offset: Joi.number().allow(null).default(null),
-    fields: Joi.array().unique().allow(null).default(null)
+const getAppActivitiesSchema = joi.object({
+  appActivityId: objectId().allow(null).default(null),
+  appAgentId: objectId().allow(null).default(null),
+  search: joi.string().trim().allow(null).default(null),
+  metaData: joi.object().keys({
+    sortBy: joi.string().trim().allow(null).default(null),
+    sortOn: joi.string().trim().allow(null).default(null),
+    limit: joi.number().allow(null).default(null),
+    offset: joi.number().allow(null).default(null),
+    fields: joi.array().unique().allow(null).default(null)
   }),
-  isDeleted: Joi.boolean().default(false)
+  isDeleted: joi.boolean().default(false)
 });
 
-const resetPassTokenSchema = Joi.object({
-  email: Joi.string().trim().email().required()
+const resetPassTokenSchema = joi.object({
+  email: joi.string().trim().email().required()
 });
 
-const verifyResetPassTokenSchema = Joi.object({
-  token: Joi.string().trim().required(),
-  secret: Joi.string().trim().required()
+const verifyResetPassTokenSchema = joi.object({
+  token: joi.string().trim().required(),
+  secret: joi.string().trim().required()
 });
 
-const updatePassSchema = Joi.object({
-  token: Joi.string().trim().required(),
-  secret: Joi.string().trim().required(),
-  password: JoiPassword.string()
+const updatePassSchema = joi.object({
+  token: joi.string().trim().required(),
+  secret: joi.string().trim().required(),
+  password: joiPassword.string()
     .trim()
     .min(8)
     .max(16)
@@ -86,11 +85,11 @@ const updatePassSchema = Joi.object({
     .minOfNumeric(1)
     .noWhiteSpaces()
     .required(),
-  cfmPassword: Joi.string().trim().required().valid(Joi.ref('password'))
+  cfmPassword: joi.string().trim().required().valid(joi.ref('password'))
 });
 
-const forceLogoutAppAgentsSchema = Joi.object({
-  appAgentIds: Joi.array().unique().items(Joi.string().hex().length(24)).min(1).required()
+const forceLogoutAppAgentsSchema = joi.object({
+  appAgentIds: joi.array().unique().items(objectId()).min(1).required()
 });
 
 // Export schema

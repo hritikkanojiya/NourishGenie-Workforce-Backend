@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
-const AppUserAddressSchema = new mongoose.Schema(
+const appAgentAddressSchema = new mongoose.Schema(
   {
     //foreign key
-    appUserId: {
+    appAgentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'AppUserSchema'
+      ref: 'appAgentSchema'
     },
     country: {
       type: String,
@@ -36,6 +36,10 @@ const AppUserAddressSchema = new mongoose.Schema(
       type: String,
       required: [true, 'must provide a landmark'],
       trim: true
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     }
   },
   {
@@ -43,4 +47,4 @@ const AppUserAddressSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_agent_address', AppUserAddressSchema);
+export default mongoose.model('app_agent_address', appAgentAddressSchema);
