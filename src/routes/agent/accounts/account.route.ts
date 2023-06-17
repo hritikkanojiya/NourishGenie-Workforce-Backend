@@ -9,7 +9,7 @@ export const appAccountRouterV1 = Router();
 appAccountRouterV1.post(
   '/create-agent',
   jwtModule.verifyAccessToken,
-  // permissionsModule.validateRouteAccess,
+  permissionsModule.validateRouteAccess,
   // upload_file.fields([
   //   { name: 'profile_picture', maxCount: 1 },
   //   { name: 'aadhar_card', maxCount: 1 },
