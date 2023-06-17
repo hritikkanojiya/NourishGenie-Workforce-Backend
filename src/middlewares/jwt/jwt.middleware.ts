@@ -144,7 +144,9 @@ const verifyAccessToken = async (req: RequestType, res: Response, next: NextFunc
       bearerToken = authHeader.split(' ');
     }
     const accessToken = bearerToken[1] != undefined ? bearerToken[1] : false;
+
     if (!accessToken) throw httpErrors.Unauthorized(notAuthorized);
+
 
     const JWT_ACCESS_TOKEN_SECRET = await appConstantsModel
       .findOne({

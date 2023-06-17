@@ -13,6 +13,7 @@ import { LOGGER } from './helpers/common/init_winston';
 import './helpers/common/init_mongodb';
 import endPoints from 'express-list-endpoints';
 import appServiceRouteModel from './models/permissions/service_routes/service_routes.model';
+import bodyParser from 'body-parser';
 
 require('dotenv');
 
@@ -29,6 +30,7 @@ hrModuleBackendApp.use(
 );
 
 hrModuleBackendApp.use(express.json());
+hrModuleBackendApp.use(bodyParser.json())
 hrModuleBackendApp.use(express.urlencoded({ extended: true }));
 hrModuleBackendApp.use(cookieParser(GlobalConfig.APP_COOKIE_SECRET));
 hrModuleBackendApp.use(

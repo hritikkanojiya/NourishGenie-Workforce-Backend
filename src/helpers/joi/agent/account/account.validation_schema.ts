@@ -45,9 +45,9 @@ export const createAppUserSchema = joi.object({
   name_as_per_bank: joi.string().trim().required(),
   //address
   address: joi.string().trim().required(),
-  city: joi.string().trim().required(),
-  state: joi.string().trim().required(),
-  country: joi.string().trim().required(),
+  city: objectId().required(),
+  state: objectId().required(),
+  country: objectId().required(),
   pincode: joi.number().required(),
   landmark: joi.string().trim().required(),
   //contact
@@ -112,17 +112,17 @@ export const updateAppUserSchema = joi.object({
   name_as_per_bank: joi.string().trim(),
   //address
   address: joi.string().trim(),
-  city: joi.string().trim(),
-  state: joi.string().trim(),
-  country: joi.string().trim(),
+  city: objectId().required(),
+  state: objectId().required(),
+  country: objectId().required(),
   pincode: joi.string().trim(),
   landmark: joi.string().trim(),
   //contact
   number: joi.string().trim(),
   relation: joi.string().trim(),
   //document
-  aadhar_number: joi.string().trim(),
-  pan_number: joi.string().trim()
+  // aadhar_number: joi.string().trim(),
+  // pan_number: joi.string().trim()
 });
 
 export const deleteAppUserSchema = joi.object({

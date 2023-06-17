@@ -3,6 +3,7 @@ import * as appAccountController from '../../../controllers/agent/accounts/accou
 //import upload_file from '../../../middlewares/files/upload_file.middleware';
 import permissionsModule from '../../../middlewares/permissions/permissions.middleware';
 import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
+// import upload from 'middlewares/files/upload_file.middleware';
 
 export const appAccountRouterV1 = Router();
 appAccountRouterV1.post(
@@ -28,7 +29,7 @@ appAccountRouterV1.post(
   '/get-agent-details',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
-  appAccountController.getSingleAccount
+  appAccountController.getSingleAppUserDetails
 );
 appAccountRouterV1.post(
   '/get-agents',
@@ -40,6 +41,5 @@ appAccountRouterV1.put(
   '/update-agents',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
-  appAccountController.updateAppAgentDetails
+  appAccountController.updateAgentDetails
 );
-appAccountRouterV1.post('/get-all-details', appAccountController.getSingleAppUserDetails);

@@ -33,9 +33,9 @@ export interface CreateAppUserType {
 
   //user address details
   address: string;
-  city: string;
-  state: string;
-  country: string;
+  city: mongoose.Types.ObjectId;
+  state: mongoose.Types.ObjectId;
+  country: mongoose.Types.ObjectId;
   pincode: number;
   landmark: string;
 
@@ -44,8 +44,8 @@ export interface CreateAppUserType {
   relation: string;
 
   //user file
-  //aadhar_number: string;
-  //pan_number: string;
+  // //aadhar_number: string;
+  // //pan_number: string;
 }
 export interface GetAppUserType {
   appAgentId: mongoose.Types.ObjectId;
@@ -105,9 +105,9 @@ export interface UpdateAppAgentType {
 
   //user address details
   address: string;
-  city: string;
-  state: string;
-  country: string;
+  city: mongoose.Types.ObjectId;
+  state: mongoose.Types.ObjectId;
+  country: mongoose.Types.ObjectId;
   pincode: string;
   landmark: string;
 
@@ -116,8 +116,8 @@ export interface UpdateAppAgentType {
   relation: string;
 
   //user file
-  aadhar_number: string;
-  pan_number: string;
+  // aadhar_number: string;
+  // pan_number: string;
 
   isDeleted: boolean;
 }

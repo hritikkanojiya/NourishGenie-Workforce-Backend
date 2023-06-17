@@ -5,22 +5,22 @@ const appAgentAddressSchema = new mongoose.Schema(
     //foreign key
     appAgentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'appAgentSchema'
+      ref: 'app_agent'
     },
     country: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'app_countries',
       required: [true, 'must provide a country'],
-      trim: true
     },
     state: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'app_states',
       required: [true, 'must provide a state'],
-      trim: true
     },
     city: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'app_cities',
       required: [true, 'must provide a city'],
-      trim: true
     },
     address: {
       type: String,
