@@ -8,7 +8,7 @@ import { menuRouterV1 } from '../../../routes/permissions/menu/menu.route';
 import { appAccountRouterV1 } from '../../../routes/agent/accounts/account.route';
 import { appAccountFileRouterV1 } from '../../../routes/agent/accounts/account_files.route';
 import { appReportingManagerRouterV1 } from '../../../routes/agent/fields/reporting_manager.route';
-import { appCountryStateCityRouterV1 } from '../../../routes/country_state_city/country_state.city.route'
+import { appCountryStateCityRouterV1 } from '../../../routes/country_state_city/country_state_city.route';
 
 const v1 = Router();
 
@@ -21,6 +21,6 @@ v1.use('/agent/fields/designation', appAgentDesignationRouterV1);
 v1.use('/agent/account/', appAccountRouterV1);
 v1.use('/agent/account_files/', appAccountFileRouterV1);
 v1.use('/agent/fields/reporting_manager', appReportingManagerRouterV1);
-v1.use('/countries-states-cities', appCountryStateCityRouterV1)
+v1.use('/countries-states-cities', appCountryStateCityRouterV1);
 
 export { v1 };

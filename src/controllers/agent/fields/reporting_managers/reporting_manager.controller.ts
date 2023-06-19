@@ -246,7 +246,7 @@ export const getNonReportingManager = async (req: Request, res: Response, next: 
       );
     });
     const userIds = reportingManagers.map(manager => manager.appAgentId);
-    const users = await appAgentModel.find({ _id: { $nin: userIds } });
+    const users = await appAgentModel.find({ _id: { $nin: userIds }, isDeleted: false });
     //send response
     res.status(201).json({
       message: `Non Reporting Managers fetched successfully.`,

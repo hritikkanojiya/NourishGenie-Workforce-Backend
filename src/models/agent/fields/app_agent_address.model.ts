@@ -10,17 +10,17 @@ const appAgentAddressSchema = new mongoose.Schema(
     country: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'app_countries',
-      required: [true, 'must provide a country'],
+      required: [true, 'must provide a country']
     },
     state: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'app_states',
-      required: [true, 'must provide a state'],
+      required: [true, 'must provide a state']
     },
     city: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'app_cities',
-      required: [true, 'must provide a city'],
+      required: [true, 'must provide a city']
     },
     address: {
       type: String,
@@ -39,7 +39,7 @@ const appAgentAddressSchema = new mongoose.Schema(
     },
     isDeleted: {
       type: Boolean,
-      default: false,
+      default: false
     }
   },
   {

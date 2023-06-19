@@ -1,5 +1,5 @@
 import joi from 'joi';
-import moment from 'moment';
+//import moment from 'moment';
 import { joiPasswordExtendCore } from 'joi-password';
 import joiObjectId from 'joi-objectid';
 const objectId = joiObjectId(joi);
@@ -98,16 +98,16 @@ export const updateAppUserSchema = joi.object({
   primary_email: joi.string().trim().email().lowercase(),
   company_email: joi.string().trim().email().lowercase().allow(null).default(null),
   gender: joi.string().trim(),
-  contact_number: joi.string().trim(),
-  date_of_birth: joi.date().empty('').default(moment().add(1, 'days').format('YYYY-MM-DD')),
+  contact_number: joi.number(),
+  date_of_birth: joi.date(),
   date_of_joining: joi.date(),
   working_hours: joi.string().trim(),
-  salary: joi.string().trim(),
+  salary: joi.number(),
   marital_status: joi.string().trim(),
 
   //bank details
   bank_name: joi.string().trim(),
-  account_number: joi.string().trim(),
+  account_number: joi.number(),
   ifsc_code: joi.string().trim(),
   name_as_per_bank: joi.string().trim(),
   //address
@@ -115,14 +115,16 @@ export const updateAppUserSchema = joi.object({
   city: objectId().required(),
   state: objectId().required(),
   country: objectId().required(),
-  pincode: joi.string().trim(),
+  pincode: joi.number(),
   landmark: joi.string().trim(),
   //contact
-  number: joi.string().trim(),
-  relation: joi.string().trim(),
+  number: joi.number(),
+  relation: joi.string().trim()
   //document
   // aadhar_number: joi.string().trim(),
   // pan_number: joi.string().trim()
+  //aadhar_number: joi.string().trim(),
+  //pan_number: joi.string().trim()
 });
 
 export const deleteAppUserSchema = joi.object({

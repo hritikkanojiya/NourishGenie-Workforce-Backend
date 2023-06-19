@@ -30,7 +30,8 @@ export const createAppDesignation = async (req: Request, res: Response, next: Ne
       await joiAppDesignation.createAppDesignationSchema.validateAsync(req.body);
     // Check if designation exist in Collection
     const doesDesignationExist = await appDesignationModel.find({
-      name: appDesignationDetails.name
+      name: appDesignationDetails.name,
+      isDeleted: false
     });
     if (doesDesignationExist?.length > 0)
       throw httpErrors.Conflict(`designation [${appDesignationDetails.name}] already exist.`);

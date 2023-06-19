@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 export interface CreateAppUserType {
   //user basic details
   //directory: string;
-  // directory: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -118,6 +117,8 @@ export interface UpdateAppAgentType {
   //user file
   // aadhar_number: string;
   // pan_number: string;
+  //aadhar_number: string;
+  //pan_number: string;
 
   isDeleted: boolean;
 }

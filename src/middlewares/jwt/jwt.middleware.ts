@@ -137,6 +137,7 @@ const verifyAccessToken = async (req: RequestType, res: Response, next: NextFunc
       throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_ACCESS_TOKEN_HEADER]`);
 
     const refreshTokenHeader = JWT_ACCESS_TOKEN_HEADER.value;
+    console.log(refreshTokenHeader);
     if (!req.headers?.[refreshTokenHeader]) throw httpErrors.Unauthorized(notAuthorized);
     const authHeader = req.headers?.[refreshTokenHeader];
     let bearerToken: string[] = [];
@@ -172,6 +173,7 @@ const verifyAccessToken = async (req: RequestType, res: Response, next: NextFunc
 
 const verifyRefreshToken = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
   try {
+    console.log(req.signedCookies);
     const JWT_REFRESH_TOKEN_HEADER = await appConstantsModel
       .findOne({
         name: 'JWT_REFRESH_TOKEN_HEADER',

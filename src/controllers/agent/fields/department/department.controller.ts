@@ -32,7 +32,8 @@ export const createAppDepartment = async (req: Request, res: Response, next: Nex
       await joiAppDepartment.createAppDepartmentSchema.validateAsync(req.body);
     // Check if department exist in Collection
     const doesDepartmentExist = await appDepartmentModel.find({
-      name: appDepartmentDetails.name
+      name: appDepartmentDetails.name,
+      isDeleted: false
     });
     if (doesDepartmentExist?.length > 0)
       throw httpErrors.Conflict(`department [${appDepartmentDetails.name}] already exist.`);
