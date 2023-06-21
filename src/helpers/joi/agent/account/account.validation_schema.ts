@@ -21,10 +21,10 @@ export const createAppUserSchema = joi.object({
     .minOfNumeric(1)
     .noWhiteSpaces()
     .required(),
-  appAccessGroupId: objectId().required(),
-  appReportingManagerId: objectId().allow(null).default(null),
-  appDepartmentId: objectId().required(),
-  appDesignationId: objectId().required(),
+  appAccessGroupId: joi.string().hex().length(24).required(),
+  appReportingManagerId: joi.string().hex().length(24).allow(null).default(null),
+  appDepartmentId: joi.string().hex().length(24).required(),
+  appDesignationId: joi.string().hex().length(24).required(),
   employee_type: joi.string().trim().required(),
 
   //user company
@@ -52,12 +52,11 @@ export const createAppUserSchema = joi.object({
   landmark: joi.string().trim().required(),
   //contact
   number: joi.number().required(),
-  relation: joi.string().trim().required(),
+  relation: joi.string().trim().required()
   //document
   // aadhar_number: joi.string().trim().required(),
   // pan_number: joi.string().trim().required()
 });
-
 
 export const getAppUserSchema = joi.object({
   appAgentId: objectId().allow(null).default(null),
@@ -69,9 +68,9 @@ export const getAppUserSchema = joi.object({
     sortOn: joi.string().trim().allow(null).default(null),
     limit: joi.number().allow(null).default(null),
     offset: joi.number().allow(null).default(null),
-    fields: joi.array().unique().allow(null).default(null),
+    fields: joi.array().unique().allow(null).default(null)
   }),
-  isDeleted: joi.boolean().default(false),
+  isDeleted: joi.boolean().default(false)
 });
 
 export const getAllDetailSchema = joi.object({
@@ -119,6 +118,18 @@ export const updateAppUserSchema = joi.object({
   // pan_number: joi.string().trim()
   //aadhar_number: joi.string().trim(),
   //pan_number: joi.string().trim()
+});
+
+export const filterUserSchema = joi.object({
+  appDesignationId: objectId().allow(null).default(null),
+  appDepartmentId: objectId().allow(null).default(null),
+  metaData: joi.object().keys({
+    sortBy: joi.string().trim().allow(null).default(null),
+    sortOn: joi.string().trim().allow(null).default(null),
+    limit: joi.number().allow(null).default(null),
+    offset: joi.number().allow(null).default(null),
+    fields: joi.array().unique().allow(null).default(null)
+  })
 });
 
 export const deleteAppUserSchema = joi.object({

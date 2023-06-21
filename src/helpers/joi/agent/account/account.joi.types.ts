@@ -1,6 +1,6 @@
-import { MetaDataResponse, QuerySchemaType } from '../../../../helpers/shared/shared.type';
+import { MetaDataResponse } from '../../../../helpers/shared/shared.type';
 import mongoose from 'mongoose';
-import { AppAgentType } from '../agent.joi.types';
+//import { AppAgentType } from '../agent.joi.types';
 
 export interface CreateAppAgentType {
   //user basic details
@@ -9,10 +9,10 @@ export interface CreateAppAgentType {
   last_name: string;
   email: string;
   password: string;
-  appAccessGroupId: mongoose.Types.ObjectId;
-  appReportingManagerId: mongoose.Types.ObjectId;
-  appDepartmentId: mongoose.Types.ObjectId;
-  appDesignationId: mongoose.Types.ObjectId;
+  appAccessGroupId: string;
+  appReportingManagerId: string | null;
+  appDepartmentId: string;
+  appDesignationId: string;
   employee_type: string;
 
   //user company details
@@ -56,9 +56,21 @@ export interface GetAppAgentType {
   metaData: MetaDataResponse;
 }
 
+// export interface UploadedFiles {
+//   profile_picture: File[];
+//   aadhar_card: File[];
+//   pan_card: File[];
+//   // documents: File[];
+// }
 
-export interface DeleteAppAgentType {
+export interface DeleteAppUserType {
   appAgentId: mongoose.Types.ObjectId;
+}
+
+export interface FilterUserType {
+  appDepartmentId: mongoose.Types.ObjectId;
+  appDesignationId: mongoose.Types.ObjectId;
+  metaData: MetaDataResponse;
 }
 
 export interface UpdateAppAgentType {
@@ -106,14 +118,8 @@ export interface UpdateAppAgentType {
   //user file
   // aadhar_number: string;
   // pan_number: string;
-  //aadhar_number: string;
-  //pan_number: string;
+  // aadhar_number: string;
+  // pan_number: string;
 
-  isDeleted: boolean;
-}
-
-export interface GetAgentQueryType extends QuerySchemaType {
-  appAccessGroupId?: mongoose.Types.ObjectId;
-  isAdministrator?: boolean;
-  $or?: Array<mongoose.FilterQuery<AppAgentType>>;
+  //isDeleted: boolean;
 }

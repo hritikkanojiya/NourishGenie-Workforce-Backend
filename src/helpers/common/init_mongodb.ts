@@ -9,7 +9,7 @@ mongoose
   .connect(`mongodb://${MongoDBConfig.MONGODB_DB_HOST}:${MongoDBConfig.MONGODB_DB_PORT}`, {
     dbName: MongoDBConfig.MONGODB_DB_NAME,
     user: MongoDBConfig.MONGODB_USER,
-    pass: MongoDBConfig.MONGODB_PASS,
+    pass: MongoDBConfig.MONGODB_PASS
   })
   .catch((error: Error) => {
     LOGGER.error(error.message);
