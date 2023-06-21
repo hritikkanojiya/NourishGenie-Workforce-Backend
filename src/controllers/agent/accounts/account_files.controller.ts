@@ -4,14 +4,16 @@ import appAttachmentModel from '../../../models/agent/fields/app_attachments.mod
 import appAgentModel from '../../../models/agent/agent.model';
 import appAgentFileModel from '../../../models/agent/fields/app_agent_files.model';
 // import { appAgentFilesFolderModel } from '../../../models/agent/agent_files_folder.model'
-import { logBackendError } from '../../../helpers/common/backend.functions';
+import { logBackendError, removeDirectory } from '../../../helpers/common/backend.functions';
 import {
   joiAgentFile,
   DeleteAppUserFileType,
   GetSingleFileType,
   GetAppUserFileType,
   UpdateFilesType,
-  UpdatedFilesType
+  UpdatedFilesType,
+  UploadedFilesTypes,
+  CreateFileType
 } from '../../../helpers/joi/agent/account/account_files/index';
 import httpErrors from 'http-errors';
 import path from 'path';
@@ -19,6 +21,109 @@ import fs from 'fs';
 import { GlobalConfig } from '../../../helpers/common/environment';
 
 const FILE_UPLOAD_PATH = GlobalConfig.FILE_UPLOAD_PATH
+
+
+
+export const uploadFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const appAgentDetails: CreateFileType = await joiAgentFile.CreateFileSchema.validateAsync(req.body);
+    const appAgentFileDetails: UploadedFilesTypes = await joiAgentFile.uploadedFilesSchema.validateAsync(req.files);
+
+    //extracting the file metadata first
+    const profile_picture = appAgentFileDetails.profile_picture;
+    const aadhar_card = appAgentFileDetails.aadhar_card;
+    const pan_card = appAgentFileDetails.pan_card;
+
+    //profile picture
+    const profileAttatchments = new appAttachmentModel({
+      original_name: profile_picture[0].originalname,
+      name: profile_picture[0].filename,
+      type: profile_picture[0].mimetype,
+      uploadedBy: appAgentDetails.appAgentId,
+      extension: profile_picture[0].originalname.split('.')[1]
+    });
+    //save
+    const storeProfilePicture = (
+      await profileAttatchments.save({}).catch((error: any) => {
+        throw httpErrors.InternalServerError(error.message);
+      })
+    ).toObject();
+
+    //aadhar card
+    const aadharAttatchments = new appAttachmentModel({
+      original_name: aadhar_card[0].originalname,
+      name: aadhar_card[0].filename,
+      type: aadhar_card[0].mimetype,
+      uploadedBy: appAgentDetails.appAgentId,
+      extension: aadhar_card[0].originalname.split('.')[1]
+    });
+    //save
+    const storeAadharCard = (
+      await aadharAttatchments.save({}).catch((error: any) => {
+        throw httpErrors.InternalServerError(error.message);
+      })
+    ).toObject();
+
+    //pan card
+    const panAttatchments = new appAttachmentModel({
+      original_name: pan_card[0].originalname,
+      name: pan_card[0].filename,
+      type: pan_card[0].mimetype,
+      uploadedBy: appAgentDetails.appAgentId,
+      extension: pan_card[0].originalname.split('.')[1]
+    });
+    //save
+    const storePanCard = (
+      await panAttatchments.save({}).catch((error: any) => {
+        throw httpErrors.InternalServerError(error.message);
+      })
+    ).toObject();
+
+    // storing the aadhar and pan card numbers in the file schema
+    const appuserfiles = new appAgentFileModel({
+      appAgentId: appAgentDetails.appAgentId,
+      profile_picture: storeProfilePicture._id,
+      aadhar_card_number: appAgentDetails.aadhar_number,
+      aadhar_card_file: storeAadharCard._id,
+      pan_card_number: appAgentDetails.pan_number,
+      pan_card_file: storePanCard._id,
+    });
+    // locate the files directory
+    const dir = req.body.directory;
+
+    removeDirectory(`${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`)
+
+    fs.renameSync(dir, `${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`);
+
+    const storeAppUserFileInfo = (
+      await appuserfiles.save({}).catch((error: any) => {
+        throw httpErrors.InternalServerError(error.message);
+      })
+    ).toObject();
+
+    // Send Response
+    if (res.headersSent === false) {
+      res.status(200).send({
+        error: false,
+        data: {
+          appAgentFiles: {
+            appAgentFileId: storeAppUserFileInfo._id,
+            aadhar_number: storeAppUserFileInfo.aadhar_card_number,
+            pan_number: storeAppUserFileInfo.pan_card_number
+          },
+
+          message: 'Files uploaded successfully.'
+        }
+      });
+    }
+
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
+}
+
 
 //description: delete a file
 //route: POST: /api/v1/account_files/deleteFile
@@ -101,23 +206,6 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
           throw httpErrors.UnprocessableEntity(error.message);
         });
     }
-    if (appFileDetails.documentId) {
-      //check if document file exists in collection
-      const doesDocumentFileExist = await appAttachmentModel.findOne({
-        _id: (appFileDetails.documentId),
-        isDeleted: false
-      });
-      if (!doesDocumentFileExist)
-        throw httpErrors.Conflict(`document file [${appFileDetails.documentId}] does not exist.`);
-      //delete file
-      await doesDocumentFileExist
-        .updateOne({
-          isDeleted: true
-        })
-        .catch((error: any) => {
-          throw httpErrors.UnprocessableEntity(error.message);
-        });
-    }
     //send response
     if (res.headersSent === false) {
       res.status(200).send({
@@ -170,7 +258,6 @@ export const getAllFiles = async (req: Request, res: Response, next: NextFunctio
 //description: get one file
 //route: POST: /api/v1/account_files/getOneFile
 //access: private
-
 export const getOneFile = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   try {
     //validate joi schema
@@ -207,127 +294,128 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
     //locate the files directory
     const dir = req.body.directory;
 
-    //rename the directory with the user's objectID
-    fs.renameSync(dir, `${FILE_UPLOAD_PATH}/${doesAppUserExist._id}`);
-
     //profile picture
-    if (appFileDetails.profile_pictureId && appuserFiles && Array.isArray(appuserFiles) && appuserFiles.length > 0) {
+    if (appFileDetails.profile_pictureId) {
       const doesProfilePictureFileExist = await appAttachmentModel.findOne({
         _id: (appFileDetails.profile_pictureId),
         isDeleted: false
       });
+
       if (!doesProfilePictureFileExist)
         throw httpErrors.Conflict(`profile picture file [${appFileDetails.profile_pictureId}] does not exist.`);
+
       //upadate file
+      const filepath = `${FILE_UPLOAD_PATH}/${appFileDetails.appAgentId}/documents/${doesProfilePictureFileExist?.name}`;
+      const files = fs.readdirSync(`${dir}/documents`);
+
+      for (const file of files) {
+        const updatedFilePath = path.join(`${dir}/documents`, file);
+        const data = fs.readFileSync(updatedFilePath);
+        const fileDirectory = path.dirname(filepath);
+        const newFilePath = path.join(fileDirectory, appuserFiles.profile_picture[0].filename);
+        fs.renameSync(filepath, newFilePath);
+        fs.writeFileSync(newFilePath, data);
+        removeDirectory(dir);
+      }
+      // update attchment
       await doesProfilePictureFileExist
         .updateOne({
-          isDeleted: true
-        })
+          original_name: appuserFiles.profile_picture[0].originalname,
+          name: appuserFiles.profile_picture[0].filename,
+          type: appuserFiles.profile_picture[0].mimetype,
+          extension: appuserFiles.profile_picture[0].originalname.split('.')[1],
+          uploadedBy: (appFileDetails.appAgentId)
+        },
+          {
+            new: true
+          })
         .catch((error: any) => {
           throw httpErrors.UnprocessableEntity(error.message);
         });
-      //delete the file from the upolaods folder
-      const filePath = `${FILE_UPLOAD_PATH}/${doesProfilePictureFileExist?.uploadedBy}/documents/${doesProfilePictureFileExist?.name}`;
-      fs.unlinkSync(filePath);
-      //create a new file in the attatcahments collection
-      const newProfilePictureFile = new appAttachmentModel({
-        original_name: appuserFiles.profile_picture ? appuserFiles.profile_picture[0].originalname : '',
-        name: appuserFiles.profile_picture ? appuserFiles.profile_picture[0].filename : '',
-        type: appuserFiles.profile_picture ? appuserFiles.profile_picture[0].mimetype : '',
-        extension: appuserFiles.profile_picture ? appuserFiles.profile_picture[0].originalname.split('.')[1] : '',
-        uploadedBy: (appFileDetails.appAgentId)
-      });
-      await newProfilePictureFile.save().catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(error.message);
-      });
-      //upadte the file schema
-      await appAgentFileModel.updateOne(
-        { appAgentId: (appFileDetails.appAgentId) },
-        { profile_picture: newProfilePictureFile._id }
-      ).catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(error.message);
-      });
     }
+
     //aadhar card
-    if (appFileDetails.aadhar_cardId && appuserFiles && Array.isArray(appuserFiles) && appuserFiles.length > 0) {
+    if (appFileDetails.aadhar_cardId) {
       //check if file exists in the attatchment schema
       const doesAadharFileExist = await appAttachmentModel.findOne({
         _id: (appFileDetails.aadhar_cardId),
         isDeleted: false
       });
+
       if (!doesAadharFileExist)
         throw httpErrors.Conflict(`aadhar card file [${appFileDetails.aadhar_cardId}] does not exist.`);
-      //delete file
+
+      const filepath = `${FILE_UPLOAD_PATH}/${appFileDetails.appAgentId}/documents/${doesAadharFileExist?.name}`;
+      const files = fs.readdirSync(`${dir}/documents`);
+
+      for (const file of files) {
+        const updatedFilePath = path.join(`${dir}/documents`, file);
+        const data = fs.readFileSync(updatedFilePath);
+        const fileDirectory = path.dirname(filepath);
+        const newFilePath = path.join(fileDirectory, appuserFiles.aadhar_card[0].filename);
+        fs.renameSync(filepath, newFilePath);
+        fs.writeFileSync(newFilePath, data);
+        removeDirectory(dir);
+      }
+      //update attachment
       await doesAadharFileExist
         .updateOne({
-          isDeleted: true
-        })
+          original_name: appuserFiles.aadhar_card[0].originalname,
+          name: appuserFiles.aadhar_card[0].filename,
+          type: appuserFiles.aadhar_card[0].mimetype,
+          extension: appuserFiles.aadhar_card[0].originalname.split('.')[1],
+          uploadedBy: (appFileDetails.appAgentId)
+        },
+          {
+            new: true
+          })
         .catch((error: any) => {
           throw httpErrors.UnprocessableEntity(error.message);
         });
-      //delete the file from the upolaods folder
-      const filePath = `${FILE_UPLOAD_PATH}/${doesAadharFileExist?.uploadedBy}/documents/${doesAadharFileExist?.name}`;
-      fs.unlinkSync(filePath);
-      //create a new file in the attatcahments collection
-      const newAadharFile = new appAttachmentModel({
-        original_name: appuserFiles.aadhar_card ? appuserFiles.aadhar_card[0].originalname : '',
-        name: appuserFiles.aadhar_card ? appuserFiles.aadhar_card[0].filename : '',
-        type: appuserFiles.aadhar_card ? appuserFiles.aadhar_card[0].mimetype : '',
-        extension: appuserFiles.aadhar_card ? appuserFiles.aadhar_card[0].originalname.split('.')[1] : '',
-        uploadedBy: (appFileDetails.appAgentId)
-      });
-      await newAadharFile.save().catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(error.message);
-      });
-      //upadte the file schema
-      await appAgentFileModel.updateOne(
-        { appAgentId: (appFileDetails.appAgentId) },
-        { aadhar_card_file: newAadharFile._id }
-      ).catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(error.message);
-      });
     }
+
+
     //pan card
-    if (appFileDetails.pan_cardId && appuserFiles && Array.isArray(appuserFiles) && appuserFiles.length > 0) {
+    if (appFileDetails.pan_cardId) {
       //check if file exists in the attatchment schema
       const doesPanFileExist = await appAttachmentModel.findOne({
         _id: (appFileDetails.pan_cardId),
         isDeleted: false
       });
+
       if (!doesPanFileExist) throw httpErrors.Conflict(`pan card file [${appFileDetails.pan_cardId}] does not exist.`);
-      //delete file
+
+      const filepath = `${FILE_UPLOAD_PATH}/${appFileDetails.appAgentId}/documents/${doesPanFileExist?.name}`;
+      const files = fs.readdirSync(`${dir}/documents`);
+
+      for (const file of files) {
+        const updatedFilePath = path.join(`${dir}/documents`, file);
+        const data = fs.readFileSync(updatedFilePath);
+        const fileDirectory = path.dirname(filepath);
+        const newFilePath = path.join(fileDirectory, appuserFiles.pan_card[0].filename);
+        fs.renameSync(filepath, newFilePath);
+        fs.writeFileSync(newFilePath, data);
+        removeDirectory(dir);
+      }
+      //update attachment
       await doesPanFileExist
         .updateOne({
-          isDeleted: true
-        })
+          original_name: appuserFiles.pan_card[0].originalname,
+          name: appuserFiles.pan_card[0].filename,
+          type: appuserFiles.pan_card[0].mimetype,
+          extension: appuserFiles.pan_card[0].originalname.split('.')[1],
+          uploadedBy: (appFileDetails.appAgentId)
+        },
+          {
+            new: true
+          })
         .catch((error: any) => {
           throw httpErrors.UnprocessableEntity(error.message);
         });
-      //delete the file from the upolaods folder
-      const filePath = `${FILE_UPLOAD_PATH}/${doesPanFileExist?.uploadedBy}/documents/${doesPanFileExist?.name}`;
 
-      fs.unlinkSync(filePath);
-      //create a new file in the attatcahments collection
-      const newPanFile = new appAttachmentModel({
-        original_name: appuserFiles.pan_card ? appuserFiles.pan_card[0].originalname : '',
-        name: appuserFiles.pan_card ? appuserFiles.pan_card[0].filename : '',
-        type: appuserFiles.pan_card ? appuserFiles.pan_card[0].mimetype : '',
-        extension: appuserFiles.pan_card ? appuserFiles.pan_card[0].originalname.split('.')[1] : '',
-        uploadedBy: (appFileDetails.appAgentId)
-      });
-      await newPanFile.save().catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(error.message);
-      });
-      //upadte the file schema
-      await appAgentFileModel.updateOne(
-        { appAgentId: (appFileDetails.appAgentId) },
-        { pan_card_file: newPanFile._id }
-      ).catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(error.message);
-      });
 
       //updating the documents
-      if (appFileDetails.documentId && appuserFiles && Array.isArray(appuserFiles) && appuserFiles.length > 0) {
+      if (appFileDetails.documentId) {
         //check if file exists in the attatchment schema
         const doesDocumentFileExist = await appAttachmentModel.findOne({
           _id: (appFileDetails.documentId),

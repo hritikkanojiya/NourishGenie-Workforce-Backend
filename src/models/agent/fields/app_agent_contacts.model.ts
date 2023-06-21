@@ -8,7 +8,7 @@ const AppUserContactsSchema = new mongoose.Schema(
       ref: 'appUserSchema'
     },
     number: {
-      type: Number,
+      type: String,
       required: [true, 'must provide a mobile number'],
       trim: true
     },

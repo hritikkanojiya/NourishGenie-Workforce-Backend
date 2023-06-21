@@ -13,14 +13,12 @@ appAgentAuthRouterV1.post(
 appAgentAuthRouterV1.post(
   '/refresh',
   jwtModule.verifyRefreshToken,
-  permissionsModule.validateRouteAccess,
   appAgentAuthController.appAgentRefresh
 );
 
 appAgentAuthRouterV1.post(
   '/logout',
   jwtModule.verifyAccessToken,
-  permissionsModule.validateRouteAccess,
   appAgentAuthController.appAgentLogout
 );
 

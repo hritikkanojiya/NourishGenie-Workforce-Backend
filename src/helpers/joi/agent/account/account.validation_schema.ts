@@ -6,7 +6,7 @@ const objectId = joiObjectId(joi);
 
 const joiPassword = joi.extend(joiPasswordExtendCore);
 export const createAppUserSchema = joi.object({
-  //directory: joi.string().trim(),
+  // directory: joi.string().trim(),
   first_name: joi.string().trim().required(),
   last_name: joi.string().trim().required(),
   email: joi.string().trim().email().lowercase().required(),
@@ -21,10 +21,10 @@ export const createAppUserSchema = joi.object({
     .minOfNumeric(1)
     .noWhiteSpaces()
     .required(),
-  appAccessGroupId: joi.string().hex().length(24).required(),
-  appReportingManagerId: joi.string().hex().length(24),
-  appDepartmentId: joi.string().hex().length(24).required(),
-  appDesignationId: joi.string().hex().length(24).required(),
+  appAccessGroupId: objectId().required(),
+  appReportingManagerId: objectId().allow(null).default(null),
+  appDepartmentId: objectId().required(),
+  appDesignationId: objectId().required(),
   employee_type: joi.string().trim().required(),
 
   //user company
@@ -52,32 +52,26 @@ export const createAppUserSchema = joi.object({
   landmark: joi.string().trim().required(),
   //contact
   number: joi.number().required(),
-  relation: joi.string().trim().required()
+  relation: joi.string().trim().required(),
   //document
   // aadhar_number: joi.string().trim().required(),
   // pan_number: joi.string().trim().required()
 });
 
-export const fileSchema = joi.object({
-  fieldname: joi.string().required(),
-  originalname: joi.string().required(),
-  encoding: joi.string().required(),
-  mimetype: joi.string().required(),
-  destination: joi.string().required(),
-  filename: joi.string().required(),
-  path: joi.string().required(),
-  size: joi.number().required()
-});
-
-export const uploadedFilesSchema = joi.object({
-  profile_picture: joi.array().items(fileSchema).required(),
-  aadhar_card: joi.array().items(fileSchema).required(),
-  pan_card: joi.array().items(fileSchema).required()
-  // documents: joi.array().items(fileSchema).required()
-});
 
 export const getAppUserSchema = joi.object({
-  appAgentId: objectId().required()
+  appAgentId: objectId().allow(null).default(null),
+  appAccessGroupId: objectId().allow(null).default(null),
+  isAdministrator: joi.boolean().default(false),
+  search: joi.string().trim().allow(null).default(null),
+  metaData: joi.object().keys({
+    sortBy: joi.string().trim().allow(null).default(null),
+    sortOn: joi.string().trim().allow(null).default(null),
+    limit: joi.number().allow(null).default(null),
+    offset: joi.number().allow(null).default(null),
+    fields: joi.array().unique().allow(null).default(null),
+  }),
+  isDeleted: joi.boolean().default(false),
 });
 
 export const getAllDetailSchema = joi.object({

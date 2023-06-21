@@ -48,7 +48,7 @@ const appAgentDetailsSchema = new mongoose.Schema(
       enum: ['4-5 hrs', '5-6 hrs', '6-7 hrs', '8-9 hrs']
     },
     salary: {
-      type: Number,
+      type: String,
       required: [true, 'must provide a salary'],
       trim: true
     },

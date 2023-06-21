@@ -8,7 +8,7 @@ const appAgentBanksSchema = new mongoose.Schema(
       ref: 'appAgentSchema'
     },
     account_number: {
-      type: Number,
+      type: String,
       required: [true, 'must provide a account number'],
       trim: true
     },

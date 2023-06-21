@@ -119,13 +119,11 @@ const appAgentRefresh = async (req: RequestType, res: Response, next: NextFuncti
     if (!req?.payload?.appAgentId) {
       throw httpErrors.UnprocessableEntity(`JWT Refresh Token error : Missing Payload Data`);
     }
-
     // Check if agent exist in Collection
     const getAgent = await appAgentModel.findOne({
       _id: req.payload.appAgentId,
       isDeleted: false
     });
-
     if (!getAgent) throw httpErrors.UnprocessableEntity(`Unable to process Agent's Data.`);
 
     // Check if access group exist in Collection

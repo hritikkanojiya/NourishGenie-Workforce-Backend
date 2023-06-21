@@ -1,5 +1,12 @@
 import mongoose from 'mongoose';
 
+interface CreateFileType {
+  directory: string;
+  appAgentId: mongoose.Types.ObjectId;
+  aadhar_number: string;
+  pan_number: string
+}
+
 interface DeleteAppUserFileType {
   // appAgentId: mongoose.Types.ObjectId | null;
   aadhar_cardId: mongoose.Types.ObjectId | null;
@@ -27,6 +34,13 @@ interface File {
   size: number;
 }
 
+export interface UploadedFilesTypes {
+  profile_picture: File[];
+  aadhar_card: File[];
+  pan_card: File[];
+  documents: File[];
+}
+
 interface UpdateFilesType {
   appAgentId: mongoose.Types.ObjectId;
   directory: string;
@@ -36,9 +50,9 @@ interface UpdateFilesType {
   documentId: mongoose.Types.ObjectId | null;
 }
 interface UpdatedFilesType {
-  profile_picture: File[] | null;
-  aadhar_card: File[] | null;
-  pan_card: File[] | null;
-  documents: File[] | null;
+  profile_picture: File[];
+  aadhar_card: File[];
+  pan_card: File[];
+  documents: File[];
 }
-export { DeleteAppUserFileType, GetAppUserFileType, GetSingleFileType, UpdateFilesType, UpdatedFilesType };
+export { DeleteAppUserFileType, GetAppUserFileType, GetSingleFileType, UpdateFilesType, UpdatedFilesType, CreateFileType };

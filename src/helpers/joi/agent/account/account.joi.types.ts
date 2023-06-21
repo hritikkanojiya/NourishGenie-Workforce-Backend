@@ -1,16 +1,18 @@
+import { MetaDataResponse, QuerySchemaType } from '../../../../helpers/shared/shared.type';
 import mongoose from 'mongoose';
+import { AppAgentType } from '../agent.joi.types';
 
-export interface CreateAppUserType {
+export interface CreateAppAgentType {
   //user basic details
   //directory: string;
   first_name: string;
   last_name: string;
   email: string;
   password: string;
-  appAccessGroupId: string;
-  appReportingManagerId: string;
-  appDepartmentId: string;
-  appDesignationId: string;
+  appAccessGroupId: mongoose.Types.ObjectId;
+  appReportingManagerId: mongoose.Types.ObjectId;
+  appDepartmentId: mongoose.Types.ObjectId;
+  appDesignationId: mongoose.Types.ObjectId;
   employee_type: string;
 
   //user company details
@@ -43,32 +45,19 @@ export interface CreateAppUserType {
   relation: string;
 
   //user file
-  // //aadhar_number: string;
-  // //pan_number: string;
+  // aadhar_number: string;
+  // pan_number: string;
 }
-export interface GetAppUserType {
-  appAgentId: mongoose.Types.ObjectId;
-}
-export interface File {
-  mv: any;
-  fieldname: string;
-  originalname: string;
-  encoding: string;
-  mimetype: string;
-  destination: string;
-  filename: string;
-  path: string;
-  size: number;
+export interface GetAppAgentType {
+  appAgentId: mongoose.Types.ObjectId | null;
+  appAccessGroupId: mongoose.Types.ObjectId | null;
+  isAdministrator: boolean | null;
+  search: string | null;
+  metaData: MetaDataResponse;
 }
 
-export interface UploadedFiles {
-  profile_picture: File[];
-  aadhar_card: File[];
-  pan_card: File[];
-  // documents: File[];
-}
 
-export interface DeleteAppUserType {
+export interface DeleteAppAgentType {
   appAgentId: mongoose.Types.ObjectId;
 }
 
@@ -80,7 +69,7 @@ export interface UpdateAppAgentType {
   email: string;
   password: string;
   appAccessGroupId: mongoose.Types.ObjectId;
-  appReportingManagerId: mongoose.Types.ObjectId | null;
+  appReportingManagerId: mongoose.Types.ObjectId;
   appDepartmentId: mongoose.Types.ObjectId;
   appDesignationId: mongoose.Types.ObjectId;
   employee_type: string;
@@ -121,4 +110,10 @@ export interface UpdateAppAgentType {
   //pan_number: string;
 
   isDeleted: boolean;
+}
+
+export interface GetAgentQueryType extends QuerySchemaType {
+  appAccessGroupId?: mongoose.Types.ObjectId;
+  isAdministrator?: boolean;
+  $or?: Array<mongoose.FilterQuery<AppAgentType>>;
 }

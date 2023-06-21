@@ -22,7 +22,6 @@ const agentSchema = new mongoose.Schema({
     type: String,
     required: [true, 'must provide an email'],
     trim: true,
-    unique: true,
     lowercase: true,
     // eslint-disable-next-line no-useless-escape
     match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'please fill a valid email address']

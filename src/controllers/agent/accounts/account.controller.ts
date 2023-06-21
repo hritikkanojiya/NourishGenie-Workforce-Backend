@@ -1,23 +1,25 @@
 import { NextFunction, Request, Response } from 'express';
-import { logBackendError, stringToObjectId } from '../../../helpers/common/backend.functions';
+import { compactObject, configureMetaData, convertDateTimeFormat, getFieldsToInclude, logBackendError, removeDirectory } from '../../../helpers/common/backend.functions';
 import httpErrors from 'http-errors';
 import appAgentModel from '../../../models/agent/agent.model';
 import appAgentDetailsModel from '../../../models/agent/fields/app_agent_details.model';
 import appAgentBanksModel from '../../../models/agent/fields/app_agent_banks.model';
 import appAgentAddressModel from '../../../models/agent/fields/app_agent_address.model';
 import appAgentContactModel from '../../../models/agent/fields/app_agent_contacts.model';
-//import appAgentFilesModel from '../../../models/agent/fields/app_user_files.model';
-//import appAttachmentsModel from '../../../models/agent/fields/app_attachments.model';
+import appAgentFilesModel from '../../../models/agent/fields/app_agent_files.model';
+import appAttachmentsModel from '../../../models/agent/fields/app_attachments.model';
 import {
   joiAgentAccount,
-  CreateAppUserType,
-  GetAppUserType
-  //UploadedFiles
+  CreateAppAgentType,
+  GetAppAgentType,
+  UpdateAppAgentType,
+  GetAgentQueryType,
+  DeleteAppAgentType
 } from '../../../helpers/joi/agent/account/index';
-//import { Types } from 'mongoose';
-import { DeleteAppUserType, UpdateAppAgentType } from '../../../helpers/joi/agent/account/account.joi.types';
-//import fs from 'fs';
-//const FILE_UPLOAD_PATH: any = process.env.FILE_UPLOAD_PATH;
+import { MetaDataBody } from '../../../helpers/shared/shared.type';
+import { GlobalConfig } from '../../../helpers/common/environment';
+
+const FILE_UPLOAD_PATH = GlobalConfig.FILE_UPLOAD_PATH
 
 //description: create a new account
 //route: POST /api/v1/createAccount
@@ -25,19 +27,17 @@ import { DeleteAppUserType, UpdateAppAgentType } from '../../../helpers/joi/agen
 export const createAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
-    console.log(req.body);
-    console.log(req.files);
-    const appAgentDetails: CreateAppUserType = await joiAgentAccount.createAppUserSchema.validateAsync(req.body);
-    console.log('deepak2');
-    //const appuserFileDetails: UploadedFiles = await joiAgentAccount.uploadedFilesSchema.validateAsync(req.files);
-    console.log('deepak3');
+    const appAgentDetails: CreateAppAgentType = await joiAgentAccount.createAppUserSchema.validateAsync(req.body);
+    // const appuserFileDetails: UploadedFiles = await joiAgentAccount.uploadedFilesSchema.validateAsync(req.files);
+
     //check if user exist in collection
-    const doesAppAgentExist = await appAgentModel.find({
+    const doesAppAgentExist = await appAgentModel.findOne({
       email: appAgentDetails.email,
       isDeleted: false
     });
-    if (doesAppAgentExist?.length > 0) throw httpErrors.Conflict(`user [${appAgentDetails.email}] already exist.`);
-    // Else Construct Data
+
+    if (doesAppAgentExist) throw httpErrors.Conflict(`Agent with email: [${appAgentDetails.email}] already exist.`);
+
     //user basic details
     const app_agents = new appAgentModel({
       //basic details of user
@@ -45,10 +45,10 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
       last_name: appAgentDetails.last_name,
       email: appAgentDetails.email,
       password: appAgentDetails.password,
-      appAccessGroupId: stringToObjectId(appAgentDetails.appAccessGroupId),
-      appDepartmentId: stringToObjectId(appAgentDetails.appDepartmentId),
-      appReportingManagerId: stringToObjectId(appAgentDetails.appReportingManagerId),
-      appDesignationId: stringToObjectId(appAgentDetails.appDesignationId),
+      appAccessGroupId: (appAgentDetails.appAccessGroupId),
+      appDepartmentId: (appAgentDetails.appDepartmentId),
+      appReportingManagerId: (appAgentDetails.appReportingManagerId),
+      appDesignationId: (appAgentDetails.appDesignationId),
       employee_type: appAgentDetails.employee_type
     });
     // save
@@ -57,6 +57,14 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
+
+    const doesAppAgentDetailsExist = await appAgentDetailsModel.findOne({
+      $or: [{ primary_email: appAgentDetails.email }, { company_email: appAgentDetails.company_email }],
+      isDeleted: false
+    });
+
+    if (doesAppAgentDetailsExist) throw httpErrors.Conflict(`Agent with primary email: [${appAgentDetails.primary_email}] or company email: [${appAgentDetails.company_email}] already exist.`);
+
     //user company details
     const app_agent_details = new appAgentDetailsModel({
       appAgentId: storeAppAgentBasicDetails._id,
@@ -75,6 +83,7 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
+
     //user bank details
     const appAgentBank = new appAgentBanksModel({
       appAgentId: storeAppAgentBasicDetails._id,
@@ -119,107 +128,6 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
       })
     ).toObject();
 
-    //extracting the file metadata first
-    // const profile_picture = appuserFileDetails.profile_picture;
-    // const aadhar_card = appuserFileDetails.aadhar_card;
-    // const pan_card = appuserFileDetails.pan_card;
-    // const documents = appuserFileDetails.documents;
-    // //profile picture
-    // const profileattatchments = new appAttachmentsModel({
-    //   original_name: profile_picture[0].originalname,
-    //   name: profile_picture[0].filename,
-    //   type: profile_picture[0].mimetype,
-    //   uploadedBy: storeAppUserBasicDetails._id,
-    //   extension: profile_picture[0].originalname.split('.')[1]
-    // });
-    // //save
-    // const storeProfilePicture = (
-    //   await profileattatchments.save({}).catch((error: any) => {
-    //     throw httpErrors.InternalServerError(error.message);
-    //   })
-    // ).toObject();
-
-    // //aadhar card
-    // const aadharattatchments = new appAttachmentsModel({
-    //   original_name: aadhar_card[0].originalname,
-    //   name: aadhar_card[0].filename,
-    //   type: aadhar_card[0].mimetype,
-    //   uploadedBy: storeAppUserBasicDetails._id,
-    //   extension: aadhar_card[0].originalname.split('.')[1]
-    // });
-    // //save
-    // const storeAadharCard = (
-    //   await aadharattatchments.save({}).catch((error: any) => {
-    //     throw httpErrors.InternalServerError(error.message);
-    //   })
-    // ).toObject();
-
-    // //pan card
-    // const panattatchments = new appAttachmentsModel({
-    //   original_name: pan_card[0].originalname,
-    //   name: pan_card[0].filename,
-    //   type: pan_card[0].mimetype,
-    //   uploadedBy: storeAppUserBasicDetails._id,
-    //   extension: pan_card[0].originalname.split('.')[1]
-    // });
-    // //save
-    // const storePanCard = (
-    //   await panattatchments.save({}).catch((error: any) => {
-    //     throw httpErrors.InternalServerError(error.message);
-    //   })
-    // ).toObject();
-
-    // const object_ids: Types.ObjectId[] = [];
-
-    // // Create an array of promises
-    // const savePromises = documents.map(async document => {
-    //   const documentattatchments = new appAttachmentsModel({
-    //     original_name: document.originalname,
-    //     name: document.filename,
-    //     type: document.mimetype,
-    //     uploadedBy: storeAppUserBasicDetails._id,
-    //     extension: document.originalname.split('.')[1]
-    //   });
-
-    //   // Save the document and return the saved object
-    //   const storeDocuments = await documentattatchments.save().catch((error: any) => {
-    //     throw httpErrors.InternalServerError(error.message);
-    //   });
-
-    //   return storeDocuments.toObject();
-    // });
-
-    // // Wait for all the promises to resolve
-    // const savedDocuments = await Promise.all(savePromises);
-
-    // // Push the _id of each saved document to object_ids array
-    // savedDocuments.forEach(document => {
-    //   object_ids.push(document._id);
-    // });
-
-    // console.log(object_ids);
-
-    // //storing the aadhar and pan card numbers in the file schema
-    // const appuserfiles = new appAgentFilesModel({
-    //   appAgentId: storeAppUserBasicDetails._id,
-    //   profile_picture: storeProfilePicture._id,
-    //   aadhar_card_number: appuserDetails.aadhar_number,
-    //   aadhar_card_file: storeAadharCard._id,
-    //   pan_card_number: appuserDetails.pan_number,
-    //   pan_card_file: storePanCard._id,
-    //   documents: object_ids
-    // });
-    // //locate the files directory
-    // const dir = req.body.directory;
-    // //rename the directory with the user's objectID
-    // fs.renameSync(dir, `${FILE_UPLOAD_PATH}/${storeAppUserBasicDetails._id}`);
-    //save
-    // const storeAppUserFileInfo = (
-    //   await appuserfiles.save({}).catch((error: any) => {
-    //     throw httpErrors.InternalServerError(error.message);
-    //   })
-    // ).toObject();
-
     // Send Response
     if (res.headersSent === false) {
       res.status(200).send({
@@ -252,7 +160,7 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
           //   pan_number: storeAppUserFileInfo.pan_card_number
           // },
 
-          message: 'Agent created successfully and files uploaded successfully.'
+          message: 'Agent created successfully.'
         }
       });
     }
@@ -269,11 +177,11 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
 //access: private
 export const deleteAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const appAgentDetails: DeleteAppUserType = await joiAgentAccount.deleteAppUserSchema.validateAsync(req.body);
+    const appAgentDetails: DeleteAppAgentType = await joiAgentAccount.deleteAppUserSchema.validateAsync(req.body);
     // Update records in Collection
     const appAgent = await appAgentModel
       .findOne({
-        _id: { $in: appAgentDetails.appAgentId },
+        _id: appAgentDetails.appAgentId,
         isDeleted: false
       })
       .catch((error: any) => {
@@ -289,6 +197,107 @@ export const deleteAccount = async (req: Request, res: Response, next: NextFunct
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(error.message);
       });
+
+    // delete agent company details.
+    const appAgentCompanyDetails = await appAgentDetailsModel
+      .findOne({
+        appAgentId: appAgentDetails.appAgentId,
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
+
+    if (appAgentCompanyDetails)
+      await appAgentCompanyDetails
+        .updateOne({
+          isDeleted: true
+        })
+        .catch((error: any) => {
+          throw httpErrors.UnprocessableEntity(error.message);
+        });
+
+    // delete agent address details.
+    const appAgentAddressDetails = await appAgentAddressModel
+      .findOne({
+        appAgentId: appAgentDetails.appAgentId,
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
+
+    if (appAgentAddressDetails)
+      await appAgentAddressDetails
+        .updateOne({
+          isDeleted: true
+        })
+        .catch((error: any) => {
+          throw httpErrors.UnprocessableEntity(error.message);
+        });
+
+    // delete agent bank details.
+    const appAgentBankDetails = await appAgentBanksModel
+      .findOne({
+        appAgentId: appAgentDetails.appAgentId,
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
+
+    if (appAgentBankDetails)
+      await appAgentBankDetails
+        .updateOne({
+          isDeleted: true
+        })
+        .catch((error: any) => {
+          throw httpErrors.UnprocessableEntity(error.message);
+        });
+
+    // delete agent attachment details.
+    const appAgentAttachmentDetails = await appAttachmentsModel
+      .find({
+        appAgentId: appAgentDetails.appAgentId,
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
+
+    if (appAgentAttachmentDetails) {
+      appAgentAttachmentDetails.map(async (appAttachment: any) => {
+        await appAttachment.updateOne({
+          isDeleted: true
+        })
+          .catch((error: any) => {
+            throw httpErrors.UnprocessableEntity(error.message);
+          })
+      })
+    }
+
+    // delete agent attachment details.
+    const appAgentFilesDetails = await appAgentFilesModel
+      .findOne({
+        appAgentId: appAgentDetails.appAgentId,
+        isDeleted: false
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      });
+
+    if (appAgentFilesDetails) {
+      removeDirectory(`${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`);
+      await appAgentFilesDetails
+        .updateOne({
+          isDeleted: true
+        })
+        .catch((error: any) => {
+          throw httpErrors.UnprocessableEntity(error.message);
+        });
+
+    }
+
     // Send Response
     if (res.headersSent === false) {
       res.status(200).send({
@@ -310,20 +319,90 @@ export const deleteAccount = async (req: Request, res: Response, next: NextFunct
 //access: private
 export const getAllAppAgents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Validate Joi Schema
+    const querySchema: GetAppAgentType = await joiAgentAccount.getAppUserSchema.validateAsync(req.body);
+
+    compactObject(querySchema);
+
+    const metaData: MetaDataBody = await configureMetaData(querySchema);
+
+    const fieldsToInclude = getFieldsToInclude(metaData.fields);
+
+    const query: GetAgentQueryType = { isDeleted: false };
+
+    if (querySchema.appAccessGroupId) query._id = querySchema.appAccessGroupId;
+
+    if (querySchema.isAdministrator) query.isAdministrator = querySchema.isAdministrator;
+
+    if (querySchema.search)
+      query.$or = [
+        {
+          first_name: {
+            $regex: querySchema.search,
+            $options: 'is'
+          }
+        },
+        {
+          last_name: {
+            $regex: querySchema.search,
+            $options: 'is'
+          }
+        },
+        {
+          email: {
+            $regex: querySchema.search,
+            $options: 'is'
+          }
+        }
+      ];
+    // Execute the Query
     const appAgents = await appAgentModel
-      .find({
-        isDeleted: false
-      })
-      .catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+      .find(query)
+      .select(fieldsToInclude)
+      .sort({ [metaData.sortOn]: metaData.sortBy })
+      .skip(metaData.offset)
+      .limit(metaData.limit)
+      .lean()
+      .catch(error => {
+        throw httpErrors.UnprocessableEntity(
+          error?.message ? error.message : 'Unable to retrieve records from Database.'
+        );
       });
+
+
+    await Promise.all(
+      appAgents.map(async (appAgent: any) => {
+        appAgent.appAgentId = appAgent._id;
+        // appAccessGroup.totalAppAgents = await appAgentModel
+        //   .find({
+        //     appAccessGroupId: appAccessGroup._id,
+        //   })
+        //   .countDocuments();
+
+        delete appAgent._id;
+        delete appAgent.isDeleted;
+        delete appAgent.__v;
+        return appAgent;
+      })
+    );
+
+    const totalRecords = await appAgentModel.find(query).countDocuments();
+    convertDateTimeFormat(appAgents);
+
     // Send Response
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
         data: {
-          AppUsers: appAgents,
-          message: 'All users fetched successfully.'
+          appAccessGroups: appAgents,
+          metaData: {
+            sortBy: metaData.sortBy,
+            sortOn: metaData.sortOn,
+            limit: metaData.limit,
+            offset: metaData.offset,
+            total_records: totalRecords
+          },
+          message: 'Access group fetched successfully.'
         }
       });
     }
@@ -332,7 +411,7 @@ export const getAllAppAgents = async (req: Request, res: Response, next: NextFun
     if (error?.isJoi === true) error.status = 422;
     next(error);
   }
-};
+}
 
 //description: update user details
 //route: PUT /api/v1/updateappAgentDetails
@@ -597,11 +676,13 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
       throw httpErrors.Conflict(`Agent with Id: ${appAgentDetails.appAgentId} does not exist`);
     }
 
-    //check whether email id already associated with any user in database or not.
-    const doesEmailExist = await appAgentModel.findOne({
-      email: appAgentDetails.email,
-      isDeleted: false
-    });
+    //Check if Email exist in Collection other than current record.
+    const doesEmailExist = await appAgentModel.findOne(
+      {
+        _id: { $ne: appAgentDetails.appAgentId },
+        email: appAgentDetails.email,
+        isDeleted: false
+      });
 
     if (doesEmailExist) {
       throw httpErrors.Conflict(`Agent with email: ${appAgentDetails.appAgentId} already exist`);
@@ -616,18 +697,15 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
         throw httpErrors.UnprocessableEntity(`Unable to find Agent with id ${appAgentDetails.appAgentId}`);
       });
 
-    await appAgent
-      ?.updateOne(appAgentDetails, {
-        new: true
-      })
-      .catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(error.message);
-      });
+    await appAgent?.updateOne(appAgentDetails, {
+      new: true
+    }).catch((error: any) => {
+      throw httpErrors.UnprocessableEntity(error.message);
+    });
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
         data: {
-          UpdatedDetails: appAgent,
           message: 'Agent details updated successfully.'
         }
       });
@@ -645,7 +723,7 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
 export const getSingleAppUserDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
-    const appuserDetails: GetAppUserType = await joiAgentAccount.getAppUserSchema.validateAsync(req.body);
+    const appuserDetails: GetAppAgentType = await joiAgentAccount.getAppUserSchema.validateAsync(req.body);
     //check if user exist in collection
     const doesAppUserExist = await appAgentModel
       .findOne({
@@ -665,18 +743,16 @@ export const getSingleAppUserDetails = async (req: Request, res: Response, next:
       });
     console.log(appuserDetails.appAgentId);
     //get user bank details
-    const singleuserbankdetails = await appAgentBanksModel
-      .findOne({
-        appAgentId: appuserDetails.appAgentId
-      })
-      .catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
-      });
+    const singleuserbankdetails = await appAgentBanksModel.findOne({
+      appAgentId: appuserDetails.appAgentId
+    }).catch((error: any) => {
+      throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
+    });
+    console.log(singleuserbankdetails);
     //get user address details
-    const singleuseraddressdetails = await appAgentAddressModel
-      .findOne({
-        appAgentId: appuserDetails.appAgentId
-      })
+    const singleuseraddressdetails = await appAgentAddressModel.findOne({
+      appAgentId: appuserDetails.appAgentId
+    })
       .populate('country state city')
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);

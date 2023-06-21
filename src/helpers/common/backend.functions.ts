@@ -9,7 +9,9 @@ import { randomBytes, createCipheriv, createDecipheriv } from 'crypto';
 import { GlobalConfig } from './environment';
 import { appMenuModel, appSubMenuModel } from '../../models/permissions/menu/menu.model'
 import { AppMenuType } from 'helpers/joi/permissions/menu';
-// import { BSON } from 'bson';
+import fs from 'fs'
+import path from 'path';
+
 const appConstants = {
   DEFAULT_LIMIT_SIZE: 10,
   DEFAULT_OFFSET: 0,
@@ -185,6 +187,24 @@ async function configureMetaData(querySchema: any): Promise<MetaDataBody> {
   }
 }
 
+function removeDirectory(directoryPath: string): void {
+  if (!fs.existsSync(directoryPath)) {
+    return;
+  }
+  const files = fs.readdirSync(directoryPath);
+  for (const file of files) {
+    const filePath = path.join(directoryPath, file);
+    const stats = fs.statSync(filePath);
+
+    if (stats.isDirectory()) {
+      removeDirectory(filePath);
+    } else {
+      fs.unlinkSync(filePath);
+    }
+  }
+  fs.rmdirSync(directoryPath);
+}
+
 async function logBackendError(
   scriptPath: string,
   errorMessage: string | null,
@@ -307,7 +327,7 @@ async function getTokenExpTime(): Promise<number> {
   if (!JWT_ACCESS_TOKEN_EXP_MINS)
     throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_ACCESS_TOKEN_EXP_MINS]`);
 
-  console.log(JWT_ACCESS_TOKEN_EXP_MINS, dayRemainingTime);
+  // console.log(JWT_ACCESS_TOKEN_EXP_MINS, dayRemainingTime);
   return JWT_ACCESS_TOKEN_EXP_MINS < dayRemainingTime ? JWT_ACCESS_TOKEN_EXP_MINS : dayRemainingTime;
 }
 
@@ -329,5 +349,6 @@ export {
   getMenuSchema,
   getMaxMenuSeqNum,
   getMaxSubMenuSeqNum,
-  isValidURL
+  isValidURL,
+  removeDirectory
 };

@@ -6,6 +6,20 @@ import permissionsModule from '../../../middlewares/permissions/permissions.midd
 
 export const appAccountFileRouterV1 = Router();
 
+
+appAccountFileRouterV1.post(
+  '/upload-file',
+  jwtModule.verifyAccessToken,
+  permissionsModule.validateRouteAccess,
+  upload_file.fields([
+    { name: 'profile_picture', maxCount: 1 },
+    { name: 'aadhar_card', maxCount: 1 },
+    { name: 'pan_card', maxCount: 1 },
+    { name: 'documents', maxCount: 5 }
+  ]),
+  appAccountFileController.uploadFile
+);
+
 appAccountFileRouterV1.post(
   '/delete-file',
   jwtModule.verifyAccessToken,
@@ -35,18 +49,4 @@ appAccountFileRouterV1.post(
     { name: 'documents', maxCount: 5 }
   ]),
   appAccountFileController.updateFile
-);
-appAccountFileRouterV1.post(
-  '/test-file',
-  jwtModule.verifyAccessToken,
-  permissionsModule.validateRouteAccess,
-  upload_file.fields([
-    { name: 'profile_picture', maxCount: 1 },
-    { name: 'aadhar_card', maxCount: 1 },
-    { name: 'pan_card', maxCount: 1 },
-    { name: 'documents', maxCount: 5 }
-  ]),
-  (_req, res, _next) => {
-    res.send('Hello World');
-  }
 );

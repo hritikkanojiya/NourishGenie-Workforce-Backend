@@ -36,8 +36,8 @@ const signAccessToken = (payloadData: PayloadDataType): Promise<string | undefin
           .select('value');
 
         if (!JWT_ISSUER) throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_ISSUER]`);
-        const jwtSecretKey = JWT_ACCESS_TOKEN_SECRET.value;
 
+        const jwtSecretKey = JWT_ACCESS_TOKEN_SECRET.value;
         const jwtConfigOptions = {
           expiresIn: `${await getTokenExpTime()}m`,
           issuer: JWT_ISSUER.value
@@ -173,7 +173,7 @@ const verifyAccessToken = async (req: RequestType, res: Response, next: NextFunc
 
 const verifyRefreshToken = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
   try {
-    console.log(req.signedCookies);
+
     const JWT_REFRESH_TOKEN_HEADER = await appConstantsModel
       .findOne({
         name: 'JWT_REFRESH_TOKEN_HEADER',
@@ -196,7 +196,6 @@ const verifyRefreshToken = async (req: RequestType, res: Response, next: NextFun
         isDeleted: false
       })
       .select('value');
-
     if (!JWT_REFRESH_TOKEN_SECRET)
       throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_REFRESH_TOKEN_SECRET]`);
 
@@ -207,6 +206,7 @@ const verifyRefreshToken = async (req: RequestType, res: Response, next: NextFun
       redisClient
         .GET(objectIdToString(payload.payloadData.appAgentId))
         .catch((error: any) => {
+          console.log(error);
           logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
           return next(httpErrors.Unauthorized(notAuthorized));
         })
@@ -220,6 +220,7 @@ const verifyRefreshToken = async (req: RequestType, res: Response, next: NextFun
         });
     });
   } catch (error: any) {
+    console.log(error);
     __sendJWTError(error, req, res);
   }
 };

@@ -16,6 +16,14 @@ mongoose
     process.exit(0);
   });
 
+// mongoose
+//   .set('strictQuery', false)
+//   .connect('mongodb://localhost:27017/test')
+//   .catch((error: Error) => {
+//     LOGGER.error(error.message);
+//     process.exit(0);
+//   });
+
 // Create connection Object & Listen for Events
 const mongoConnection = mongoose.connection;
 
