@@ -490,26 +490,6 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
           throw httpErrors.UnprocessableEntity(error.message);
         });
       //fetch all the user files
-      const appuserfiles = await appAgentFileModel.findOne({
-        appAgentId: (appFileDetails.appAgentId)
-      });
-      //create the new attatchment
-      const newDocumentFile = new appAttachmentModel({
-        original_name: appuserFiles.otherFiles[0].originalname,
-        name: appuserFiles.otherFiles[0].filename,
-        type: appuserFiles.otherFiles[0].mimetype,
-        extension: appuserFiles.otherFiles[0].originalname.split('.')[1],
-        uploadedBy: (appFileDetails.appAgentId)
-      });
-      await newDocumentFile.save().catch((error: any) => {
-        throw httpErrors.UnprocessableEntity(error.message);
-      });
-      //pop the old file from the file schema and push the new file
-      appuserfiles?.otherFiles.filter(otherFilesId => {
-        return otherFilesId !== (appFileDetails.otherFilesId ? appFileDetails.otherFilesId : '');
-      });
-      //push the new file
-      appuserfiles?.otherFiles.push(newDocumentFile._id);
     }
 
     if (!doesAppUserExist) throw httpErrors.Conflict(`user file [${appFileDetails.appAgentId}] does not exist.`);
