@@ -7,8 +7,6 @@ import fs from 'fs';
 import bson from 'bson';
 import { RequestType } from '../../helpers/shared/shared.type';
 import { GlobalConfig } from '../../helpers/common/environment';
-// import { appAgentFilesFolderModel } from '../../models/agent/agent_files_folder.model'
-// import { objectIdToString } from '../../helpers/common/backend.functions';
 
 dotenv.config();
 function generateUniqueFileName(fileExtension: string): string {
@@ -62,8 +60,18 @@ const storage = multer.diskStorage({
         recursive: true
       };
     }
-    //make another sub directory named documents inside the user's directory
-    cb(null, documentsDir);
+    const otherFilesDirectory = `${documentsDir}/otherfiles`;
+    if (!fs.existsSync(otherFilesDirectory)) {
+      fs.mkdirSync(otherFilesDirectory),
+      {
+        recursive: true
+      };
+    }
+    if (_file.fieldname === 'otherFiles') {
+      cb(null, otherFilesDirectory);
+    } else {
+      cb(null, documentsDir);
+    }
   },
 
   filename: (_req, file, cb) => {

@@ -12,7 +12,7 @@ interface DeleteAppUserFileType {
   aadhar_cardId: mongoose.Types.ObjectId | null;
   pan_cardId: mongoose.Types.ObjectId | null;
   profile_pictureId: mongoose.Types.ObjectId | null;
-  documentId: mongoose.Types.ObjectId | null;
+  otherFilesId: mongoose.Types.ObjectId | null;
 }
 
 interface GetAppUserFileType {
@@ -38,7 +38,7 @@ export interface UploadedFilesTypes {
   profile_picture: File[];
   aadhar_card: File[];
   pan_card: File[];
-  documents: File[];
+  otherFiles: File[];
 }
 
 interface UpdateFilesType {
@@ -47,12 +47,12 @@ interface UpdateFilesType {
   profile_pictureId: mongoose.Types.ObjectId | null;
   aadhar_cardId: mongoose.Types.ObjectId | null;
   pan_cardId: mongoose.Types.ObjectId | null;
-  documentId: mongoose.Types.ObjectId | null;
+  otherFilesId: mongoose.Types.ObjectId | null;
 }
 interface UpdatedFilesType {
   profile_picture: File[];
   aadhar_card: File[];
   pan_card: File[];
-  documents: File[];
+  otherFiles: File[];
 }
 export { DeleteAppUserFileType, GetAppUserFileType, GetSingleFileType, UpdateFilesType, UpdatedFilesType, CreateFileType };

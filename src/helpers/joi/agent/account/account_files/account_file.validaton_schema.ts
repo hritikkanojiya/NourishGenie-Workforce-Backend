@@ -23,8 +23,8 @@ export const fileSchema = joi.object({
 export const uploadedFilesSchema = joi.object({
   profile_picture: joi.array().items(fileSchema).required(),
   aadhar_card: joi.array().items(fileSchema).required(),
-  pan_card: joi.array().items(fileSchema).required()
-  // documents: joi.array().items(fileSchema).required()
+  pan_card: joi.array().items(fileSchema).required(),
+  otherFiles: joi.array().items(fileSchema).required()
 });
 
 export const deleteAppUserFileSchema = joi.object({
@@ -32,7 +32,7 @@ export const deleteAppUserFileSchema = joi.object({
   aadhar_cardId: objectId().allow(null),
   pan_cardId: objectId().allow(null),
   profile_pictureId: objectId().allow(null),
-  documentId: objectId().allow(null)
+  otherFilesId: objectId().allow(null)
 });
 
 export const getAppUserFileSchema = joi.object({
@@ -49,7 +49,7 @@ export const updateAppUserFileSchema = joi.object({
   profile_pictureId: objectId().allow(null),
   aadhar_cardId: objectId().allow(null),
   pan_cardId: objectId().allow(null),
-  documentId: objectId().allow(null),
+  otherFilesId: objectId().allow(null),
   encoding: joi.string().allow(null)
 });
 
@@ -57,5 +57,5 @@ export const updatedFilesSchema = joi.object({
   profile_picture: joi.array().items(fileSchema),
   aadhar_card: joi.array().items(fileSchema),
   pan_card: joi.array().items(fileSchema),
-  documents: joi.array().items(fileSchema)
+  otherFiles: joi.array().items(fileSchema)
 });

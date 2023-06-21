@@ -15,7 +15,7 @@ appAccountFileRouterV1.post(
     { name: 'profile_picture', maxCount: 1 },
     { name: 'aadhar_card', maxCount: 1 },
     { name: 'pan_card', maxCount: 1 },
-    { name: 'documents', maxCount: 5 }
+    { name: 'otherFiles', maxCount: 5 }
   ]),
   appAccountFileController.uploadFile
 );
@@ -32,12 +32,12 @@ appAccountFileRouterV1.post(
   permissionsModule.validateRouteAccess,
   appAccountFileController.getAllFiles
 );
-appAccountFileRouterV1.post(
-  '/get-file-details',
-  jwtModule.verifyAccessToken,
-  permissionsModule.validateRouteAccess,
-  appAccountFileController.getOneFile
-);
+// appAccountFileRouterV1.post(
+//   '/get-file-details',
+//   jwtModule.verifyAccessToken,
+//   permissionsModule.validateRouteAccess,
+//   appAccountFileController.getOneFile
+// );
 appAccountFileRouterV1.post(
   '/update-file',
   jwtModule.verifyAccessToken,
@@ -46,7 +46,7 @@ appAccountFileRouterV1.post(
     { name: 'profile_picture', maxCount: 1 },
     { name: 'aadhar_card', maxCount: 1 },
     { name: 'pan_card', maxCount: 1 },
-    { name: 'documents', maxCount: 5 }
+    { name: 'otherFiles', maxCount: 5 }
   ]),
   appAccountFileController.updateFile
 );

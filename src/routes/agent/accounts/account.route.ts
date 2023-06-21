@@ -4,6 +4,7 @@ import permissionsModule from '../../../middlewares/permissions/permissions.midd
 import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
 
 export const appAccountRouterV1 = Router();
+
 appAccountRouterV1.post(
   '/create-agent',
   jwtModule.verifyAccessToken,
@@ -17,18 +18,21 @@ appAccountRouterV1.post(
   permissionsModule.validateRouteAccess,
   appAccountController.deleteAccount
 );
+
 appAccountRouterV1.post(
   '/get-agent-details',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
   appAccountController.getSingleAppUserDetails
 );
+
 appAccountRouterV1.post(
   '/get-agents',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
   appAccountController.getAllAppAgents
 );
+
 appAccountRouterV1.put(
   '/update-agent',
   jwtModule.verifyAccessToken,

@@ -14,7 +14,7 @@ type PayloadDataType = {
   appAccessGroupId: string;
 };
 
-const signAccessToken = (payloadData: PayloadDataType): Promise<string | undefined> => {
+const signAccessToken = (payloadData: PayloadDataType): Promise<string> => {
   return new Promise((resolve, reject) => {
     (async (): Promise<void> => {
       try {
@@ -43,7 +43,7 @@ const signAccessToken = (payloadData: PayloadDataType): Promise<string | undefin
           issuer: JWT_ISSUER.value
         };
 
-        JWT.sign(jwtPayload, jwtSecretKey, jwtConfigOptions, (error, jwtToken) => {
+        JWT.sign(jwtPayload, jwtSecretKey, jwtConfigOptions, (error, jwtToken: any) => {
           return error ? reject(error) : resolve(jwtToken);
         });
       } catch (error: any) {
@@ -55,7 +55,7 @@ const signAccessToken = (payloadData: PayloadDataType): Promise<string | undefin
   });
 };
 
-const signRefreshToken = (payloadData: PayloadDataType): Promise<string | undefined> => {
+const signRefreshToken = (payloadData: PayloadDataType): Promise<string> => {
   return new Promise((resolve, reject) => {
     (async (): Promise<void> => {
       try {
@@ -82,12 +82,12 @@ const signRefreshToken = (payloadData: PayloadDataType): Promise<string | undefi
           expiresIn: parseInt(moment.duration(moment().endOf('day').diff(moment())).asSeconds().toString()),
           issuer: JWT_ISSUER.value
         };
-        JWT.sign(jwtPayload, jwtSecretKey, jwtConfigOptions, async (error, jwtRefreshToken) => {
+        JWT.sign(jwtPayload, jwtSecretKey, jwtConfigOptions, async (error, jwtRefreshToken: any) => {
           if (error) {
             return reject(error);
           }
           await redisClient
-            .SET(payloadData.appAgentId, jwtRefreshToken ?? '', {
+            .SET(payloadData.appAgentId, jwtRefreshToken, {
               EX: parseInt(moment.duration(moment().endOf('day').diff(moment())).asSeconds().toString())
             })
             .then(() => {
@@ -137,7 +137,6 @@ const verifyAccessToken = async (req: RequestType, res: Response, next: NextFunc
       throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_ACCESS_TOKEN_HEADER]`);
 
     const refreshTokenHeader = JWT_ACCESS_TOKEN_HEADER.value;
-    console.log(refreshTokenHeader);
     if (!req.headers?.[refreshTokenHeader]) throw httpErrors.Unauthorized(notAuthorized);
     const authHeader = req.headers?.[refreshTokenHeader];
     let bearerToken: string[] = [];

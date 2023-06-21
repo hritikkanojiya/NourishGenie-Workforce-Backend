@@ -28,7 +28,7 @@ const appAgentFilesSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'app_attachment'
     },
-    documents: [
+    otherFiles: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'app_attachment'
