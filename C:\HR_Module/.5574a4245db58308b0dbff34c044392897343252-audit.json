@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 10
+    },
+    "auditLog": "C:\\HR_Module/.5574a4245db58308b0dbff34c044392897343252-audit.json",
+    "files": [
+        {
+            "date": 1687429899212,
+            "name": "C:\\HR_Module/all-2023-06-22.log",
+            "hash": "fa897ab0856c2688a6487746a43f3c6e27c128deb505661f557099269ecd6aeb"
+        }
+    ],
+    "hashType": "sha256"
+}

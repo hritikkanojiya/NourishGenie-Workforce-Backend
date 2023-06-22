@@ -650,59 +650,61 @@ export const updateAppAgentDetails = async (req: Request, res: Response, next: N
   }
 };
 
-// export const updateAgentDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-//   try {
-//     const appAgentDetails: UpdateAppAgentType = await joiAgentAccount.updateAppUserSchema.validateAsync(req.body);
-//     const doesAgentExist = await appAgentModel.findOne({
-//       _id: appAgentDetails.appAgentId,
-//       isDeleted: false
-//     });
+export const updateAgentDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const appAgentDetails: UpdateAppAgentType = await joiAgentAccount.updateAppUserSchema.validateAsync(req.body);
+    const doesAgentExist = await appAgentModel.findOne({
+      _id: appAgentDetails.appAgentId,
+      isDeleted: false
+    });
 
-//     if (!doesAgentExist) {
-//       throw httpErrors.Conflict(`Agent with Id: ${appAgentDetails.appAgentId} does not exist`);
-//     }
+    if (!doesAgentExist) {
+      throw httpErrors.Conflict(`Agent with Id: ${appAgentDetails.appAgentId} does not exist`);
+    }
 
-//     //check whether email id already associated with any user in database or not.
-//     const doesEmailExist = await appAgentModel.findOne({
-//       email: appAgentDetails.email,
-//       isDeleted: false
-//     });
+    //check whether email id already associated with any user in database or not.
+    const doesEmailExist = await appAgentModel.findOne({
+      email: appAgentDetails.email,
+      isDeleted: false
+    });
 
-//     if (doesEmailExist) {
-//       throw httpErrors.Conflict(`Agent with email: ${appAgentDetails.appAgentId} already exist`);
-//     }
+    if (doesEmailExist) {
+      throw httpErrors.Conflict(`Agent with email: ${appAgentDetails.appAgentId} already exist`);
+    }
 
-//     const appAgent = await appAgentModel
-//       .findOne({
-//         _id: appAgentDetails.appAgentId,
-//         isDeleted: false
-//       })
-//       .catch(() => {
-//         throw httpErrors.UnprocessableEntity(`Unable to find Agent with id ${appAgentDetails.appAgentId}`);
-//       });
+    const appAgent = await appAgentModel
+      .findOne({
+        _id: appAgentDetails.appAgentId,
+        isDeleted: false
+      })
+      .catch(() => {
+        throw httpErrors.UnprocessableEntity(`Unable to find Agent with id ${appAgentDetails.appAgentId}`);
+      });
 
-//     await appAgent
-//       ?.updateOne(appAgentDetails, {
-//         new: true
-//       })
-//       .catch((error: any) => {
-//         throw httpErrors.UnprocessableEntity(error.message);
-//       });
-//     if (res.headersSent === false) {
-//       res.status(200).send({
-//         error: false,
-//         data: {
-//           UpdatedDetails: appAgent,
-//           message: 'Agent details updated successfully.'
-//         }
-//       });
-//     }
-//   } catch (error: any) {
-//     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
-//     if (error?.isJoi === true) error.status = 422;
-//     next(error);
-//   }
-// };
+    await appAgent
+      ?.updateOne(appAgentDetails, {
+        new: true
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(error.message);
+      });
+
+
+    if (res.headersSent === false) {
+      res.status(200).send({
+        error: false,
+        data: {
+          UpdatedDetails: appAgent,
+          message: 'Agent details updated successfully.'
+        }
+      });
+    }
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
+};
 
 //description: get single users all details
 //route: GET /api/v1/getSingleappAgentDetails
