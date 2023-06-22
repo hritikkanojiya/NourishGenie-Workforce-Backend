@@ -1,47 +1,23 @@
 import mongoose, { Schema, model } from 'mongoose';
 
-const appAgentActivitiesLogsSchema = new Schema(
+const appAttandenceSchema = new Schema(
     {
         appAgentId: {
             type: mongoose.Types.ObjectId,
             required: true
         },
-        check_in: {
-            type: Date,
-            required: true,
-        },
-        check_out: {
-            type: Date,
-            required: true
-        },
-        isDeleted: {
-            type: Boolean,
-            required: true
-        }
-
-    },
-    {
-        timestamps: true
-    }
-)
-
-const appAgentAttandenceSchema = new Schema(
-    {
-        appAgentId: {
-            type: mongoose.Types.ObjectId,
-            required: true
-        },
-        work_status: {
+        availabilty: {
             type: String,
             required: true
         },
-        present: {
-            type: Boolean,
+        status: {
+            type: String,
+            enum: ['PRESENT', 'ABSENT'],
             required: true
         },
-        AgentActivityLogs: {
-            type: mongoose.Types.ObjectId,
-            required: true
+        date: {
+            type: Date,
+            required: true,
         },
         isDeleted: {
             type: Boolean,
@@ -53,11 +29,11 @@ const appAgentAttandenceSchema = new Schema(
     }
 );
 
-const appAgentAttandanceModel = model('app_Agent_attandence', appAgentAttandenceSchema);
-const appAgentActivitylogsModel = model('app_Agent_activity_log', appAgentActivitiesLogsSchema);
+const appAttandanceModel = model('app_attandence', appAttandenceSchema);
+// const appAgentActivitylogsModel = model('app_Agent_activity_log', appAgentActivitiesLogsSchema);
 
 
 export {
-    appAgentAttandanceModel,
-    appAgentActivitylogsModel
+    appAttandanceModel,
+    // appAgentActivitylogsModel
 };

@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 export interface AppAgentType {
   _id: mongoose.Types.ObjectId;
   appAgentId?: mongoose.Types.ObjectId;
+  appAgentIdOfDepartment?: string;
   first_name?: string;
   last_name?: string
   email?: string

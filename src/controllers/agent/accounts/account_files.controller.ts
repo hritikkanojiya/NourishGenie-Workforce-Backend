@@ -81,23 +81,25 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
 
     //save otherFiles
     const otherFilesDetails: mongoose.Types.ObjectId[] = [];
-    otherFiles.map(async (otherFile) => {
-      const otherFileAttachment = new appAttachmentModel({
-        original_name: otherFile.originalname,
-        name: otherFile.filename,
-        type: otherFile.mimetype,
-        uploadedBy: appAgentDetails.appAgentId,
-        extension: otherFile.originalname.split('.')[1]
-      });
+    await Promise.all(
+      otherFiles.map(async (otherFile) => {
 
-      const storeOtherFile = (
-        await otherFileAttachment.save({}).catch((error: any) => {
-          throw httpErrors.InternalServerError(error.message);
-        })
-      ).toObject();
+        const otherFileAttachment = new appAttachmentModel({
+          original_name: otherFile.originalname,
+          name: otherFile.filename,
+          type: otherFile.mimetype,
+          uploadedBy: appAgentDetails.appAgentId,
+          extension: otherFile.originalname.split('.')[1]
+        });
 
-      otherFilesDetails.push(storeOtherFile._id);
-    })
+        const storeOtherFile = (
+          await otherFileAttachment.save({}).catch((error: any) => {
+            throw httpErrors.InternalServerError(error.message);
+          })
+        ).toObject();
+
+        otherFilesDetails.push(storeOtherFile._id);
+      }));
 
     // storing the aadhar and pan card numbers in the file schema
     const appuserfiles = new appAgentFileModel({
@@ -107,7 +109,7 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
       aadhar_card_file: storeAadharCard._id,
       pan_card_number: appAgentDetails.pan_number,
       pan_card_file: storePanCard._id,
-      // otherFiles: otherFilesDetails
+      otherFiles: otherFilesDetails
     });
     // locate the files directory
     const dir = req.body.directory;
@@ -169,11 +171,6 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
       if (!doesAadharFileExist)
         throw httpErrors.Conflict(`aadhar card file [${appFileDetails.aadhar_cardId}] does not exist.`);
 
-      //delete file
-      const filePath = `${FILE_UPLOAD_PATH}/${doesAadharFileExist?.uploadedBy}/documents/${doesAadharFileExist?.name}`;
-
-      fs.unlinkSync(filePath);
-
       await doesAadharFileExist
         .updateOne({
           isDeleted: true
@@ -192,9 +189,9 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
 
       if (!doesPanFileExist) throw httpErrors.Conflict(`pan card file [${appFileDetails.pan_cardId}] does not exist.`);
 
-      const filePath = `${FILE_UPLOAD_PATH}/${doesPanFileExist?.uploadedBy}/documents/${doesPanFileExist?.name}`;
+      // const filePath = `${FILE_UPLOAD_PATH}/${doesPanFileExist?.uploadedBy}/documents/${doesPanFileExist?.name}`;
 
-      fs.unlinkSync(filePath);
+      // fs.unlinkSync(filePath);
       //delete file
       await doesPanFileExist
         .updateOne({
@@ -236,9 +233,9 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
       if (!doesProfileOtherFileExist)
         throw httpErrors.Conflict(`document file [${appFileDetails.otherFilesId}] does not exist.`);
 
-      const filePath = `${FILE_UPLOAD_PATH}/${doesProfileOtherFileExist?.uploadedBy}/documents/otherfiles/${doesProfileOtherFileExist?.name}`;
+      // const filePath = `${FILE_UPLOAD_PATH}/${doesProfileOtherFileExist?.uploadedBy}/documents/otherfiles/${doesProfileOtherFileExist?.name}`;
 
-      fs.unlinkSync(filePath);
+      // fs.unlinkSync(filePath);
 
       //delete file
       await doesProfileOtherFileExist
@@ -269,21 +266,22 @@ export const getAllFiles = async (req: Request, res: Response, next: NextFunctio
   try {
     //validate joi schema
     const appFileDetails: GetAppUserFileType = await joiAgentFile.getAppUserFileSchema.validateAsync(req.body);
-    const appAgentFiles = await appAttachmentModel.find({
-      uploadedBy: (appFileDetails.appAgentId)
+    const appAgentFiles = await appAgentFileModel.findOne({
+      appAgentId: (appFileDetails.appAgentId)
     })
+      .populate('profile_picture aadhar_card_file pan_card_file otherFiles')
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
       });
 
-    if (appAgentFiles?.length < 0) throw httpErrors.Conflict(`Agent with Id: ${appFileDetails.appAgentId} has not any uploaded file.`)
+    if (!appAgentFiles) throw httpErrors.Conflict(`Agent with Id: ${appFileDetails.appAgentId} has not any uploaded file.`);
 
     // console.log(appAgentFiles);
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
         data: {
-          appAgentId: appAgentFiles,
+          appAgentFiles: appAgentFiles,
           message: 'All files fetched successfully.'
         }
       });
