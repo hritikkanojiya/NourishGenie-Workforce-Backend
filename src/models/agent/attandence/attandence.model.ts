@@ -6,6 +6,10 @@ const appAttandenceSchema = new Schema(
             type: mongoose.Types.ObjectId,
             required: true
         },
+        email: {
+            type: String,
+            required: true
+        },
         availabilty: {
             type: String,
             required: true
@@ -16,7 +20,7 @@ const appAttandenceSchema = new Schema(
             required: true
         },
         date: {
-            type: Date,
+            type: String,
             required: true,
         },
         isDeleted: {

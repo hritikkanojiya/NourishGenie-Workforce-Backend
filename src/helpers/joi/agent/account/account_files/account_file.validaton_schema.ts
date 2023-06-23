@@ -44,13 +44,13 @@ export const getSingleFileSchema = joi.object({
 });
 
 export const updateAppUserFileSchema = joi.object({
+  directory: joi.string().trim().required(),
   appAgentId: objectId().required(),
-  directory: joi.string().required(),
   profile_pictureId: objectId().allow(null),
   aadhar_cardId: objectId().allow(null),
   pan_cardId: objectId().allow(null),
   otherFilesId: objectId().allow(null),
-  encoding: joi.string().allow(null)
+  // encoding: joi.string().allow(null)
 });
 
 export const updatedFilesSchema = joi.object({

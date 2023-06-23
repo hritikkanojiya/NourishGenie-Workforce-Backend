@@ -107,7 +107,6 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
       isDeleted: false
     })
     let storeAppAgentFileInfo: any = null
-    console.log(doesAgentFileExist);
 
     if (doesAgentFileExist) {
       await doesAgentFileExist.updateOne({
@@ -141,12 +140,9 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
 
     // locate the files directory
     const dir = req.body.directory;
-
     removeDirectory(`${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`)
-
     fs.renameSync(dir, `${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`);
 
-    console.log(doesAgentFileExist._id);
     // Send Response
     if (res.headersSent === false) {
       res.status(200).send({
@@ -162,46 +158,6 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
         }
       });
     }
-
-
-    // // storing the aadhar and pan card numbers in the file schema
-    // const appAgentfiles = new appAgentFileModel({
-    //   appAgentId: appAgentDetails.appAgentId,
-    //   profile_picture: storeProfilePicture._id,
-    //   aadhar_card_number: appAgentDetails.aadhar_number,
-    //   aadhar_card_file: storeAadharCard._id,
-    //   pan_card_number: appAgentDetails.pan_number,
-    //   pan_card_file: storePanCard._id,
-    //   otherFiles: otherFilesDetails
-    // });
-    // // locate the files directory
-    // const dir = req.body.directory;
-
-    // removeDirectory(`${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`)
-
-    // fs.renameSync(dir, `${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`);
-
-    // const storeAppUserFileInfo = (
-    //   await appAgentfiles.save({}).catch((error: any) => {
-    //     throw httpErrors.InternalServerError(error.message);
-    //   })
-    // ).toObject();
-
-    // // Send Response
-    // if (res.headersSent === false) {
-    //   res.status(200).send({
-    //     error: false,
-    //     data: {
-    //       appAgentFiles: {
-    //         appAgentFileId: storeAppUserFileInfo._id,
-    //         aadhar_number: storeAppUserFileInfo.aadhar_card_number,
-    //         pan_number: storeAppUserFileInfo.pan_card_number
-    //       },
-
-    //       message: 'Files uploaded successfully.'
-    //     }
-    //   });
-    // }
 
   } catch (error: any) {
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
@@ -584,8 +540,6 @@ export const getAllFiles = async (req: Request, res: Response, next: NextFunctio
         throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
       });
 
-    if (!appAgentFiles) throw httpErrors.Conflict(`Agent with Id: ${appFileDetails.appAgentId} has not any uploaded file.`);
-
     // console.log(appAgentFiles);
     if (res.headersSent === false) {
       res.status(200).send({
@@ -628,6 +582,7 @@ export const getProfilePicture = async (req: Request, res: Response, next: NextF
 //access: private
 export const updateFile = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   try {
+    console.log(req.body.directory);
     const appFileDetails: UpdateFilesType = await joiAgentFile.updateAppUserFileSchema.validateAsync(req.body);
     const appuserFiles: UpdatedFilesType = await joiAgentFile.updatedFilesSchema.validateAsync(req.files);
     //check if file exist in collection
@@ -703,7 +658,6 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
           const data = fs.readFileSync(updatedFilePath);
           const fileDirectory = path.dirname(filepath);
           const newFilePath = path.join(fileDirectory, appuserFiles.aadhar_card[0].filename);
-          console.log(newFilePath);
           fs.renameSync(filepath, newFilePath);
           fs.writeFileSync(newFilePath, data);
         }

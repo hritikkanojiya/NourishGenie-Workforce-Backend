@@ -5,7 +5,7 @@ import * as activityController from '../../../controllers/agent/activity/activit
 export const agentActivityRouterV1 = Router();
 
 agentActivityRouterV1.post('/markAttendence', activityController.attendenceMarker);
-agentActivityRouterV1.post('/getUserActivity', activityController.getUserActivity);
-agentActivityRouterV1.post('/getTotalUserActivity', activityController.getTotalUserActivity);
+agentActivityRouterV1.post('/getUserActivity', activityController.getAgentActivity);
+agentActivityRouterV1.post('/getTotalUserActivity', activityController.getTotalAgentActivity);
 
 
