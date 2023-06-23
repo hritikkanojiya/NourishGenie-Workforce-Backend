@@ -331,6 +331,61 @@ async function getTokenExpTime(): Promise<number> {
   return JWT_ACCESS_TOKEN_EXP_MINS < dayRemainingTime ? JWT_ACCESS_TOKEN_EXP_MINS : dayRemainingTime;
 }
 
+
+async function calculateTimeSummary(record: any): Promise<any> {
+  let totalLoggedInTime = 0;
+  let totalBreakTime = 0;
+  let totalLoggedInTimeWithoutBreaks = 0;
+  let checkInTime = null;
+  let isInBreak = false;
+  let breakStartTime = null;
+
+  for (let i = 0; i < record.activities.length; i++) {
+    const activity = record.activities[i];
+
+    if (activity.activity === 'checkin') {
+      // Set the check-in time
+      checkInTime = moment(activity.time, 'HH:mm:ss');
+    } else if (activity.activity === 'breakin') {
+      // Set the break start time
+      isInBreak = true;
+      breakStartTime = moment(activity.time, 'HH:mm:ss');
+    } else if (activity.activity === 'breakout') {
+      if (isInBreak && checkInTime) {
+        // Calculate the break duration and add it to the total break time
+        const breakEndTime = moment(activity.time, 'HH:mm:ss');
+        const breakDuration = moment.duration(breakEndTime.diff(breakStartTime)).asMilliseconds();
+        totalBreakTime += breakDuration;
+
+        // Reset the break start time and break status
+        breakStartTime = null;
+        isInBreak = false;
+      }
+    } else if (activity.activity === 'checkout') {
+      if (checkInTime) {
+        // Calculate the duration between check-in and check-out
+        const checkOutTime = moment(activity.time, 'HH:mm:ss');
+        const duration = moment.duration(checkOutTime.diff(checkInTime)).asMilliseconds();
+        totalLoggedInTime += duration;
+
+        // Calculate the duration between check-in and check-out excluding breaks
+        const durationWithoutBreaks = duration - totalBreakTime;
+        totalLoggedInTimeWithoutBreaks += durationWithoutBreaks;
+
+        // Reset the check-in time for the next pair of activities
+        checkInTime = null;
+      }
+    }
+  }
+
+  return {
+    totalLoggedInTime,
+    totalBreakTime,
+    totalLoggedInTimeWithoutBreaks,
+  };
+}
+
+
 export {
   stringToObjectId,
   objectIdToString,
@@ -350,5 +405,6 @@ export {
   getMaxMenuSeqNum,
   getMaxSubMenuSeqNum,
   isValidURL,
-  removeDirectory
+  removeDirectory,
+  calculateTimeSummary
 };

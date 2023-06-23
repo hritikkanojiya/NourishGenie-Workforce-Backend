@@ -9,6 +9,7 @@ import { appAccountRouterV1 } from '../../../routes/agent/accounts/account.route
 import { appAccountFileRouterV1 } from '../../../routes/agent/accounts/account_files.route';
 import { appReportingManagerRouterV1 } from '../../../routes/agent/fields/reporting_manager.route';
 import { appCountryStateCityRouterV1 } from '../../../routes/country_state_city/country_state_city.route';
+import { agentActivityRouterV1 } from '../../../routes/agent/activity/activity.route';
 
 const v1 = Router();
 
@@ -22,5 +23,5 @@ v1.use('/agent/account/', appAccountRouterV1);
 v1.use('/agent/account_files/', appAccountFileRouterV1);
 v1.use('/agent/fields/reporting_manager', appReportingManagerRouterV1);
 v1.use('/countries-states-cities', appCountryStateCityRouterV1);
-
+v1.use('/agent/activity',agentActivityRouterV1)
 export { v1 };

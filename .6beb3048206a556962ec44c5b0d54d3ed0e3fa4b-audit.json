@@ -1,0 +1,25 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 10
+    },
+    "auditLog": "C:\\Users\\RenoldKingsely\\Desktop\\NourishGenie-Workforce-Backend\\.6beb3048206a556962ec44c5b0d54d3ed0e3fa4b-audit.json",
+    "files": [
+        {
+            "date": 1687359346023,
+            "name": "C:\\Users\\RenoldKingsely\\Desktop\\NourishGenie-Workforce-Backend\\all-2023-06-21.log",
+            "hash": "569f5dda5388b81b84b3ca6dce2f20c1e8cdc3ed68d5789d36b9a1fda376e0be"
+        },
+        {
+            "date": 1687449597535,
+            "name": "C:\\Users\\RenoldKingsely\\Desktop\\NourishGenie-Workforce-Backend\\all-2023-06-22.log",
+            "hash": "ef74db3f9f4a1bebf358898f90296c81d01a6ed25ac54bfcebd0d88c3174c8a3"
+        },
+        {
+            "date": 1687462714787,
+            "name": "C:\\Users\\RenoldKingsely\\Desktop\\NourishGenie-Workforce-Backend\\all-2023-06-23.log",
+            "hash": "7944fb048300fdde27688c25308d3df365644727aaa5fcd0eb82bfbba2a9cd65"
+        }
+    ],
+    "hashType": "sha256"
+}
