@@ -21,10 +21,10 @@ export const fileSchema = joi.object({
 });
 
 export const uploadedFilesSchema = joi.object({
-  profile_picture: joi.array().items(fileSchema).required(),
-  aadhar_card: joi.array().items(fileSchema).required(),
-  pan_card: joi.array().items(fileSchema).required(),
-  otherFiles: joi.array().items(fileSchema).required()
+  profile_picture: joi.array().items(fileSchema).allow(null).default(null),
+  aadhar_card: joi.array().items(fileSchema).allow(null).default(null),
+  pan_card: joi.array().items(fileSchema).allow(null).default(null),
+  otherFiles: joi.array().items(fileSchema).allow(null).default(null),
 });
 
 export const deleteAppUserFileSchema = joi.object({

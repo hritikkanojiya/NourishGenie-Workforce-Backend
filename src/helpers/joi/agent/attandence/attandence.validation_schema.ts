@@ -5,17 +5,18 @@ import joiObjectId from 'joi-objectid';
 const objectId = joiObjectId(joi);
 
 // Define Joi Validation Schema
-const createAppAgentAttandenceSchema = joi.object({
+const createAppAttandenceSchema = joi.object({
     appAgentId: objectId().required(),
-    work_status: joi.string().required(),
-    present: joi.boolean().required(),
-    AgentActivityLogs: objectId().required(),
+    availability: joi.string().required(),
+    status: joi.string().trim().uppercase().valid('PRESENT', 'ABSENT').required(),
+    date: joi.date().required(),
     isDeleted: joi.boolean().default(false)
 });
 
-const getAppAgentAttandenceSchema = joi.object({
+const getAppAttandenceSchema = joi.object({
     appAgentId: objectId().allow(null).default(null),
-    persent: joi.boolean().allow(null).default(null),
+    status: joi.string().trim().uppercase().allow(null).valid('PRESENT', 'ABSENT').default(null),
+    date: joi.date().allow(null).default(null),
     search: joi.string().trim().allow(null).default(null),
     metaData: joi.object().keys({
         sortBy: joi.string().trim().allow(null).default(null),
@@ -27,22 +28,21 @@ const getAppAgentAttandenceSchema = joi.object({
     isDeleted: joi.boolean().default(false)
 });
 
-const updateAppAgentAttandenceSchema = joi.object({
+const updateAppAttandenceSchema = joi.object({
     appAttandenceId: objectId().required(),
     appAgentId: objectId().required(),
-    work_status: joi.string().required(),
+    availabilty: joi.string().required(),
     present: joi.boolean().required(),
-    AgentActivityLogs: objectId().required(),
 });
 
-const deleteAppAgentAttandenceSchema = joi.object({
+const deleteAppAttandenceSchema = joi.object({
     appRouteIds: joi.array().unique().items(objectId()).min(1).required()
 });
 
 // Export schema
 export {
-    createAppAgentAttandenceSchema,
-    getAppAgentAttandenceSchema,
-    updateAppAgentAttandenceSchema,
-    deleteAppAgentAttandenceSchema
+    createAppAttandenceSchema,
+    getAppAttandenceSchema,
+    updateAppAttandenceSchema,
+    deleteAppAttandenceSchema
 };

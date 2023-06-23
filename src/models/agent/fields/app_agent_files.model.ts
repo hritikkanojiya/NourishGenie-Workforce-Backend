@@ -9,23 +9,26 @@ const appAgentFilesSchema = new mongoose.Schema(
     },
     profile_picture: {
       type: mongoose.Schema.Types.ObjectId,
+      default: null,
       ref: 'app_attachment'
     },
     aadhar_card_number: {
       type: String,
-      required: [true, 'must provide a aadhar card number'],
-      trim: true
+      // required: [true, 'must provide a aadhar card number'],
+      // trim: true
     },
     aadhar_card_file: {
       type: mongoose.Schema.Types.ObjectId,
+      default: null,
       ref: 'app_attachment'
     },
     pan_card_number: {
       type: String,
-      required: [true, 'must provide a pan card number']
+      // required: [true, 'must provide a pan card number']
     },
     pan_card_file: {
       type: mongoose.Schema.Types.ObjectId,
+      default: null,
       ref: 'app_attachment'
     },
     otherFiles: [

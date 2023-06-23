@@ -3,9 +3,13 @@ import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 // import { required } from 'joi';
 import { AppAgentType } from '../../helpers/joi/agent/index'
+import appDepartmentModel from '../../models/agent/fields/app_department.model'
 
 const agentSchema = new mongoose.Schema({
   //Basic Information of Employee
+  appAgentIdOfDepartment: {
+    type: String,
+  },
   first_name: {
     type: String,
     required: [true, 'must provide a first_name'],
@@ -83,12 +87,16 @@ const agentSchema = new mongoose.Schema({
 //   }
 // });
 
+
+
+
 agentSchema.pre<AppAgentType>('save', async function (next) {
   try {
     // this.appAccessGroupId = this.appAccessGroupId;
     this.first_name = this.first_name?.replace(/(^\w|\s\w)/g, m => m.toUpperCase());
     this.last_name = this.last_name?.replace(/(^\w|\s\w)/g, m => m.toUpperCase());
     this.password = await bcrypt.hash(this.password ?? '', 10);
+    this.appAgentIdOfDepartment = await generateAgentId(this.appDepartmentId)
     next();
   } catch (error: any) {
     next(error);
@@ -128,4 +136,47 @@ agentSchema.methods.getSignedJWTToken = function (): string {
   );
 };
 
-export default mongoose.model('app_agents', agentSchema);
+const appAgentModel = mongoose.model('app_agents', agentSchema);
+
+export default appAgentModel;
+
+
+async function generateAgentId(departmentId: any): Promise<string> {
+  const department = await appDepartmentModel.findOne({ _id: departmentId }).catch(error => { throw error })
+  let prefix;
+  if (department?.name == 'Information Technology') {
+    prefix = 'NGIT'
+  }
+  else if (department?.name == 'Sales') {
+    prefix = 'NGSA'
+  }
+  else if (department?.name == 'Customer Service') {
+    prefix = 'NGCS'
+  }
+  else {
+    prefix = 'NGCL'
+  }
+  const lastAgent = await appAgentModel.findOne().sort({ _id: -1 }).limit(1);
+  // let lastCount = await appAgentModel.find().countDocuments();
+  let count = 1;
+  if (lastAgent) {
+    let lastAgentId;
+    if (department?.name == 'Information Technology') {
+      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGIT00';
+    }
+    else if (department?.name == 'Sales') {
+      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGSA00';
+    }
+    else if (department?.name == 'Customer Service') {
+      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGCS00';
+    }
+    else {
+      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGCL00';
+    }
+    let lastCount = parseInt(lastAgentId.replace(prefix, ''), 10);
+    if (isNaN(lastCount)) lastCount = 0;
+    count = lastCount + 1;
+  }
+  // lastCount += 1;
+  return prefix + count;
+}

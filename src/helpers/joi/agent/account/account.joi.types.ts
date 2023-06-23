@@ -63,11 +63,11 @@ export interface GetAppAgentType {
 //   // documents: File[];
 // }
 
-export interface DeleteAppUserType {
+export interface DeleteAppAgentType {
   appAgentId: mongoose.Types.ObjectId;
 }
 
-export interface FilterUserType {
+export interface FilterAgentType {
   appDepartmentId: mongoose.Types.ObjectId;
   appDesignationId: mongoose.Types.ObjectId;
   metaData: MetaDataResponse;

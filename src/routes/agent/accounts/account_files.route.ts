@@ -3,9 +3,7 @@ import * as appAccountFileController from '../../../controllers/agent/accounts/a
 import upload_file from '../../../middlewares/files/upload_file.middleware';
 import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
 import permissionsModule from '../../../middlewares/permissions/permissions.middleware';
-
 export const appAccountFileRouterV1 = Router();
-
 
 appAccountFileRouterV1.post(
   '/upload-file',
@@ -32,12 +30,12 @@ appAccountFileRouterV1.post(
   permissionsModule.validateRouteAccess,
   appAccountFileController.getAllFiles
 );
-// appAccountFileRouterV1.post(
-//   '/get-file-details',
-//   jwtModule.verifyAccessToken,
-//   permissionsModule.validateRouteAccess,
-//   appAccountFileController.getOneFile
-// );
+appAccountFileRouterV1.post(
+  '/get-profile-picture',
+  jwtModule.verifyAccessToken,
+  permissionsModule.validateRouteAccess,
+  appAccountFileController.getProfilePicture
+);
 appAccountFileRouterV1.post(
   '/update-file',
   jwtModule.verifyAccessToken,
