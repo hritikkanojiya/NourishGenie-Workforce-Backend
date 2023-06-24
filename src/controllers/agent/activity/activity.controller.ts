@@ -294,7 +294,8 @@ export const getAgentActivity = async (req: Request, res: Response, next: NextFu
     for (const iterator of activities) {
       const agentAttandence = await appAttandanceModel.findOne({
         email: queryDetails.email,
-        date: iterator.date
+        date: iterator.date,
+        isDeleted: false,
       });
       if (agentAttandence) {
         const timeSummary = await calculateTimeSummary(iterator);

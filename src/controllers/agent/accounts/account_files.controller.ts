@@ -439,6 +439,28 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
       if (!doesAadharFileExist)
         throw httpErrors.Conflict(`aadhar card file [${appFileDetails.aadhar_cardId}] does not exist.`);
 
+      const filePath = `${MAIN_FILE_UPLOAD_PATH}/${doesAadharFileExist?.uploadedBy}/documents/${doesAadharFileExist?.name}`;
+      const deletedAgentFilesDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesAadharFileExist.uploadedBy}`;
+      if (!fs.existsSync(deletedAgentFilesDirectory)) {
+        fs.mkdirSync(deletedAgentFilesDirectory),
+        {
+          recursive: true
+        };
+      }
+
+      const fileDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesAadharFileExist.uploadedBy}/documents`;
+      if (!fs.existsSync(fileDirectory)) {
+        fs.mkdirSync(fileDirectory),
+        {
+          recursive: true
+        };
+      }
+      const fileName = doesAadharFileExist?.name ? doesAadharFileExist?.name : '';
+      const fileData = fs.readFileSync(filePath);
+      const deletedFilePath = path.join(fileDirectory, fileName);
+      fs.writeFileSync(deletedFilePath, fileData);
+      fs.unlinkSync(filePath);
+
       await doesAadharFileExist
         .updateOne({
           isDeleted: true

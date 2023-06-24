@@ -827,7 +827,6 @@ export const getSingleAppUserDetails = async (req: Request, res: Response, next:
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
       });
-    console.log(appuserDetails.appAgentId);
     //get user bank details
     const singleuserbankdetails = await appAgentBanksModel
       .findOne({
@@ -868,7 +867,6 @@ export const getSingleAppUserDetails = async (req: Request, res: Response, next:
       });
     }
   } catch (error: any) {
-    console.log(error);
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
     if (error?.isJoi === true) error.status = 422;
     next(error);
