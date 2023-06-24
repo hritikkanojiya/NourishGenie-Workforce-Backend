@@ -113,11 +113,7 @@ export const updateAppUserSchema = joi.object({
   //contact
   number: joi.number(),
   relation: joi.string().trim()
-  //document
-  // aadhar_number: joi.string().trim(),
-  // pan_number: joi.string().trim()
-  //aadhar_number: joi.string().trim(),
-  //pan_number: joi.string().trim()
+
 });
 
 export const filterUserSchema = joi.object({

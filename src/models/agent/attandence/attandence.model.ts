@@ -10,10 +10,6 @@ const appAttandenceSchema = new Schema(
             type: String,
             required: true
         },
-        availabilty: {
-            type: String,
-            required: true
-        },
         status: {
             type: String,
             enum: ['PRESENT', 'ABSENT'],

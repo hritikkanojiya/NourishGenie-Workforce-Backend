@@ -9,6 +9,7 @@ import {
   GetAgentActivityType,
   joiAgentActivity,
   MarkAttandanceType,
+  updateAgentAttandenceType
   // GetTotalAgentActivityType
 } from '../../../helpers/joi/agent/activity/index'
 
@@ -278,82 +279,61 @@ export const getAgentActivity = async (req: Request, res: Response, next: NextFu
     const fromDate = new Date(queryDetails.date.from);
     const toDate = new Date(queryDetails.date.to);
     const appAgentDetails = await appAgentDetailsModel.findOne({ company_email: queryDetails.email, isDeleted: false });
-    const agentAttandences = await appAttandanceModel.find({
+    const activities = await activity.find({
       email: queryDetails.email,
       createdAt: {
         $gte: fromDate,
         $lte: new Date(toDate.setDate(toDate.getDate() + 1)),
       }
     });
-    let agentDetails;
     const agentActivities = [];
-    if (agentAttandences.length > 0) {
-      agentDetails = {
-        email: agentAttandences[0].email,
-      }
-      for (const agentAttandence of agentAttandences) {
-        const userActivity = await activity.find({
-          email: queryDetails.email,
-          createdAt: {
-            $gte: fromDate,
-            $lte: new Date(toDate.setDate(toDate.getDate() + 1)),
-          }
-        });
-        for (const iterator of userActivity) {
-          const timeSummary = await calculateTimeSummary(iterator);
-          const startingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[0]) ? appAgentDetails?.working_hours?.split('-')[0] : '');
-          const endingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[1]) ? appAgentDetails?.working_hours?.split('-')[1] : '');
-          const totalLoginTimeWithoutBreak = parseInt(moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asHours().toPrecision(3));
-          let availaibility;
-          if (totalLoginTimeWithoutBreak >= startingLimit && totalLoginTimeWithoutBreak <= endingLimit) {
-            availaibility = 'full day';
-          }
-          else if ((totalLoginTimeWithoutBreak - startingLimit) <= 1) {
-            availaibility = 'half day';
-          }
-          else if (totalLoginTimeWithoutBreak > endingLimit) {
-            availaibility = 'over Time'
-          }
-          agentActivities.push({
-            activities: iterator.activities,
-            date: iterator.date,
-            createdAt: iterator.createdAt,
-            updatedAt: iterator.updatedAt,
-            availaibility: availaibility,
-            status: agentAttandence.status,
-            totalLoggedinTime: `${moment.duration(timeSummary.totalLoggedInTime).asMinutes().toPrecision(3)} Minutes`,
-            totalBreakTime: `${moment.duration(timeSummary.totalBreakTime).asMinutes().toPrecision(3)} Minutes`,
-            totalLoginTimeWithoutBreak: `${moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asMinutes().toPrecision(3)} Minutes`,
-          });
-          await agentAttandence.updateOne({
-            appAgentId: appAgentDetails?.appAgentId,
-            email: queryDetails.email,
-            availability: availaibility,
-            status: agentAttandence.status,
-            date: iterator.date
-          },
-            {
-              new: true
-            }
-          )
-        }
-      }
+    const agentDetails = {
+      email: queryDetails.email,
+      fullName: activities[0].fullname
     }
-    else {
-      const userActivity = await activity.find({
+    for (const iterator of activities) {
+      const agentAttandence = await appAttandanceModel.findOne({
         email: queryDetails.email,
-        createdAt: {
-          $gte: fromDate,
-          $lte: new Date(toDate.setDate(toDate.getDate() + 1)),
-        }
+        date: iterator.date
       });
-      if (userActivity.length > 0)
-        agentDetails = {
-          email: queryDetails.email,
-          fullName: userActivity[0].fullname,
+      if (agentAttandence) {
+        const timeSummary = await calculateTimeSummary(iterator);
+        const startingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[0]) ? appAgentDetails?.working_hours?.split('-')[0] : '');
+        const endingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[1]) ? appAgentDetails?.working_hours?.split('-')[1] : '');
+        const totalLoginTimeWithoutBreak = parseInt(moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asHours().toPrecision(3));
+        let availaibility;
+        if (totalLoginTimeWithoutBreak >= startingLimit && totalLoginTimeWithoutBreak <= endingLimit) {
+          availaibility = 'full day';
         }
-      // const agentActivities = [];
-      for (const iterator of userActivity) {
+        else if ((totalLoginTimeWithoutBreak - startingLimit) <= 1) {
+          availaibility = 'half day';
+        }
+        else if (totalLoginTimeWithoutBreak > endingLimit) {
+          availaibility = 'over Time'
+        }
+        agentActivities.push({
+          activities: iterator.activities,
+          date: iterator.date,
+          createdAt: iterator.createdAt,
+          updatedAt: iterator.updatedAt,
+          availaibility: availaibility,
+          status: agentAttandence.status,
+          totalLoggedinTime: `${moment.duration(timeSummary.totalLoggedInTime).asMinutes().toPrecision(3)} Minutes`,
+          totalBreakTime: `${moment.duration(timeSummary.totalBreakTime).asMinutes().toPrecision(3)} Minutes`,
+          totalLoginTimeWithoutBreak: `${moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asMinutes().toPrecision(3)} Minutes`,
+        });
+        await agentAttandence.updateOne({
+          appAgentId: appAgentDetails?.appAgentId,
+          email: queryDetails.email,
+          status: agentAttandence.status,
+          date: iterator.date,
+        },
+          {
+            new: true
+          }
+        )
+      }
+      else {
         const timeSummary = await calculateTimeSummary(iterator);
         const startingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[0]) ? appAgentDetails?.working_hours?.split('-')[0] : '');
         const endingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[1]) ? appAgentDetails?.working_hours?.split('-')[1] : '');
@@ -383,12 +363,13 @@ export const getAgentActivity = async (req: Request, res: Response, next: NextFu
           appAgentId: appAgentDetails?._id,
           email: iterator.email,
           date: iterator.date,
-          availabilty: availaibility,
-          status: totalLoginTimeWithoutBreak > 0 ? 'PRESENT' : 'ABSENT'
+          status: iterator.activities.length > 0 ? 'PRESENT' : 'ABSENT',
         })
         await newAttandence.save().catch(error => { throw new Error(error) });
       }
     }
+
+
 
     if (res.headersSent == false) {
       res.status(200).send({
@@ -407,6 +388,36 @@ export const getAgentActivity = async (req: Request, res: Response, next: NextFu
     next(error);
   }
 };
+
+export const updateAttandence = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const agentAttandenceDetails: updateAgentAttandenceType = await joiAgentActivity.updateAgentAttandenceSchema.validateAsync(req.body);
+
+    const agentAttandence = await appAttandanceModel.findOne({
+      email: agentAttandenceDetails.email,
+      date: agentAttandenceDetails.date,
+      isDeleted: false
+    });
+    await agentAttandence?.updateOne(agentAttandenceDetails,
+      {
+        new: true
+      });
+
+    if (res.headersSent == false) {
+      res.status(200).send({
+        error: false,
+        data: {
+          message: 'Agent attandence updated successfully'
+        }
+      });
+    }
+
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
+}
 
 export const getTotalAgentActivity = async (
   req: Request,
@@ -445,22 +456,18 @@ export const getTotalAgentActivity = async (
     }
 
     for (const user in userData) {
-      userData[user].totalLoggedinTime = moment
-        .duration(userData[user].totalLoggedinTime)
-        .humanize();
+      userData[user].totalLoggedinTime = `${moment.duration(userData[user].totalLoggedinTime).asHours().toPrecision(3)} Hours`
 
-      userData[user].totalBreakTime = moment
-        .duration(userData[user].totalBreakTime)
-        .humanize();
+      userData[user].totalBreakTime = `${moment.duration(userData[user].totalBreakTime).asHours().toPrecision(3)} Hours`
 
-      userData[user].totalLoginTimeWithoutBreak = moment
-        .duration(userData[user].totalLoginTimeWithoutBreak)
-        .humanize();
+      userData[user].totalLoginTimeWithoutBreak = `${moment.duration(userData[user].totalLoggedInTimeWithoutBreaks).asHours().toPrecision(3)} Hours`
     }
 
     const result = Object.values(userData);
     res.status(200).send({ error: false, data: result });
-  } catch (error) {
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
     next(error);
   }
 };

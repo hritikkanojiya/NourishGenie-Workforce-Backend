@@ -4,8 +4,23 @@ import * as activityController from '../../../controllers/agent/activity/activit
 
 export const agentActivityRouterV1 = Router();
 
-agentActivityRouterV1.post('/markAttendence', activityController.attendenceMarker);
-agentActivityRouterV1.post('/getUserActivity', activityController.getAgentActivity);
-agentActivityRouterV1.post('/getTotalUserActivity', activityController.getTotalAgentActivity);
+agentActivityRouterV1.post(
+    '/markAttendence',
+    activityController.attendenceMarker
+);
+agentActivityRouterV1.post(
+    '/get-agent-activity',
+    activityController.getAgentActivity
+);
+
+agentActivityRouterV1.put(
+    '/update-attandence',
+    activityController.updateAttandence
+);
+
+agentActivityRouterV1.post(
+    '/get-Agent-month-Activity',
+    activityController.getTotalAgentActivity
+);
 
 

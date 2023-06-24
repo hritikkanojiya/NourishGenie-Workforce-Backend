@@ -39,3 +39,10 @@ appAccountRouterV1.put(
   permissionsModule.validateRouteAccess,
   appAccountController.updateAppAgentDetails
 );
+
+appAccountRouterV1.put(
+  '/update-app-agent',
+  jwtModule.verifyAccessToken,
+  permissionsModule.validateRouteAccess,
+  appAccountController.updateAgentDetails
+);

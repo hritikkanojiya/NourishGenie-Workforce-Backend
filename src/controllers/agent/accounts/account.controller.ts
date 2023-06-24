@@ -23,13 +23,9 @@ import {
   DeleteAppAgentType,
   FilterAgentType
 } from '../../../helpers/joi/agent/account/index';
-//import { Types } from 'mongoose';
 import { MetaDataBody } from '../../../helpers/shared/shared.type';
-//import fs from 'fs';
 
-//description: create a new account
-//route: POST /api/v1/createAccount
-//access: private
+
 export const createAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     //validate joi schema
@@ -65,6 +61,7 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
+
     const doesAppAgentDetailsExist = await appAgentDetailsModel.findOne({
       $or: [{ primary_email: appAgentDetails.email }, { company_email: appAgentDetails.company_email }],
       isDeleted: false
@@ -89,7 +86,8 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
       salary: appAgentDetails.salary
     }); //save
     const storeAppAgentPersonalDetails = (
-      await app_agent_details.save({}).catch((error: any) => {
+      await app_agent_details.save({}).catch(async (error: any) => {
+        await appAgentModel.deleteOne({ _id: storeAppAgentBasicDetails._id });
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
@@ -104,7 +102,9 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
     });
     //save
     const storeAppUserBankDetails = (
-      await appAgentBank.save({}).catch((error: any) => {
+      await appAgentBank.save({}).catch(async (error: any) => {
+        await appAgentDetailsModel.deleteOne({ _id: storeAppAgentPersonalDetails._id });
+        await appAgentModel.deleteOne({ _id: storeAppAgentBasicDetails._id });
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
@@ -121,7 +121,10 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
     });
     //save
     const storeAppAgentAddressDetails = (
-      await appAgentAddress.save({}).catch((error: any) => {
+      await appAgentAddress.save({}).catch(async (error: any) => {
+        await appAgentModel.deleteOne({ _id: storeAppAgentBasicDetails._id });
+        await appAgentDetailsModel.deleteOne({ _id: storeAppAgentBasicDetails._id });
+        await appAgentBanksModel.deleteOne({ _id: storeAppUserBankDetails._id });
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
@@ -133,7 +136,11 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
     });
     //save
     const storeAppAgentContactDetails = (
-      await appAgentContact.save({}).catch((error: any) => {
+      await appAgentContact.save({}).catch(async (error: any) => {
+        await appAgentModel.deleteOne({ _id: storeAppAgentBasicDetails._id });
+        await appAgentDetailsModel.deleteOne({ _id: storeAppAgentBasicDetails._id });
+        await appAgentBanksModel.deleteOne({ _id: storeAppUserBankDetails._id });
+        await appAgentAddressModel.deleteOne({ _id: storeAppAgentAddressDetails._id });
         throw httpErrors.InternalServerError(error.message);
       })
     ).toObject();
@@ -164,11 +171,6 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
             appAgentContactId: storeAppAgentContactDetails._id,
             number: storeAppAgentContactDetails.number
           },
-          // appAgentFiles: {
-          //   appAgentFileId: storeAppUserFileInfo._id,
-          //   aadhar_number: storeAppUserFileInfo.aadhar_card_number,
-          //   pan_number: storeAppUserFileInfo.pan_card_number
-          // },
 
           message: 'Agent created successfully.'
         }
@@ -189,9 +191,7 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-//description: delete an account
-//route: DELETE /api/v1/deleteAppAccount
-//access: private
+
 export const deleteAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const appAgentDetails: DeleteAppAgentType = await joiAgentAccount.deleteAppUserSchema.validateAsync(req.body);
@@ -329,9 +329,7 @@ export const deleteAccount = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-//description: get all users
-//route: GET /api/v1/getAllAppUsers
-//access: private
+
 export const getAllAppAgents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     console.log(req.body);
@@ -397,9 +395,7 @@ export const getAllAppAgents = async (req: Request, res: Response, next: NextFun
   }
 };
 
-//description: update user details
-//route: PUT /api/v1/updateappAgentDetails
-//access: private
+
 export const updateAppAgentDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const responseQuery: any = {};
@@ -662,16 +658,6 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
       throw httpErrors.Conflict(`Agent with Id: ${appAgentDetails.appAgentId} does not exist`);
     }
 
-    //check whether email id already associated with any user in database or not.
-    const doesEmailExist = await appAgentModel.findOne({
-      email: appAgentDetails.email,
-      isDeleted: false
-    });
-
-    if (doesEmailExist) {
-      throw httpErrors.Conflict(`Agent with email: ${appAgentDetails.appAgentId} already exist`);
-    }
-
     const appAgent = await appAgentModel
       .findOne({
         _id: appAgentDetails.appAgentId,
@@ -682,7 +668,19 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
       });
 
     await appAgent
-      ?.updateOne(appAgentDetails, {
+      ?.updateOne({
+        first_name: appAgentDetails.first_name,
+        last_name: appAgentDetails.last_name,
+        email: appAgentDetails.email,
+        password: appAgentDetails.password,
+        appAccessGroupId: appAgentDetails.appAccessGroupId,
+        appDepartmentId: appAgentDetails.appDepartmentId,
+        appReportingManagerId: appAgentDetails.appReportingManagerId
+          ? appAgentDetails.appReportingManagerId
+          : null,
+        appDesignationId: appAgentDetails.appDesignationId,
+        employee_type: appAgentDetails.employee_type
+      }, {
         new: true
       })
       .catch((error: any) => {
@@ -690,11 +688,109 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
       });
 
 
+
+    const appAgentCompanyDetails = await appAgentDetailsModel
+      .findOne({
+        appAgentId: appAgentDetails.appAgentId,
+        isDeleted: false
+      })
+      .catch(() => {
+        throw httpErrors.UnprocessableEntity(`Unable to find Agent with id ${appAgentDetails.appAgentId}`);
+      });
+
+    await appAgentCompanyDetails
+      ?.updateOne({
+        appAgentId: appAgentDetails.appAgentId,
+        primary_email: appAgentDetails.primary_email,
+        company_email: appAgentDetails.company_email,
+        gender: appAgentDetails.gender,
+        contact_number: appAgentDetails.contact_number,
+        date_of_birth: appAgentDetails.date_of_birth,
+        marital_status: appAgentDetails.marital_status,
+        date_of_joining: appAgentDetails.date_of_joining,
+        working_hours: appAgentDetails.working_hours,
+        salary: appAgentDetails.salary
+      }, {
+        new: true
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(error.message);
+      });
+
+
+    const appAgentBankDetails = await appAgentBanksModel
+      .findOne({
+        appAgentId: appAgentDetails.appAgentId,
+        isDeleted: false
+      })
+      .catch(() => {
+        throw httpErrors.UnprocessableEntity(`Unable to find Agent with id ${appAgentDetails.appAgentId}`);
+      });
+
+    await appAgentBankDetails
+      ?.updateOne({
+        appAgentId: appAgentDetails.appAgentId,
+        name_as_per_bank: appAgentDetails.name_as_per_bank,
+        account_number: appAgentDetails.account_number,
+        ifsc_code: appAgentDetails.ifsc_code,
+        bank_name: appAgentDetails.bank_name
+      }, {
+        new: true
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(error.message);
+      });
+
+
+    const appAgentAddressDetails = await appAgentBanksModel
+      .findOne({
+        appAgentId: appAgentDetails.appAgentId,
+        isDeleted: false
+      })
+      .catch(() => {
+        throw httpErrors.UnprocessableEntity(`Unable to find Agent with id ${appAgentDetails.appAgentId}`);
+      });
+
+    await appAgentAddressDetails
+      ?.updateOne({
+        appAgentId: appAgentDetails.appAgentId,
+        name_as_per_bank: appAgentDetails.name_as_per_bank,
+        account_number: appAgentDetails.account_number,
+        ifsc_code: appAgentDetails.ifsc_code,
+        bank_name: appAgentDetails.bank_name
+      }, {
+        new: true
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(error.message);
+      });
+
+
+    const appAgentContactDetails = await appAgentBanksModel
+      .findOne({
+        appAgentId: appAgentDetails.appAgentId,
+        isDeleted: false
+      })
+      .catch(() => {
+        throw httpErrors.UnprocessableEntity(`Unable to find Agent with id ${appAgentDetails.appAgentId}`);
+      });
+
+    await appAgentContactDetails
+      ?.updateOne({
+        appAgentId: appAgentDetails.appAgentId,
+        number: appAgentDetails.contact_number,
+        relation: appAgentDetails.relation
+      }, {
+        new: true
+      })
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(error.message);
+      });
+
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
         data: {
-          UpdatedDetails: appAgent,
           message: 'Agent details updated successfully.'
         }
       });

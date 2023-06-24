@@ -22,7 +22,9 @@ import fs from 'fs';
 import { GlobalConfig } from '../../../helpers/common/environment';
 import mongoose from 'mongoose';
 
-const FILE_UPLOAD_PATH = GlobalConfig.FILE_UPLOAD_PATH;
+const MAIN_FILE_UPLOAD_PATH = GlobalConfig.MAIN_FILE_UPLOAD_PATH;
+const DELETED_FILE_UPLOAD_PATH = GlobalConfig.DELETED_FILE_UPLOAD_PATH;
+
 
 export const uploadFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -140,8 +142,8 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
 
     // locate the files directory
     const dir = req.body.directory;
-    removeDirectory(`${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`)
-    fs.renameSync(dir, `${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`);
+    removeDirectory(`${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`)
+    fs.renameSync(dir, `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`);
 
     // Send Response
     if (res.headersSent === false) {
@@ -173,7 +175,7 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
 // const saveFileInFolder = async (appAgentDetails: any, dir: any, fileArr: any, isOtherFile = false): Promise<void> => {
 //   try {
 //     if (!isOtherFile) {
-//       const newFileDirectory = `${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`;
+//       const newFileDirectory = `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`;
 //       const files = fs.readdirSync(`${dir}/documents`);
 //       if (!fs.existsSync(newFileDirectory)) {
 //         fs.mkdirSync(newFileDirectory),
@@ -181,7 +183,7 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
 //           recursive: true
 //         };
 //       }
-//       const fileDirectory = `${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}/documents`;
+//       const fileDirectory = `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}/documents`;
 //       if (!fs.existsSync(fileDirectory)) {
 //         fs.mkdirSync(fileDirectory),
 //         {
@@ -207,7 +209,7 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
 
 //     }
 //     else {
-//       const newFileDirectory = `${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`;
+//       const newFileDirectory = `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`;
 //       const files = fs.readdirSync(`${dir}/documents/otherfiles`);
 //       if (!fs.existsSync(newFileDirectory)) {
 //         fs.mkdirSync(newFileDirectory),
@@ -215,7 +217,7 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
 //           recursive: true
 //         };
 //       }
-//       const fileDirectory = `${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}/documents`;
+//       const fileDirectory = `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}/documents`;
 //       if (!fs.existsSync(fileDirectory)) {
 //         fs.mkdirSync(fileDirectory),
 //         {
@@ -223,7 +225,7 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
 //         };
 //       }
 
-//       const otherFileDirectory = `${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}/documents/otherfiles`;
+//       const otherFileDirectory = `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}/documents/otherfiles`;
 //       if (!fs.existsSync(otherFileDirectory)) {
 //         fs.mkdirSync(otherFileDirectory),
 //         {
@@ -387,9 +389,9 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
 
 //     // locate the files directory
 
-//     // removeDirectory(`${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`)
+//     // removeDirectory(`${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`)
 
-//     // fs.renameSync(dir, `${FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`);
+//     // fs.renameSync(dir, `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`);
 //     // console.log(storeAppAgentFileInfo._id);
 
 //     console.log(doesAgentFileExist._id);
@@ -455,10 +457,28 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
 
       if (!doesPanFileExist) throw httpErrors.Conflict(`pan card file [${appFileDetails.pan_cardId}] does not exist.`);
 
-      // const filePath = `${FILE_UPLOAD_PATH}/${doesPanFileExist?.uploadedBy}/documents/${doesPanFileExist?.name}`;
+      const filePath = `${MAIN_FILE_UPLOAD_PATH}/${doesPanFileExist?.uploadedBy}/documents/${doesPanFileExist?.name}`;
+      const deletedAgentFilesDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesPanFileExist.uploadedBy}`;
+      if (!fs.existsSync(deletedAgentFilesDirectory)) {
+        fs.mkdirSync(deletedAgentFilesDirectory),
+        {
+          recursive: true
+        };
+      }
 
-      // fs.unlinkSync(filePath);
-      //delete file
+      const fileDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesPanFileExist.uploadedBy}/documents`;
+      if (!fs.existsSync(fileDirectory)) {
+        fs.mkdirSync(fileDirectory),
+        {
+          recursive: true
+        };
+      }
+      const fileName = doesPanFileExist?.name ? doesPanFileExist?.name : '';
+      const fileData = fs.readFileSync(filePath);
+      const deletedFilePath = path.join(fileDirectory, fileName);
+      fs.writeFileSync(deletedFilePath, fileData);
+      fs.unlinkSync(filePath);
+
       await doesPanFileExist
         .updateOne({
           isDeleted: true
@@ -476,9 +496,27 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
       if (!doesProfilePictureFileExist)
         throw httpErrors.Conflict(`profile picture file [${appFileDetails.profile_pictureId}] does not exist.`);
 
-      // const filePath = `${FILE_UPLOAD_PATH}/${doesProfilePictureFileExist?.uploadedBy}/documents/${doesProfilePictureFileExist?.name}`;
+      const filePath = `${MAIN_FILE_UPLOAD_PATH}/${doesProfilePictureFileExist?.uploadedBy}/documents/${doesProfilePictureFileExist?.name}`;
+      const deletedAgentFilesDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesProfilePictureFileExist.uploadedBy}`;
+      if (!fs.existsSync(deletedAgentFilesDirectory)) {
+        fs.mkdirSync(deletedAgentFilesDirectory),
+        {
+          recursive: true
+        };
+      }
 
-      // fs.unlinkSync(filePath);
+      const fileDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesProfilePictureFileExist.uploadedBy}/documents`;
+      if (!fs.existsSync(fileDirectory)) {
+        fs.mkdirSync(fileDirectory),
+        {
+          recursive: true
+        };
+      }
+      const fileName = doesProfilePictureFileExist?.name ? doesProfilePictureFileExist?.name : '';
+      const fileData = fs.readFileSync(filePath);
+      const deletedFilePath = path.join(fileDirectory, fileName);
+      fs.writeFileSync(deletedFilePath, fileData);
+      fs.unlinkSync(filePath);
 
       //delete file
       await doesProfilePictureFileExist
@@ -499,11 +537,37 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
       if (!doesProfileOtherFileExist)
         throw httpErrors.Conflict(`document file [${appFileDetails.otherFilesId}] does not exist.`);
 
-      // const filePath = `${FILE_UPLOAD_PATH}/${doesProfileOtherFileExist?.uploadedBy}/documents/otherfiles/${doesProfileOtherFileExist?.name}`;
+      const filePath = `${MAIN_FILE_UPLOAD_PATH}/${doesProfileOtherFileExist?.uploadedBy}/documents/otherfiles/${doesProfileOtherFileExist?.name}`;
+      const deletedAgentFilesDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesProfileOtherFileExist.uploadedBy}`;
+      if (!fs.existsSync(deletedAgentFilesDirectory)) {
+        fs.mkdirSync(deletedAgentFilesDirectory),
+        {
+          recursive: true
+        };
+      }
 
-      // fs.unlinkSync(filePath);
+      const fileDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesProfileOtherFileExist.uploadedBy}/documents`;
+      if (!fs.existsSync(fileDirectory)) {
+        fs.mkdirSync(fileDirectory),
+        {
+          recursive: true
+        };
+      }
 
-      //delete file
+      const otherFilesDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesProfileOtherFileExist.uploadedBy}/documents/otherfiles`;
+      if (!fs.existsSync(otherFilesDirectory)) {
+        fs.mkdirSync(otherFilesDirectory),
+        {
+          recursive: true
+        };
+      }
+
+      const fileName = doesProfileOtherFileExist?.name ? doesProfileOtherFileExist?.name : '';
+      const fileData = fs.readFileSync(filePath);
+      const deletedFilePath = path.join(otherFilesDirectory, fileName);
+      fs.writeFileSync(deletedFilePath, fileData);
+      fs.unlinkSync(filePath);
+
       await doesProfileOtherFileExist
         .updateOne({
           isDeleted: true
@@ -517,7 +581,7 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
       res.status(200).send({
         error: false,
         data: {
-          message: `User file deleted successfully.`
+          message: `Agent file deleted successfully.`
         }
       });
     }
@@ -565,7 +629,7 @@ export const getProfilePicture = async (req: Request, res: Response, next: NextF
       _id: (appFileDetails.attachmentId)
     });
     if (!appAgentAttachment) throw httpErrors.BadRequest(`Attachment with Id: ${appFileDetails.attachmentId} DoesNot`)
-    const filePath = `${FILE_UPLOAD_PATH}/${appAgentAttachment?.uploadedBy}/documents/${appAgentAttachment?.name}`;
+    const filePath = `${MAIN_FILE_UPLOAD_PATH}/${appAgentAttachment?.uploadedBy}/documents/${appAgentAttachment?.name}`;
     // Send Response
     if (res.headersSent === false) {
       res.sendFile(filePath);
@@ -589,7 +653,7 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
     const doesAppUserExist = await appAgentModel.findOne({
       _id: (appFileDetails.appAgentId)
     });
-    if (!doesAppUserExist) throw httpErrors.Conflict(`user [${appFileDetails.appAgentId}] does not exist.`);
+    if (!doesAppUserExist) throw httpErrors.Conflict(`Agent [${appFileDetails.appAgentId}] does not exist.`);
 
     //locate the files directory
     const dir = req.body.directory;
@@ -605,7 +669,7 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
         throw httpErrors.Conflict(`profile picture file [${appFileDetails.profile_pictureId}] does not exist.`);
 
       //upadate file
-      const filepath = `${FILE_UPLOAD_PATH}/${appFileDetails.appAgentId}/documents/${doesProfilePictureFileExist?.name}`;
+      const filepath = `${MAIN_FILE_UPLOAD_PATH}/${appFileDetails.appAgentId}/documents/${doesProfilePictureFileExist?.name}`;
       const files = fs.readdirSync(`${dir}/documents`);
       for (const file of files) {
         const updatedFilePath = path.join(`${dir}/documents`, file);
@@ -648,7 +712,7 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
       if (!doesAadharFileExist)
         throw httpErrors.Conflict(`aadhar card file [${appFileDetails.aadhar_cardId}] does not exist.`);
 
-      const filepath = `${FILE_UPLOAD_PATH}/${appFileDetails.appAgentId}/documents/${doesAadharFileExist?.name}`;
+      const filepath = `${MAIN_FILE_UPLOAD_PATH}/${appFileDetails.appAgentId}/documents/${doesAadharFileExist?.name}`;
       const files = fs.readdirSync(`${dir}/documents`);
 
       for (const file of files) {
@@ -692,7 +756,7 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
 
       if (!doesPanFileExist) throw httpErrors.Conflict(`pan card file [${appFileDetails.pan_cardId}] does not exist.`);
 
-      const filepath = `${FILE_UPLOAD_PATH}/${appFileDetails.appAgentId}/documents/${doesPanFileExist?.name}`;
+      const filepath = `${MAIN_FILE_UPLOAD_PATH}/${appFileDetails.appAgentId}/documents/${doesPanFileExist?.name}`;
       const files = fs.readdirSync(`${dir}/documents`);
 
       for (const file of files) {
@@ -736,7 +800,7 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
       if (!doesDocumentFileExist)
         throw httpErrors.Conflict(`document file [${appFileDetails.otherFilesId}] does not exist.`);
       //delete file from uploads folder
-      const filepath = `${FILE_UPLOAD_PATH}/${appFileDetails.appAgentId}/documents/otherfiles/${doesDocumentFileExist?.name}`;
+      const filepath = `${MAIN_FILE_UPLOAD_PATH}/${appFileDetails.appAgentId}/documents/otherfiles/${doesDocumentFileExist?.name}`;
       const files = fs.readdirSync(`${dir}/documents/otherfiles`);
 
       for (const file of files) {
