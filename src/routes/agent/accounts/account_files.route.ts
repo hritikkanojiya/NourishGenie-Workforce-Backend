@@ -51,4 +51,18 @@ appAccountFileRouterV1.post(
   ]),
   appAccountFileController.updateFile
 );
+
+
+appAccountFileRouterV1.post(
+  '/upload-single-file',
+  jwtModule.verifyAccessToken,
+  permissionsModule.validateRouteAccess,
+  upload_file.fields([
+    { name: 'profile_picture', maxCount: 1 },
+    { name: 'aadhar_card', maxCount: 1 },
+    { name: 'pan_card', maxCount: 1 },
+    { name: 'otherFiles', maxCount: 5 }
+  ]),
+  appAccountFileController.uploadSingleFile
+);
 export { appAccountFileRouterV1 };

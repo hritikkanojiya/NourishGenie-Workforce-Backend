@@ -27,7 +27,7 @@ export const uploadedFilesSchema = joi.object({
   otherFiles: joi.array().items(fileSchema).allow(null).default(null),
 });
 
-export const deleteAppUserFileSchema = joi.object({
+export const deleteFileSchema = joi.object({
   // appAgentId: objectId().required(),
   aadhar_cardId: objectId().allow(null),
   pan_cardId: objectId().allow(null),
@@ -35,25 +35,36 @@ export const deleteAppUserFileSchema = joi.object({
   otherFilesId: objectId().allow(null)
 });
 
-export const getAppUserFileSchema = joi.object({
+export const uploadSingleFileSchema = joi.object({
+  directory: joi.string().trim().required(),
+  appAgentId: objectId().required(),
+});
+
+export const getFileSchema = joi.object({
   appAgentId: objectId().required()
 });
 
-export const getSingleFileSchema = joi.object({
-  attachmentId: objectId().required()
+export const getProfilePictureSchema = joi.object({
+  appAgentId: objectId().required()
 });
 
-export const updateAppUserFileSchema = joi.object({
+export const updateFileSchema = joi.object({
   directory: joi.string().trim().required(),
   appAgentId: objectId().required(),
   profile_pictureId: objectId().allow(null),
   aadhar_cardId: objectId().allow(null),
   pan_cardId: objectId().allow(null),
   otherFilesId: objectId().allow(null),
-  // encoding: joi.string().allow(null)
 });
 
 export const updatedFilesSchema = joi.object({
+  profile_picture: joi.array().items(fileSchema),
+  aadhar_card: joi.array().items(fileSchema),
+  pan_card: joi.array().items(fileSchema),
+  otherFiles: joi.array().items(fileSchema)
+});
+
+export const uploadedSingleFilesSchema = joi.object({
   profile_picture: joi.array().items(fileSchema),
   aadhar_card: joi.array().items(fileSchema),
   pan_card: joi.array().items(fileSchema),

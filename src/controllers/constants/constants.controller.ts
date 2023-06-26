@@ -275,7 +275,7 @@ const deleteAppConstants = async (req: Request, res: Response, next: NextFunctio
 };
 
 // Export Methods
-module.exports = {
+export {
   createAppConstant,
   getAppConstants,
   updateAppConstant,

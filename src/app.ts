@@ -13,8 +13,18 @@ import { LOGGER } from './helpers/common/init_winston';
 import './helpers/common/init_mongodb';
 import endPoints from 'express-list-endpoints';
 import appServiceRouteModel from './models/permissions/service_routes/service_routes.model';
+import { generateSalarySlipPDF } from './controllers/salary_document/salary.controller';
 
 require('dotenv');
+
+
+const employeeName = 'John Doe';
+const salaryAmount = '$5000';
+const filePath = 'salary_slip.pdf';
+
+generateSalarySlipPDF(employeeName, salaryAmount, filePath);
+
+
 
 // Activate Middlewares
 hrModuleBackendApp.use(helmet());

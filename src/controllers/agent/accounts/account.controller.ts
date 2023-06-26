@@ -802,9 +802,6 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
   }
 };
 
-//description: get single users all details
-//route: GET /api/v1/getSingleappAgentDetails
-//access: private
 export const getSingleAppUserDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     console.log(req.body);

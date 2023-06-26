@@ -29,17 +29,4 @@ appAgentAuthRouterV1.delete(
   appAgentAuthController.appAgentForceLogout
 );
 
-
-// appAgentAuthRouterV1.post(
-//   '/get-details',
-//   jwtModule.verifyAccessToken,
-//   permissionsModule.validateRouteAccess,
-//   appAgentAuthController.
-// );
-// appAgentAuthRouterV1.post(
-//   '/getAgentByToken',
-//   jwtModule.verifyAccessToken,
-//   permissionsModule.validateRouteAccess,
-//   appAgentAuthController.getAgentByToken
-// );
 export { appAgentAuthRouterV1 };

@@ -7,7 +7,7 @@ interface CreateFileType {
   pan_number: string
 }
 
-interface DeleteAppUserFileType {
+interface DeleteFileType {
   // appAgentId: mongoose.Types.ObjectId | null;
   aadhar_cardId: mongoose.Types.ObjectId | null;
   pan_cardId: mongoose.Types.ObjectId | null;
@@ -15,12 +15,20 @@ interface DeleteAppUserFileType {
   otherFilesId: mongoose.Types.ObjectId | null;
 }
 
-interface GetAppUserFileType {
+interface DeleteFileType {
+  // appAgentId: mongoose.Types.ObjectId | null;
+  aadhar_cardId: mongoose.Types.ObjectId | null;
+  pan_cardId: mongoose.Types.ObjectId | null;
+  profile_pictureId: mongoose.Types.ObjectId | null;
+  otherFilesId: mongoose.Types.ObjectId | null;
+}
+
+interface GetFileType {
   appAgentId: mongoose.Types.ObjectId;
 }
 
-interface GetSingleFileType {
-  attachmentId: mongoose.Types.ObjectId;
+interface GetProfilePictureType {
+  appAgentId: mongoose.Types.ObjectId;
 }
 
 interface File {
@@ -55,4 +63,27 @@ interface UpdatedFilesType {
   pan_card: File[];
   otherFiles: File[];
 }
-export { DeleteAppUserFileType, GetAppUserFileType, GetSingleFileType, UpdateFilesType, UpdatedFilesType, CreateFileType };
+
+
+interface UploadSingleFileType {
+  appAgentId: mongoose.Types.ObjectId;
+  directory: string;
+}
+
+interface UploadedSingleFileType {
+  profile_picture: File[];
+  aadhar_card: File[];
+  pan_card: File[];
+  otherFiles: File[];
+}
+
+export {
+  DeleteFileType,
+  GetFileType,
+  GetProfilePictureType,
+  UpdateFilesType,
+  UpdatedFilesType,
+  CreateFileType,
+  UploadSingleFileType,
+  UploadedSingleFileType
+};
