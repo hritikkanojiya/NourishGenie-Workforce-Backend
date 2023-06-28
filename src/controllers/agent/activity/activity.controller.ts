@@ -176,7 +176,7 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           );
           message = `${queryDetails.activity} marked successfully`;
         } else {
-          message = 'Can\'t perform this activity without checking in or break out'
+          message = 'Can\'t perform this activity without login in or Available'
           throw new Error(message);
         }
       } else if (queryDetails.activity === 'checkin') {
@@ -195,7 +195,7 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           );
           message = `${queryDetails.activity} marked successfully`;
         } else {
-          message = 'Can\'t perform this activity without checking out';
+          message = 'Can\'t perform this activity without Logout';
           throw new Error(message);
         }
       } else if (queryDetails.activity === 'checkout') {
@@ -214,7 +214,7 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           );
           message = `${queryDetails.activity} marked successfully`;
         } else {
-          message = 'Can\'t perform this activity without checking in';
+          message = 'Can\'t perform this activity without Login';
           throw new Error(message);
 
         }
@@ -234,13 +234,13 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           );
           message = `${queryDetails.activity} marked successfully`;
         } else {
-          message = 'Can\'t perform this activity without breakin break';
+          message = 'Can\'t perform this activity without taking break';
           throw new Error(message);
         }
       }
     } else {
       if (queryDetails.activity === 'checkout' || queryDetails.activity === 'breakin' || queryDetails.activity === 'breakout') {
-        message = 'Can\'t perform this activity without checking in';
+        message = 'Can\'t perform this activity without Login';
         throw new Error(message);
       }
       else {
