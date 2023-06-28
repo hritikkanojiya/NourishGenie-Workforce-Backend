@@ -7,7 +7,6 @@ import appAccessGroupModel from '../../../models/permissions/access_group/access
 import { appConstantsModel } from '../../../models/constants/constants.model';
 import { objectIdToString, logBackendError } from '../../../helpers/common/backend.functions';
 import { RequestType } from '../../../helpers/shared/shared.type';
-// import { GlobalConfig } from '../../../helpers/common/environment';
 import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
 import {
   joiAgent,
@@ -805,12 +804,28 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //         };
 //     }
 // };
+const getAgentByToken = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const getAgent = await appAgentModel.findOne({ _id: req?.payload?.appAgentId });
+    res.status(200).json({
+      agent: {
+        appAgentId: getAgent?._id,
+        email: getAgent?.email,
+        username: getAgent?.first_name && getAgent?.last_name ? getAgent?.first_name + ' ' + getAgent?.last_name : ''
+      }
+    });
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
+    next(error);
+  }
+};
 
 // Export Methods
 export {
   appAgentLogin,
   appAgentRefresh,
   appAgentLogout,
+  getAgentByToken,
   appAgentForceLogout
   // appAgentResetPasswordToken,
   // appAgentUpdatePassword,

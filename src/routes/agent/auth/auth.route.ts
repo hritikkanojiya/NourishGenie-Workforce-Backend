@@ -5,22 +5,11 @@ import permissionsModule from '../../../middlewares/permissions/permissions.midd
 
 const appAgentAuthRouterV1 = Router();
 
-appAgentAuthRouterV1.post(
-  '/login',
-  appAgentAuthController.appAgentLogin
-);
+appAgentAuthRouterV1.post('/login', appAgentAuthController.appAgentLogin);
 
-appAgentAuthRouterV1.post(
-  '/refresh',
-  jwtModule.verifyRefreshToken,
-  appAgentAuthController.appAgentRefresh
-);
+appAgentAuthRouterV1.post('/refresh', jwtModule.verifyRefreshToken, appAgentAuthController.appAgentRefresh);
 
-appAgentAuthRouterV1.post(
-  '/logout',
-  jwtModule.verifyAccessToken,
-  appAgentAuthController.appAgentLogout
-);
+appAgentAuthRouterV1.post('/logout', jwtModule.verifyAccessToken, appAgentAuthController.appAgentLogout);
 
 appAgentAuthRouterV1.delete(
   '/force-logout',
@@ -29,4 +18,11 @@ appAgentAuthRouterV1.delete(
   appAgentAuthController.appAgentForceLogout
 );
 
+// appAgentAuthRouterV1.post(
+//   '/get-details',
+//   jwtModule.verifyAccessToken,
+//   permissionsModule.validateRouteAccess,
+//   appAgentAuthController.
+// );
+appAgentAuthRouterV1.get('/getAgentByToken', jwtModule.verifyAccessToken, appAgentAuthController.getAgentByToken);
 export { appAgentAuthRouterV1 };
