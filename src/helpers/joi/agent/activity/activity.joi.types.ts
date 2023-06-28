@@ -25,3 +25,20 @@ export interface updateAgentAttandenceType {
     status: string,
     date: string,
 }
+
+export interface agentLastActivityType {
+    email: string,
+    date: string,
+}
+
+export interface attendanceDataType {
+    createdAt: Date;
+    updatedAt: Date;
+    email: string;
+    date: string;
+    fullname: string;
+    activities: {
+      activity?: string;
+      time?: string;
+    }[];
+  }

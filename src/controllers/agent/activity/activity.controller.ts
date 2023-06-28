@@ -6,6 +6,7 @@ import appAgentDetailsModel from '../../../models/agent/fields/app_agent_details
 import { appAttandanceModel } from '../../../models/agent/attandence/attandence.model';
 
 import {
+  agentLastActivityType,
   GetAgentActivityType,
   joiAgentActivity,
   MarkAttandanceType,
@@ -473,3 +474,30 @@ export const getTotalAgentActivity = async (
   }
 };
 
+export const getAgentLastActivity = async (req:Request,res:Response,next:NextFunction): Promise<void> => {
+  try {
+    const agentLastActivity: agentLastActivityType = await joiAgentActivity.agentLastActivitySchema.validateAsync(req.body);
+    if(agentLastActivity.date=='today'){
+      const currentDate = moment().format('YYYY-MM-DD');
+      agentLastActivity.date= currentDate
+    }
+    const findUser = await activity.find({
+      email: agentLastActivity.email,
+      date: agentLastActivity.date
+    });
+    let message
+    if(findUser.length > 0){
+      const activities = findUser[0]?.activities;
+      message  = activities[activities.length - 1]?.activity;
+      }
+    else{
+      message = null
+    }
+    res.status(200).send({ error: false, data: message });
+
+  } catch (error:any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
+}

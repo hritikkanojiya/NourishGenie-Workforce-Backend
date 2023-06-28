@@ -31,3 +31,8 @@ export const markAttandanceSchema = joi.object({
 export const getTotalAgentActivity = joi.object({
     email: joi.string().trim().email().lowercase().required(),
 });
+
+export const agentLastActivitySchema = joi.object({
+    email: joi.string().trim().email().lowercase().required(),
+    date: joi.string().required(),
+});

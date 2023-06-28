@@ -23,4 +23,7 @@ agentActivityRouterV1.post(
     activityController.getTotalAgentActivity
 );
 
-
+agentActivityRouterV1.post(
+    '/get-Agent-Last-Activity',
+    activityController.getAgentLastActivity
+);
