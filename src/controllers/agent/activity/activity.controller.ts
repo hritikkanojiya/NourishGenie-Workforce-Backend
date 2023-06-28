@@ -195,7 +195,7 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           );
           message = `${queryDetails.activity} marked successfully`;
         } else {
-          message = 'Can\'t perform this activity without Logout';
+          message = 'Can\'t perform this activity. you\'re already been logged in';
           throw new Error(message);
         }
       } else if (queryDetails.activity === 'checkout') {
