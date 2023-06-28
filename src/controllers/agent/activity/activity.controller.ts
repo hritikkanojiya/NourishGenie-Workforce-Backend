@@ -493,7 +493,12 @@ export const getAgentLastActivity = async (req:Request,res:Response,next:NextFun
     else{
       message = null
     }
-    res.status(200).send({ error: false, data: message });
+    res.status(200).send({
+      error: false,
+      data: {
+        message: message
+      }
+    });
 
   } catch (error:any) {
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
