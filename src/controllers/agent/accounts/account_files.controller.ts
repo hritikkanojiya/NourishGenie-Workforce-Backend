@@ -167,7 +167,7 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
     if (error?.isJoi === true) error.status = 422;
     next(error);
   }
-}
+};
 
 const saveFileInFolder = async (appAgentDetails: any, dir: any, fileArr: any, isOtherFile = false): Promise<void> => {
   try {
@@ -242,7 +242,7 @@ const saveFileInFolder = async (appAgentDetails: any, dir: any, fileArr: any, is
   } catch (error: any) {
     return error;
   }
-}
+};
 
 export const uploadSingleFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -375,7 +375,7 @@ export const uploadSingleFile = async (req: Request, res: Response, next: NextFu
     if (error?.isJoi === true) error.status = 422;
     next(error);
   }
-}
+};
 
 export const deleteFile = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   try {

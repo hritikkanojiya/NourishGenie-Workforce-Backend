@@ -1,5 +1,21 @@
 import mongoose from 'mongoose'
 
+
+export interface AppAgentActivity {
+    email?: string;
+    fullname?: string;
+    activities?: {
+        activity: string;
+        time: string;
+    }
+    date?: string;
+    isDeleted?: boolean;
+    __v?: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+    updateOne?: any;
+}
+
 export interface MarkAttandanceType {
     email: string,
     fullName: string,
