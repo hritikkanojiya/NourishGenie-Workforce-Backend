@@ -516,6 +516,7 @@ export const getAgentLastActivity = async (req: Request, res: Response, next: Ne
 }
 
 export const getUserActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+
   try {
     const querySchema: GetUserActivityType = await joiAgentActivity.getUserActivitySchema.validateAsync(req.body);
     const query: GetUserActivityQueryType = {};
