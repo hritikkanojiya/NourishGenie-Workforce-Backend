@@ -3,16 +3,21 @@ import { calculateTimeSummary, logBackendError } from '../../../helpers/common/b
 import moment from 'moment';
 import activity from '../../../models/agent/activity/activity.model'
 import appAgentDetailsModel from '../../../models/agent/fields/app_agent_details.model'
-import { appAttandanceModel } from '../../../models/agent/attandence/attandence.model';
+import { appAttendanceModel } from '../../../models/agent/attendance/attendance.model';
+import appAgentAcitivityModel from '../../../models/agent/activity/activity.model'
 
 import {
-  agentLastActivityType,
+  AgentLastActivityType,
   GetAgentActivityType,
+  GetUserActivityType,
+  GetUserActivityQueryType,
   joiAgentActivity,
   MarkAttandanceType,
-  updateAgentAttandenceType
+  UpdateAgentAttandenceType
   // GetTotalAgentActivityType
 } from '../../../helpers/joi/agent/activity/index'
+import httpErrors from 'http-errors';
+import appAgentModel from 'models/agent/agent.model';
 
 // export const attendenceMarker = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 //   const currentDate = moment().format('DD-MM-YYYY');
@@ -274,6 +279,7 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
     next(error);
   }
 }
+
 export const getAgentActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const queryDetails: GetAgentActivityType = await joiAgentActivity.getAgentActivitySchema.validateAsync(req.body);
@@ -293,7 +299,7 @@ export const getAgentActivity = async (req: Request, res: Response, next: NextFu
       fullName: activities[0].fullname
     }
     for (const iterator of activities) {
-      const agentAttandence = await appAttandanceModel.findOne({
+      const agentAttandence = await appAttendanceModel.findOne({
         email: queryDetails.email,
         date: iterator.date,
         isDeleted: false,
@@ -361,7 +367,7 @@ export const getAgentActivity = async (req: Request, res: Response, next: NextFu
           totalBreakTime: `${moment.duration(timeSummary.totalBreakTime).asMinutes().toPrecision(3)} Minutes`,
           totalLoginTimeWithoutBreak: `${moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asMinutes().toPrecision(3)} Minutes`,
         });
-        const newAttandence = new appAttandanceModel({
+        const newAttandence = new appAttendanceModel({
           appAgentId: appAgentDetails?._id,
           email: iterator.email,
           date: iterator.date,
@@ -370,7 +376,6 @@ export const getAgentActivity = async (req: Request, res: Response, next: NextFu
         await newAttandence.save().catch(error => { throw new Error(error) });
       }
     }
-
 
 
     if (res.headersSent == false) {
@@ -393,9 +398,9 @@ export const getAgentActivity = async (req: Request, res: Response, next: NextFu
 
 export const updateAttandence = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const agentAttandenceDetails: updateAgentAttandenceType = await joiAgentActivity.updateAgentAttandenceSchema.validateAsync(req.body);
+    const agentAttandenceDetails: UpdateAgentAttandenceType = await joiAgentActivity.updateAgentAttandenceSchema.validateAsync(req.body);
 
-    const agentAttandence = await appAttandanceModel.findOne({
+    const agentAttandence = await appAttendanceModel.findOne({
       email: agentAttandenceDetails.email,
       date: agentAttandenceDetails.date,
       isDeleted: false
@@ -421,6 +426,8 @@ export const updateAttandence = async (req: Request, res: Response, next: NextFu
   }
 }
 
+// export const createAttandance
+
 export const getTotalAgentActivity = async (
   req: Request,
   res: Response,
@@ -431,9 +438,10 @@ export const getTotalAgentActivity = async (
     const endOfMonth = moment().endOf('month').toDate();
     console.log(req.body.email);
     const userActivity = await activity.find({
+      email: req.body.email,
       createdAt: {
         $gte: startOfMonth,
-        $lt: endOfMonth
+        $lte: endOfMonth
       }
     });
 
@@ -474,23 +482,23 @@ export const getTotalAgentActivity = async (
   }
 };
 
-export const getAgentLastActivity = async (req:Request,res:Response,next:NextFunction): Promise<void> => {
+export const getAgentLastActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const agentLastActivity: agentLastActivityType = await joiAgentActivity.agentLastActivitySchema.validateAsync(req.body);
-    if(agentLastActivity.date=='today'){
+    const agentLastActivity: AgentLastActivityType = await joiAgentActivity.agentLastActivitySchema.validateAsync(req.body);
+    if (agentLastActivity.date == 'today') {
       const currentDate = moment().format('YYYY-MM-DD');
-      agentLastActivity.date= currentDate
+      agentLastActivity.date = currentDate
     }
     const findUser = await activity.find({
       email: agentLastActivity.email,
       date: agentLastActivity.date
     });
     let message
-    if(findUser.length > 0){
+    if (findUser.length > 0) {
       const activities = findUser[0]?.activities;
-      message  = activities[activities.length - 1]?.activity;
-      }
-    else{
+      message = activities[activities.length - 1]?.activity;
+    }
+    else {
       message = null
     }
     res.status(200).send({
@@ -500,9 +508,83 @@ export const getAgentLastActivity = async (req:Request,res:Response,next:NextFun
       }
     });
 
-  } catch (error:any) {
+  } catch (error: any) {
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
     if (error?.isJoi === true) error.status = 422;
     next(error);
   }
 }
+
+export const getUserActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const querySchema: GetUserActivityType = await joiAgentActivity.getUserActivitySchema.validateAsync(req.body);
+    const query: GetUserActivityQueryType = {};
+    const currentDate = moment().format('YYYY-MM-DD');
+
+    query.date = currentDate;
+    if (querySchema.search)
+      query.$or = [
+        {
+          fullname: {
+            $regex: querySchema.search,
+            $options: 'is'
+          }
+        },
+        {
+          email: {
+            $regex: querySchema.search,
+            $options: 'is'
+          }
+        }
+      ];
+    const appAgentActivities = await appAgentAcitivityModel
+      .find(query)
+      .catch(error => {
+        throw httpErrors.UnprocessableEntity(
+          error?.message ? error.message : 'Unable to retrieve records from Database.'
+        );
+      });
+
+    const loggedInUsers: any = [];
+    const breakInUsers: any = [];
+    for (const iterator of appAgentActivities) {
+      const length = iterator.activities.length
+      const appUser = await appAgentModel.findOne({
+        email: iterator.email,
+        isDeleted: false
+      })
+      if (iterator.activities[length - 1].activity == 'checkin') {
+        if (querySchema.employeeType && appUser?.employee_type === querySchema.employeeType)
+          loggedInUsers.push({ fullname: iterator.fullname, email: iterator.email });
+        else if (!querySchema.employeeType) {
+          loggedInUsers.push({ fullname: iterator.fullname, email: iterator.email });
+        }
+      }
+      else if (iterator.activities[length - 1].activity == 'breakin' || iterator.activities[length - 1].activity == 'checkout') {
+        if (querySchema.employeeType && appUser?.employee_type === querySchema.employeeType)
+          breakInUsers.push({ fullname: iterator.fullname, email: iterator.email });
+        else if (!querySchema.employeeType) {
+          breakInUsers.push({ fullname: iterator.fullname, email: iterator.email });
+        }
+      }
+    }
+
+    if (res.headersSent == false) {
+      res.status(200).send({
+        error: false,
+        data: {
+          loggedInUsers: loggedInUsers,
+          breakInUsers: breakInUsers,
+          message: 'Users fetched  successfully'
+        }
+      });
+    }
+
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
+
+}
+

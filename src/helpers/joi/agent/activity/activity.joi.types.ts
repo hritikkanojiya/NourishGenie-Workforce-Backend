@@ -18,7 +18,7 @@ export interface GetAgentActivityType {
     }
 }
 
-export interface updateAgentAttandenceType {
+export interface UpdateAgentAttandenceType {
     appAgentId: mongoose.Types.ObjectId,
     email: string,
     availability: string,
@@ -26,19 +26,30 @@ export interface updateAgentAttandenceType {
     date: string,
 }
 
-export interface agentLastActivityType {
+export interface AgentLastActivityType {
     email: string,
     date: string,
 }
 
-export interface attendanceDataType {
-    createdAt: Date;
-    updatedAt: Date;
+export interface AgentActivityType {
     email: string;
     date: string;
     fullname: string;
     activities: {
-      activity?: string;
-      time?: string;
+        activity?: string;
+        time?: string;
     }[];
-  }
+    createdAt: Date;
+    updatedAt: Date;
+
+}
+
+export interface GetUserActivityType {
+    employeeType: string,
+    search: string;
+}
+
+export interface GetUserActivityQueryType {
+    date?: string;
+    $or?: Array<mongoose.FilterQuery<AgentActivityType>>;
+}
