@@ -7,17 +7,16 @@ import { appAttendanceModel } from '../../../models/agent/attendance/attendance.
 import appAgentAcitivityModel from '../../../models/agent/activity/activity.model'
 
 import {
-  AgentLastActivityType,
   GetAgentActivityType,
   GetUserActivityType,
-  GetUserActivityQueryType,
+  GetUserActivityTypeQuery,
   joiAgentActivity,
   MarkAttandanceType,
-  UpdateAgentAttandenceType
+  updateAgentAttandenceType
   // GetTotalAgentActivityType
 } from '../../../helpers/joi/agent/activity/index'
 import httpErrors from 'http-errors';
-import appAgentModel from 'models/agent/agent.model';
+import appAgentModel from '../../../models/agent/agent.model';
 
 // export const attendenceMarker = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 //   const currentDate = moment().format('DD-MM-YYYY');
@@ -181,7 +180,7 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           );
           message = `${queryDetails.activity} marked successfully`;
         } else {
-          message = 'Can\'t perform this activity without login in or Available'
+          message = 'Can\'t perform this activity without checking in or break out'
           throw new Error(message);
         }
       } else if (queryDetails.activity === 'checkin') {
@@ -200,7 +199,7 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           );
           message = `${queryDetails.activity} marked successfully`;
         } else {
-          message = 'Can\'t perform this activity. you\'re already been logged in';
+          message = 'Can\'t perform this activity without checking out';
           throw new Error(message);
         }
       } else if (queryDetails.activity === 'checkout') {
@@ -219,7 +218,7 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           );
           message = `${queryDetails.activity} marked successfully`;
         } else {
-          message = 'Can\'t perform this activity without Login';
+          message = 'Can\'t perform this activity without checking in';
           throw new Error(message);
 
         }
@@ -239,13 +238,13 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           );
           message = `${queryDetails.activity} marked successfully`;
         } else {
-          message = 'Can\'t perform this activity without taking break';
+          message = 'Can\'t perform this activity without breakin break';
           throw new Error(message);
         }
       }
     } else {
       if (queryDetails.activity === 'checkout' || queryDetails.activity === 'breakin' || queryDetails.activity === 'breakout') {
-        message = 'Can\'t perform this activity without Login';
+        message = 'Can\'t perform this activity without checking in';
         throw new Error(message);
       }
       else {
@@ -398,7 +397,7 @@ export const getAgentActivity = async (req: Request, res: Response, next: NextFu
 
 export const updateAttandence = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const agentAttandenceDetails: UpdateAgentAttandenceType = await joiAgentActivity.updateAgentAttandenceSchema.validateAsync(req.body);
+    const agentAttandenceDetails: updateAgentAttandenceType = await joiAgentActivity.updateAgentAttandenceSchema.validateAsync(req.body);
 
     const agentAttandence = await appAttendanceModel.findOne({
       email: agentAttandenceDetails.email,
@@ -482,46 +481,12 @@ export const getTotalAgentActivity = async (
   }
 };
 
-export const getAgentLastActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const agentLastActivity: AgentLastActivityType = await joiAgentActivity.agentLastActivitySchema.validateAsync(req.body);
-    if (agentLastActivity.date == 'today') {
-      const currentDate = moment().format('YYYY-MM-DD');
-      agentLastActivity.date = currentDate
-    }
-    const findUser = await activity.find({
-      email: agentLastActivity.email,
-      date: agentLastActivity.date
-    });
-    let message
-    if (findUser.length > 0) {
-      const activities = findUser[0]?.activities;
-      message = activities[activities.length - 1]?.activity;
-    }
-    else {
-      message = null
-    }
-    res.status(200).send({
-      error: false,
-      data: {
-        message: message
-      }
-    });
-
-  } catch (error: any) {
-    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
-    if (error?.isJoi === true) error.status = 422;
-    next(error);
-  }
-}
 
 export const getUserActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-
   try {
     const querySchema: GetUserActivityType = await joiAgentActivity.getUserActivitySchema.validateAsync(req.body);
-    const query: GetUserActivityQueryType = {};
+    const query: GetUserActivityTypeQuery = {};
     const currentDate = moment().format('YYYY-MM-DD');
-
     query.date = currentDate;
     if (querySchema.search)
       query.$or = [
@@ -550,23 +515,18 @@ export const getUserActivity = async (req: Request, res: Response, next: NextFun
     const breakInUsers: any = [];
     for (const iterator of appAgentActivities) {
       const length = iterator.activities.length
-      const appUser = await appAgentModel.findOne({
-        email: iterator.email,
-        isDeleted: false
-      })
+      const appUser = await appAgentModel.findOne({ email: iterator.email, isDeleted: false });
       if (iterator.activities[length - 1].activity == 'checkin') {
-        if (querySchema.employeeType && appUser?.employee_type === querySchema.employeeType)
+        if (querySchema.employeeType && appUser?.employee_type == querySchema.employeeType)
           loggedInUsers.push({ fullname: iterator.fullname, email: iterator.email });
-        else if (!querySchema.employeeType) {
+        else if (!querySchema.employeeType)
           loggedInUsers.push({ fullname: iterator.fullname, email: iterator.email });
-        }
       }
       else if (iterator.activities[length - 1].activity == 'breakin' || iterator.activities[length - 1].activity == 'checkout') {
-        if (querySchema.employeeType && appUser?.employee_type === querySchema.employeeType)
-          breakInUsers.push({ fullname: iterator.fullname, email: iterator.email });
-        else if (!querySchema.employeeType) {
-          breakInUsers.push({ fullname: iterator.fullname, email: iterator.email });
-        }
+        if (querySchema.employeeType && appUser?.employee_type == querySchema.employeeType)
+          breakInUsers.push({ fullname: iterator.fullname, email: iterator.email })
+        else if (!querySchema.employeeType)
+          breakInUsers.push({ fullname: iterator.fullname, email: iterator.email })
       }
     }
 
@@ -588,4 +548,3 @@ export const getUserActivity = async (req: Request, res: Response, next: NextFun
   }
 
 }
-
