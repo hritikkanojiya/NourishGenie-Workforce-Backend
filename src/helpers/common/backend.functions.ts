@@ -11,7 +11,7 @@ import { appMenuModel, appSubMenuModel } from '../../models/permissions/menu/men
 import { AppMenuType } from '../joi/permissions/menu/index';
 import fs from 'fs'
 import path from 'path';
-import { appEventLogModel } from '../../models/logs/logs.model';
+import { appEventLogModel } from '../../models/app_logs/app_logs.model';
 import { socketio } from './init_socket';
 
 const appConstants = {
