@@ -1,0 +1,103 @@
+<!-- salary-slip.ejs -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Salary Slip</title>
+    <style>
+        table {
+            width: 100%;
+        }
+
+        table,
+        th,
+        td {
+            padding: 5px;
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+    </style>
+</head>
+
+<body style="text-align: center;">
+    <h1>Salary Slip</h1>
+
+    <p><b>Employee Name: </b>
+        <%= employeeName%>
+    </p>
+
+    <table>
+        <tr>
+            <td style="font-weight: bold">
+                Earning
+            </td>
+            <td style="font-weight: bold">
+                Amount
+            </td>
+            <td style="font-weight: bold">
+                Deductions
+            </td>
+            <td style="font-weight: bold">
+                Amount
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Basic
+            </td>
+            <td>
+                <%= salary %>
+            </td>
+            <td>
+                Profession Tax
+            </td>
+            <td>
+                <%= professionTax%>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Incentive
+            </td>
+            <td>
+                <%= incentive %>
+            </td>
+            <td>
+                Leaves (<%=noOfLeaves%> days)
+            </td>
+            <td>
+                <%= leaveAmount %>
+            </td>
+        </tr>
+        <tr>
+            <td>
+
+            </td>
+            <td>
+
+            </td>
+            <td>
+                Total Deductions
+            </td>
+            <td>
+                <%= totalDeduction %>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Total
+            </td>
+            <td>
+                <%= totalAmount %>
+            </td>
+            <td style="font-weight: bold">
+                Net Salary
+            </td>
+            <td style="font-weight: bold">
+                <%= netSalary %>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

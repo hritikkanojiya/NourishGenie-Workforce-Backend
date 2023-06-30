@@ -828,10 +828,4 @@ export {
   appAgentLogout,
   getAgentByToken,
   appAgentForceLogout
-  // appAgentResetPasswordToken,
-  // appAgentUpdatePassword,
-  // appAgentVerifyPassToken,
-  // getAppAgents,
-  // getAppAgentDetails,
-  // getAppActivities
 };

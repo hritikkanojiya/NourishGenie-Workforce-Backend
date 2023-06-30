@@ -51,8 +51,12 @@ const GlobalConfig = {
   JWT_EXPIRES_IN: environment.getEnvironmentString('JWT_EXPIRES_IN'),
   JWT_SECRET_KEY: environment.getEnvironmentString('JWT_SECRET_KEY'),
   MAIN_FILE_UPLOAD_PATH: environment.getEnvironmentString('MAIN_FILE_UPLOAD_PATH'),
-  DELETED_FILE_UPLOAD_PATH: environment.getEnvironmentString('DELETED_FILE_UPLOAD_PATH')
-
+  DELETED_FILE_UPLOAD_PATH: environment.getEnvironmentString('DELETED_FILE_UPLOAD_PATH'),
+  APP_INIT_SCRIPTS_ACTIVITY_ID: environment.getEnvironmentString('APP_INIT_SCRIPTS_ACTIVITY_ID'),
+  ERROR_LOG_TTL_IN_SEC: environment.getEnvironmentString('ERROR_LOG_TTL_IN_SEC'),
+  EVENT_LOG_TTL_IN_SEC: environment.getEnvironmentString('EVENT_LOG_TTL_IN_SEC'),
+  ACTIVITY_LOG_TTL_IN_SEC: environment.getEnvironmentString('ACTIVITY_LOG_TTL_IN_SEC'),
+  APP_PORT: environment.getEnvironmentString('APP_PORT'),
 };
 
 const MongoDBConfig = {
@@ -76,5 +80,6 @@ const RedisConfig = {
   REDIS_PASS: environment.getEnvironmentString('REDIS_PASS'),
   REDIS_PORT: environment.getEnvironmentString('REDIS_PORT')
 };
+
 
 export { GlobalConfig, MongoDBConfig, MySQLDBConfig, RedisConfig };

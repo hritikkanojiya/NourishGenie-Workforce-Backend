@@ -28,7 +28,6 @@ const AppServiceRouteSchema = new mongoose.Schema(
     secure: {
       type: Boolean,
       required: [true, 'must provide a secure'],
-      trim: true
     },
     isDeleted: {
       type: Boolean,

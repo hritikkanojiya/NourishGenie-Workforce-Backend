@@ -13,7 +13,11 @@ import { LOGGER } from './helpers/common/init_winston';
 import './helpers/common/init_mongodb';
 import endPoints from 'express-list-endpoints';
 import appServiceRouteModel from './models/permissions/service_routes/service_routes.model';
-
+import { logBackendError } from './helpers/common/backend.functions';
+import { appConstantsModel } from './models/constants/constants.model';
+import nodeScheduler from 'node-schedule';
+import sleep from 'atomic-sleep';
+import { reScheduleAutomatedJobsOnInit, synchronizeAppRoutesOnInit } from './helpers/common/init_app';
 require('dotenv');
 
 // Activate Middlewares
@@ -122,24 +126,95 @@ hrModuleBackendApp.use(
 );
 
 // Start Express Application
-const app = (appPort: number): boolean => {
+// const app = (appPort: number): boolean => {
+//   try {
+//     httpServer.listen(appPort, async () => {
+//       try {
+//         LOGGER.http(`Express Application Running on Port : ${appPort}`);
+//       } catch (error) {
+//         process.exit(0);
+//       }
+//     });
+//     return true;
+//   } catch (error) {
+//     LOGGER.error(`Unable to start Express Server. Error : ${error}`);
+//     process.exit(0);
+//     return false;
+//   }
+// };
+
+// app(parseInt(process.env.APP_PORT ? process.env.APP_PORT : '3500'));
+
+
+((hrModuleBackendAppPort): void => {
   try {
-    httpServer.listen(appPort, async () => {
+    httpServer.listen(hrModuleBackendAppPort, async () => {
       try {
-        LOGGER.http(`Express Application Running on Port : ${appPort}`);
-      } catch (error) {
+        const appEnvironment = process.env?.NODE_ENV;
+        // const delayInMS = parseInt(process.env?.delayInMS);
+
+        console.log(
+          `Express Application Running on Port`,
+          hrModuleBackendAppPort
+        );
+
+        // await watchAppCollection();
+
+        const AUTO_EXECUTE_TIME_DELAY_IN_MS = await appConstantsModel
+          .findOne({
+            name: 'AUTO_EXECUTE_TIME_DELAY_IN_MS',
+            isDeleted: false,
+          })
+          .select('value');
+
+        if (!AUTO_EXECUTE_TIME_DELAY_IN_MS)
+          throw httpErrors.UnprocessableEntity(
+            `Unable to process Constant [AUTO_EXECUTE_TIME_DELAY_IN_MS]`
+          );
+
+        const EVENT_SLEEP_DURATION_IN_MS = await appConstantsModel
+          .findOne({
+            name: 'EVENT_SLEEP_DURATION_IN_MS',
+            isDeleted: false,
+          })
+          .select('value');
+
+        if (!EVENT_SLEEP_DURATION_IN_MS)
+          throw httpErrors.UnprocessableEntity(
+            `Unable to process Constant [EVENT_SLEEP_DURATION_IN_MS]`
+          );
+
+        const sleepDuration = parseInt(
+          EVENT_SLEEP_DURATION_IN_MS.value
+        );
+
+        nodeScheduler.scheduleJob(
+          `EXECUTE_INIT_FUNCTIONS`,
+          new Date(Date.now() + parseInt(AUTO_EXECUTE_TIME_DELAY_IN_MS.value)),
+          async () => {
+            (async function initFunctionsStack(): Promise<void> {
+              const sleepTime =
+                appEnvironment != 'production' ? 1000 : sleepDuration;
+              sleep(sleepTime);
+              await reScheduleAutomatedJobsOnInit();
+              sleep(sleepTime);
+              await synchronizeAppRoutesOnInit(hrModuleBackendApp);
+              sleep(sleepTime);
+            })();
+          }
+        );
+      } catch (error: any) {
+        console.error('Error :', error.message);
+        logBackendError(__filename, error?.message, null, null, error?.stack);
         process.exit(0);
       }
     });
-    return true;
-  } catch (error) {
-    LOGGER.error(`Unable to start Express Server. Error : ${error}`);
+  } catch (error: any) {
+    logBackendError(__filename, error?.message, null, null, error?.stack);
+    console.error(`Unable to start Express Server. Error : ${error}`);
     process.exit(0);
-    return false;
   }
-};
-
-app(parseInt(process.env.APP_PORT ? process.env.APP_PORT : '3500'));
+})(GlobalConfig.APP_PORT || 3500);
 
 process.on('SIGINT', () => {
   setTimeout(() => {

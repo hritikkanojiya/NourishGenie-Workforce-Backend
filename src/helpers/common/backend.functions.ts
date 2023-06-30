@@ -2,15 +2,17 @@
 import httpErrors from 'http-errors';
 import mongoose, { Types } from 'mongoose';
 import _ from 'lodash';
-import { MetaDataBody } from 'helpers/shared/shared.type';
+import { MetaDataBody } from '../shared/shared.type';
 import { LOGGER } from './init_winston';
 import moment from 'moment';
 import { randomBytes, createCipheriv, createDecipheriv } from 'crypto';
 import { GlobalConfig } from './environment';
 import { appMenuModel, appSubMenuModel } from '../../models/permissions/menu/menu.model'
-import { AppMenuType } from 'helpers/joi/permissions/menu';
+import { AppMenuType } from '../joi/permissions/menu/index';
 import fs from 'fs'
 import path from 'path';
+import { appEventLogModel } from '../../models/logs/logs.model';
+import { socketio } from './init_socket';
 
 const appConstants = {
   DEFAULT_LIMIT_SIZE: 10,
@@ -332,6 +334,14 @@ async function getTokenExpTime(): Promise<number> {
 }
 
 
+function arrayDifference(masterArray: string[], valuesToCompare: string[][]): Array<string> {
+  try {
+    return _.difference(masterArray, ...valuesToCompare);
+  } catch (error: any) {
+    return error
+  }
+}
+
 async function calculateTimeSummary(record: any): Promise<any> {
   let totalLoggedInTime = 0;
   let totalBreakTime = 0;
@@ -386,6 +396,43 @@ async function calculateTimeSummary(record: any): Promise<any> {
 }
 
 
+
+async function emitSocketEvent(
+  appEventId: any,
+  eventName: any,
+  eventStatus: any,
+  eventMessage: any,
+  eventTriggeredAt: any,
+  metaData = {}
+): Promise<void> {
+  try {
+    const saveEvent: any = (
+      await new appEventLogModel({
+        appEventId: appEventId,
+        name: eventName,
+        status: eventStatus,
+        message: eventMessage,
+        metaData: metaData,
+        triggeredAt: eventTriggeredAt,
+      }).save()
+    ).toObject();
+
+    saveEvent.appEventLogId = saveEvent._id;
+    delete saveEvent._id;
+    delete saveEvent.__v;
+    socketio.emit('appEvent', saveEvent);
+  } catch (error: any) {
+    logBackendError(
+      __filename,
+      error?.message || `Unable to emit socket data for event [${eventName}]`,
+      null,
+      null,
+      JSON.stringify(metaData)
+    );
+    return (error);
+  }
+}
+
 export {
   stringToObjectId,
   objectIdToString,
@@ -406,5 +453,8 @@ export {
   getMaxSubMenuSeqNum,
   isValidURL,
   removeDirectory,
-  calculateTimeSummary
+  calculateTimeSummary,
+  arrayDifference,
+  emitSocketEvent
+
 };
