@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 10
+    },
+    "auditLog": "C:\\coding\\NourishGenie-Workforce-Backend\\.24d7970b7af0ce870a7ae2213dfc14b81623545b-audit.json",
+    "files": [
+        {
+            "date": 1688131399673,
+            "name": "C:\\coding\\NourishGenie-Workforce-Backend\\all-2023-06-30.log",
+            "hash": "d7539baec268cae12170fd3bbd515f2c8b3ace7dd1f48de5d720c90e90443473"
+        }
+    ],
+    "hashType": "sha256"
+}
