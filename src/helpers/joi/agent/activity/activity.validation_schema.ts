@@ -45,6 +45,6 @@ export const agentLastActivitySchema = joi.object({
 });
 
 export const getUserActivitySchema = joi.object({
-    employeetype: joi.string().trim().allow(null).default(null),
+    employeeType: joi.string().trim().allow(null).default(null),
     search: joi.string().trim().allow(null).default(null)
 })

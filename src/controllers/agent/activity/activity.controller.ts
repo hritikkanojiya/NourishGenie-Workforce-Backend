@@ -549,17 +549,17 @@ export const getUserActivity = async (req: Request, res: Response, next: NextFun
     for (const iterator of appAgentActivities) {
       const length = iterator.activities.length
       const appUser = await appAgentModel.findOne({ email: iterator.email, isDeleted: false });
-      if (iterator.activities[length - 1].activity == 'checkin') {
+      if (iterator.activities[length - 1].activity == 'checkin' || iterator.activities[length - 1].activity == 'checkout') {
         if (querySchema.employeeType && appUser?.employee_type == querySchema.employeeType)
-          loggedInUsers.push({ fullname: iterator.fullname, email: iterator.email });
+          loggedInUsers.push({ appUserId: appUser?._id, fullname: iterator.fullname, email: iterator.email });
         else if (!querySchema.employeeType)
-          loggedInUsers.push({ fullname: iterator.fullname, email: iterator.email });
+          loggedInUsers.push({ appUserId: appUser?._id, fullname: iterator.fullname, email: iterator.email });
       }
       else if (iterator.activities[length - 1].activity == 'breakin' || iterator.activities[length - 1].activity == 'checkout') {
         if (querySchema.employeeType && appUser?.employee_type == querySchema.employeeType)
-          breakInUsers.push({ fullname: iterator.fullname, email: iterator.email })
+          breakInUsers.push({ appUserId: appUser?._id, fullname: iterator.fullname, email: iterator.email })
         else if (!querySchema.employeeType)
-          breakInUsers.push({ fullname: iterator.fullname, email: iterator.email })
+          breakInUsers.push({ appUserId: appUser?._id, fullname: iterator.fullname, email: iterator.email })
       }
     }
 
