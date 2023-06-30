@@ -815,6 +815,7 @@ const getAgentByToken = async (req: RequestType, res: Response, next: NextFuncti
       }
     });
   } catch (error: any) {
+    console.log(error);
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
     next(error);
   }

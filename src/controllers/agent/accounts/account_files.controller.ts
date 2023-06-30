@@ -22,10 +22,10 @@ import path from 'path';
 import fs from 'fs';
 import { GlobalConfig } from '../../../helpers/common/environment';
 import mongoose from 'mongoose';
+//import { json } from 'body-parser';
 
 const MAIN_FILE_UPLOAD_PATH = GlobalConfig.MAIN_FILE_UPLOAD_PATH;
 const DELETED_FILE_UPLOAD_PATH = GlobalConfig.DELETED_FILE_UPLOAD_PATH;
-
 
 export const uploadFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -86,8 +86,7 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
     //save otherFiles
     const otherFilesDetails: mongoose.Types.ObjectId[] = [];
     await Promise.all(
-      otherFiles.map(async (otherFile) => {
-
+      otherFiles.map(async otherFile => {
         const otherFileAttachment = new appAttachmentModel({
           original_name: otherFile.originalname,
           name: otherFile.filename,
@@ -103,28 +102,33 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
         ).toObject();
 
         otherFilesDetails.push(storeOtherFile._id);
-      }));
+      })
+    );
 
     const doesAgentFileExist: any = await appAgentFileModel.findOne({
       appAgentId: appAgentDetails.appAgentId,
       isDeleted: false
-    })
-    let storeAppAgentFileInfo: any = null
+    });
+    let storeAppAgentFileInfo: any = null;
 
     if (doesAgentFileExist) {
-      await doesAgentFileExist.updateOne({
-        appAgentId: doesAgentFileExist.appAgentId,
-        profile_picture: storeProfilePicture ? storeProfilePicture._id : doesAgentFileExist.profile_picture,
-        aadhar_card_number: appAgentDetails.aadhar_number ? appAgentDetails.aadhar_number : doesAgentFileExist.aadhar_card_number,
-        aadhar_card_file: storeAadharCard ? storeAadharCard._id : doesAgentFileExist.aadhar_card_file,
-        pan_card_number: appAgentDetails.pan_number ? appAgentDetails.pan_number : doesAgentFileExist.pan_card_number,
-        pan_card_file: storePanCard ? storePanCard._id : doesAgentFileExist.pan_card_file,
-        otherFiles: otherFilesDetails
-      }, {
-        new: true
-      })
-    }
-    else {
+      await doesAgentFileExist.updateOne(
+        {
+          appAgentId: doesAgentFileExist.appAgentId,
+          profile_picture: storeProfilePicture ? storeProfilePicture._id : doesAgentFileExist.profile_picture,
+          aadhar_card_number: appAgentDetails.aadhar_number
+            ? appAgentDetails.aadhar_number
+            : doesAgentFileExist.aadhar_card_number,
+          aadhar_card_file: storeAadharCard ? storeAadharCard._id : doesAgentFileExist.aadhar_card_file,
+          pan_card_number: appAgentDetails.pan_number ? appAgentDetails.pan_number : doesAgentFileExist.pan_card_number,
+          pan_card_file: storePanCard ? storePanCard._id : doesAgentFileExist.pan_card_file,
+          otherFiles: otherFilesDetails
+        },
+        {
+          new: true
+        }
+      );
+    } else {
       const appAgentfiles = new appAgentFileModel({
         appAgentId: appAgentDetails?.appAgentId,
         profile_picture: storeProfilePicture ? storeProfilePicture._id : null,
@@ -143,7 +147,7 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
 
     // locate the files directory
     const dir = req.body.directory;
-    removeDirectory(`${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`)
+    removeDirectory(`${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`);
     fs.renameSync(dir, `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`);
 
     // Send Response
@@ -153,16 +157,20 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
         data: {
           appAgentFiles: {
             appAgentFileId: storeAppAgentFileInfo ? storeAppAgentFileInfo._id : doesAgentFileExist._id,
-            aadhar_number: storeAppAgentFileInfo ? storeAppAgentFileInfo.aadhar_card_number : doesAgentFileExist.aadhar_card_number,
-            pan_number: storeAppAgentFileInfo ? storeAppAgentFileInfo.pan_card_number : doesAgentFileExist.pan_card_number
+            aadhar_number: storeAppAgentFileInfo
+              ? storeAppAgentFileInfo.aadhar_card_number
+              : doesAgentFileExist.aadhar_card_number,
+            pan_number: storeAppAgentFileInfo
+              ? storeAppAgentFileInfo.pan_card_number
+              : doesAgentFileExist.pan_card_number
           },
 
           message: 'Files uploaded successfully.'
         }
       });
     }
-
   } catch (error: any) {
+    console.log(error);
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
     if (error?.isJoi === true) error.status = 422;
     next(error);
@@ -176,16 +184,16 @@ const saveFileInFolder = async (appAgentDetails: any, dir: any, fileArr: any, is
       const files = fs.readdirSync(`${dir}/documents`);
       if (!fs.existsSync(newFileDirectory)) {
         fs.mkdirSync(newFileDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
       const fileDirectory = `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}/documents`;
       if (!fs.existsSync(fileDirectory)) {
         fs.mkdirSync(fileDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
 
       for (const file of files) {
@@ -199,31 +207,29 @@ const saveFileInFolder = async (appAgentDetails: any, dir: any, fileArr: any, is
           break;
         }
       }
-
-    }
-    else {
+    } else {
       const newFileDirectory = `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}`;
       const files = fs.readdirSync(`${dir}/documents/otherfiles`);
       if (!fs.existsSync(newFileDirectory)) {
         fs.mkdirSync(newFileDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
       const fileDirectory = `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}/documents`;
       if (!fs.existsSync(fileDirectory)) {
         fs.mkdirSync(fileDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
 
       const otherFileDirectory = `${MAIN_FILE_UPLOAD_PATH}/${appAgentDetails.appAgentId}/documents/otherfiles`;
       if (!fs.existsSync(otherFileDirectory)) {
         fs.mkdirSync(otherFileDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
 
       for (const file of files) {
@@ -237,9 +243,9 @@ const saveFileInFolder = async (appAgentDetails: any, dir: any, fileArr: any, is
         break;
       }
     }
-    return
-
+    return;
   } catch (error: any) {
+    console.log(error);
     return error;
   }
 };
@@ -247,7 +253,9 @@ const saveFileInFolder = async (appAgentDetails: any, dir: any, fileArr: any, is
 export const uploadSingleFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const appAgentDetails: UploadSingleFileType = await joiAgentFile.uploadSingleFileSchema.validateAsync(req.body);
-    const appAgentFileDetails: UploadedFilesTypes = await joiAgentFile.uploadedSingleFilesSchema.validateAsync(req.files);
+    const appAgentFileDetails: UploadedFilesTypes = await joiAgentFile.uploadedSingleFilesSchema.validateAsync(
+      req.files
+    );
 
     //extracting the file metadata first
     const profile_picture = appAgentFileDetails.profile_picture;
@@ -257,9 +265,8 @@ export const uploadSingleFile = async (req: Request, res: Response, next: NextFu
 
     const dir = req.body.directory;
 
-
     //profile picture
-    let storeProfilePicture = null
+    let storeProfilePicture = null;
     if (profile_picture && profile_picture.length > 0) {
       const profileAttatchments = new appAttachmentModel({
         original_name: profile_picture[0].originalname,
@@ -294,7 +301,6 @@ export const uploadSingleFile = async (req: Request, res: Response, next: NextFu
         })
       ).toObject();
       await saveFileInFolder(appAgentDetails, dir, aadhar_card);
-
     }
 
     //pan card
@@ -314,14 +320,13 @@ export const uploadSingleFile = async (req: Request, res: Response, next: NextFu
         })
       ).toObject();
       await saveFileInFolder(appAgentDetails, dir, pan_card);
-
     }
 
     //save otherFiles
     const otherFilesDetails: mongoose.Types.ObjectId[] = [];
     if (otherFiles && otherFiles.length > 0) {
       await Promise.all(
-        otherFiles.map(async (otherFile) => {
+        otherFiles.map(async otherFile => {
           const otherFileAttachment = new appAttachmentModel({
             original_name: otherFile.originalname,
             name: otherFile.filename,
@@ -337,8 +342,9 @@ export const uploadSingleFile = async (req: Request, res: Response, next: NextFu
           ).toObject();
 
           otherFilesDetails.push(storeOtherFile._id);
-        }));
-      await saveFileInFolder(appAgentDetails, dir, otherFiles, true)
+        })
+      );
+      await saveFileInFolder(appAgentDetails, dir, otherFiles, true);
     }
     removeDirectory(dir);
 
@@ -346,19 +352,22 @@ export const uploadSingleFile = async (req: Request, res: Response, next: NextFu
     const doesAgentFileExist: any = await appAgentFileModel.findOne({
       appAgentId: appAgentDetails.appAgentId,
       isDeleted: false
-    })
+    });
 
-    await doesAgentFileExist.updateOne({
-      appAgentId: doesAgentFileExist.appAgentId,
-      profile_picture: storeProfilePicture ? storeProfilePicture._id : doesAgentFileExist.profile_picture,
-      aadhar_card_number: doesAgentFileExist.aadhar_number,
-      aadhar_card_file: storeAadharCard ? storeAadharCard._id : doesAgentFileExist.aadhar_card_file,
-      pan_card_number: doesAgentFileExist.pan_card_number,
-      pan_card_file: storePanCard ? storePanCard._id : doesAgentFileExist.pan_card_file,
-      otherFiles: otherFilesDetails
-    }, {
-      new: true
-    })
+    await doesAgentFileExist.updateOne(
+      {
+        appAgentId: doesAgentFileExist.appAgentId,
+        profile_picture: storeProfilePicture ? storeProfilePicture._id : doesAgentFileExist.profile_picture,
+        aadhar_card_number: doesAgentFileExist.aadhar_number,
+        aadhar_card_file: storeAadharCard ? storeAadharCard._id : doesAgentFileExist.aadhar_card_file,
+        pan_card_number: doesAgentFileExist.pan_card_number,
+        pan_card_file: storePanCard ? storePanCard._id : doesAgentFileExist.pan_card_file,
+        otherFiles: otherFilesDetails?.length > 0 ? otherFilesDetails : doesAgentFileExist.otherFiles
+      },
+      {
+        new: true
+      }
+    );
 
     // Send Response
     if (res.headersSent === false) {
@@ -369,7 +378,6 @@ export const uploadSingleFile = async (req: Request, res: Response, next: NextFu
         }
       });
     }
-
   } catch (error: any) {
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
     if (error?.isJoi === true) error.status = 422;
@@ -391,7 +399,7 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
 
     if (appFileDetails.aadhar_cardId) {
       const doesAadharFileExist = await appAttachmentModel.findOne({
-        _id: (appFileDetails.aadhar_cardId),
+        _id: appFileDetails.aadhar_cardId,
         isDeleted: false
       });
       if (!doesAadharFileExist)
@@ -401,17 +409,17 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
       const deletedAgentFilesDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesAadharFileExist.uploadedBy}`;
       if (!fs.existsSync(deletedAgentFilesDirectory)) {
         fs.mkdirSync(deletedAgentFilesDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
 
       const fileDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesAadharFileExist.uploadedBy}/documents`;
       if (!fs.existsSync(fileDirectory)) {
         fs.mkdirSync(fileDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
       const fileName = doesAadharFileExist?.name ? doesAadharFileExist?.name : '';
       const fileData = fs.readFileSync(filePath);
@@ -431,7 +439,7 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
     if (appFileDetails.pan_cardId) {
       //check if file exists in collection
       const doesPanFileExist = await appAttachmentModel.findOne({
-        _id: (appFileDetails.pan_cardId),
+        _id: appFileDetails.pan_cardId,
         isDeleted: false
       });
 
@@ -441,17 +449,17 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
       const deletedAgentFilesDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesPanFileExist.uploadedBy}`;
       if (!fs.existsSync(deletedAgentFilesDirectory)) {
         fs.mkdirSync(deletedAgentFilesDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
 
       const fileDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesPanFileExist.uploadedBy}/documents`;
       if (!fs.existsSync(fileDirectory)) {
         fs.mkdirSync(fileDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
       const fileName = doesPanFileExist?.name ? doesPanFileExist?.name : '';
       const fileData = fs.readFileSync(filePath);
@@ -470,7 +478,7 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
     if (appFileDetails.profile_pictureId) {
       //check if pfp file exists in collection
       const doesProfilePictureFileExist = await appAttachmentModel.findOne({
-        _id: (appFileDetails.profile_pictureId),
+        _id: appFileDetails.profile_pictureId,
         isDeleted: false
       });
       if (!doesProfilePictureFileExist)
@@ -480,17 +488,17 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
       const deletedAgentFilesDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesProfilePictureFileExist.uploadedBy}`;
       if (!fs.existsSync(deletedAgentFilesDirectory)) {
         fs.mkdirSync(deletedAgentFilesDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
 
       const fileDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesProfilePictureFileExist.uploadedBy}/documents`;
       if (!fs.existsSync(fileDirectory)) {
         fs.mkdirSync(fileDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
       const fileName = doesProfilePictureFileExist?.name ? doesProfilePictureFileExist?.name : '';
       const fileData = fs.readFileSync(filePath);
@@ -511,7 +519,7 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
     if (appFileDetails.otherFilesId) {
       //check if pfp file exists in collection
       const doesProfileOtherFileExist = await appAttachmentModel.findOne({
-        _id: (appFileDetails.otherFilesId),
+        _id: appFileDetails.otherFilesId,
         // uploadedBy: appFileDetails.appAgentId,
         isDeleted: false
       });
@@ -522,25 +530,25 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
       const deletedAgentFilesDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesProfileOtherFileExist.uploadedBy}`;
       if (!fs.existsSync(deletedAgentFilesDirectory)) {
         fs.mkdirSync(deletedAgentFilesDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
 
       const fileDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesProfileOtherFileExist.uploadedBy}/documents`;
       if (!fs.existsSync(fileDirectory)) {
         fs.mkdirSync(fileDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
 
       const otherFilesDirectory = `${DELETED_FILE_UPLOAD_PATH}/${doesProfileOtherFileExist.uploadedBy}/documents/otherfiles`;
       if (!fs.existsSync(otherFilesDirectory)) {
         fs.mkdirSync(otherFilesDirectory),
-        {
-          recursive: true
-        };
+          {
+            recursive: true
+          };
       }
 
       const fileName = doesProfileOtherFileExist?.name ? doesProfileOtherFileExist?.name : '';
@@ -567,6 +575,7 @@ export const deleteFile = async (req: Request, res: Response, next: NextFunction
       });
     }
   } catch (error: any) {
+    console.log(error);
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
     if (error?.isJoi === true) error.status = 422;
     next(error);
@@ -577,15 +586,16 @@ export const getAllFiles = async (req: Request, res: Response, next: NextFunctio
   try {
     //validate joi schema
     const appFileDetails: GetFileType = await joiAgentFile.getFileSchema.validateAsync(req.body);
-    const appAgentFiles = await appAgentFileModel.find({
-      appAgentId: (appFileDetails.appAgentId),
-      isDeleted: false
-    })
-      .populate('profile_picture aadhar_card_file pan_card_file otherFiles')
+    const appAgentFiles = await appAgentFileModel
+      .findOne({
+        appAgentId: appFileDetails.appAgentId,
+        isDeleted: false
+      })
+      .populate('profile_picture aadhar_card_file pan_card_file')
+      .populate({ path: 'otherFiles', match: { isDeleted: false } })
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
       });
-
     // console.log(appAgentFiles);
     if (res.headersSent === false) {
       res.status(200).send({
@@ -606,24 +616,34 @@ export const getAllFiles = async (req: Request, res: Response, next: NextFunctio
 export const getProfilePicture = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   try {
     //validate joi schema
+    console.log(req.body);
     const appFileDetails: GetProfilePictureType = await joiAgentFile.getProfilePictureSchema.validateAsync(req.body);
     const appAgentFile = await appAgentFileModel.findOne({
-      appAgentId: (appFileDetails.appAgentId),
+      appAgentId: appFileDetails.appAgentId,
       isDeleted: false
     });
-    if (!appAgentFile || !appAgentFile.profile_picture) throw httpErrors.BadRequest(`Agent with Id: ${appFileDetails.appAgentId} Does not have any File`);
+    if (!appAgentFile || !appAgentFile.profile_picture)
+      throw httpErrors.BadRequest(`Agent with Id: ${appFileDetails.appAgentId} Does not have any File`);
     const profilePicturAttachment: any = await appAttachmentModel.findOne({
       _id: appAgentFile.profile_picture,
       isDeleted: false
-    })
+    });
     if (!profilePicturAttachment) {
       throw httpErrors.NotFound(`Agent with id: ${appFileDetails.appAgentId} does not have profile picture.`);
     }
     // Send Response
-    const filePath = `${MAIN_FILE_UPLOAD_PATH}/${profilePicturAttachment?.uploadedBy}/documents/${profilePicturAttachment?.name}`;
+    const filePath = `${profilePicturAttachment?.uploadedBy}/documents/${profilePicturAttachment?.name}`;
 
     if (res.headersSent === false) {
-      res.sendFile(filePath);
+      //res.json({ message: 'success', data: filePath });
+
+      res.status(200).send({
+        error: false,
+        data: {
+          profile_picture: filePath,
+          message: 'Profile picture fetched successfully.'
+        }
+      });
     }
   } catch (error: any) {
     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
@@ -639,7 +659,7 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
     const appuserFiles: UpdatedFilesType = await joiAgentFile.updatedFilesSchema.validateAsync(req.files);
     //check if file exist in collection
     const doesAppUserExist = await appAgentModel.findOne({
-      _id: (appFileDetails.appAgentId)
+      _id: appFileDetails.appAgentId
     });
     if (!doesAppUserExist) throw httpErrors.Conflict(`Agent [${appFileDetails.appAgentId}] does not exist.`);
 
@@ -649,7 +669,7 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
     //profile picture
     if (appFileDetails.profile_pictureId) {
       const doesProfilePictureFileExist = await appAttachmentModel.findOne({
-        _id: (appFileDetails.profile_pictureId),
+        _id: appFileDetails.profile_pictureId,
         isDeleted: false
       });
 
@@ -673,16 +693,18 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
       removeDirectory(dir);
       // update attchment
       await doesProfilePictureFileExist
-        .updateOne({
-          original_name: appuserFiles.profile_picture[0].originalname,
-          name: appuserFiles.profile_picture[0].filename,
-          type: appuserFiles.profile_picture[0].mimetype,
-          extension: appuserFiles.profile_picture[0].originalname.split('.')[1],
-          uploadedBy: (appFileDetails.appAgentId)
-        },
+        .updateOne(
+          {
+            original_name: appuserFiles.profile_picture[0].originalname,
+            name: appuserFiles.profile_picture[0].filename,
+            type: appuserFiles.profile_picture[0].mimetype,
+            extension: appuserFiles.profile_picture[0].originalname.split('.')[1],
+            uploadedBy: appFileDetails.appAgentId
+          },
           {
             new: true
-          })
+          }
+        )
         .catch((error: any) => {
           console.log(error);
           throw httpErrors.UnprocessableEntity(error.message);
@@ -693,7 +715,7 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
     if (appFileDetails.aadhar_cardId) {
       //check if file exists in the attatchment schema
       const doesAadharFileExist = await appAttachmentModel.findOne({
-        _id: (appFileDetails.aadhar_cardId),
+        _id: appFileDetails.aadhar_cardId,
         isDeleted: false
       });
 
@@ -718,27 +740,28 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
 
       //update attachment
       await doesAadharFileExist
-        .updateOne({
-          original_name: appuserFiles.aadhar_card[0].originalname,
-          name: appuserFiles.aadhar_card[0].filename,
-          type: appuserFiles.aadhar_card[0].mimetype,
-          extension: appuserFiles.aadhar_card[0].originalname.split('.')[1],
-          uploadedBy: (appFileDetails.appAgentId)
-        },
+        .updateOne(
+          {
+            original_name: appuserFiles.aadhar_card[0].originalname,
+            name: appuserFiles.aadhar_card[0].filename,
+            type: appuserFiles.aadhar_card[0].mimetype,
+            extension: appuserFiles.aadhar_card[0].originalname.split('.')[1],
+            uploadedBy: appFileDetails.appAgentId
+          },
           {
             new: true
-          })
+          }
+        )
         .catch((error: any) => {
           throw httpErrors.UnprocessableEntity(error.message);
         });
     }
 
-
     //pan card
     if (appFileDetails.pan_cardId) {
       //check if file exists in the attatchment schema
       const doesPanFileExist = await appAttachmentModel.findOne({
-        _id: (appFileDetails.pan_cardId),
+        _id: appFileDetails.pan_cardId,
         isDeleted: false
       });
 
@@ -762,16 +785,18 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
 
       //update attachment
       await doesPanFileExist
-        .updateOne({
-          original_name: appuserFiles.pan_card[0].originalname,
-          name: appuserFiles.pan_card[0].filename,
-          type: appuserFiles.pan_card[0].mimetype,
-          extension: appuserFiles.pan_card[0].originalname.split('.')[1],
-          uploadedBy: (appFileDetails.appAgentId)
-        },
+        .updateOne(
+          {
+            original_name: appuserFiles.pan_card[0].originalname,
+            name: appuserFiles.pan_card[0].filename,
+            type: appuserFiles.pan_card[0].mimetype,
+            extension: appuserFiles.pan_card[0].originalname.split('.')[1],
+            uploadedBy: appFileDetails.appAgentId
+          },
           {
             new: true
-          })
+          }
+        )
         .catch((error: any) => {
           throw httpErrors.UnprocessableEntity(error.message);
         });
@@ -782,7 +807,7 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
       //check if file exists in the attatchment schema
       console.log('deepak');
       const doesDocumentFileExist = await appAttachmentModel.findOne({
-        _id: (appFileDetails.otherFilesId),
+        _id: appFileDetails.otherFilesId,
         isDeleted: false
       });
       if (!doesDocumentFileExist)
@@ -803,16 +828,18 @@ export const updateFile = async (req: Request, res: Response, next: NextFunction
 
       //change the state from the attatchment schema
       await doesDocumentFileExist
-        .updateOne({
-          original_name: appuserFiles.otherFiles[0].originalname,
-          name: appuserFiles.otherFiles[0].filename,
-          type: appuserFiles.otherFiles[0].mimetype,
-          extension: appuserFiles.otherFiles[0].originalname.split('.')[1],
-          uploadedBy: (appFileDetails.appAgentId)
-        },
+        .updateOne(
+          {
+            original_name: appuserFiles.otherFiles[0].originalname,
+            name: appuserFiles.otherFiles[0].filename,
+            type: appuserFiles.otherFiles[0].mimetype,
+            extension: appuserFiles.otherFiles[0].originalname.split('.')[1],
+            uploadedBy: appFileDetails.appAgentId
+          },
           {
             new: true
-          })
+          }
+        )
         .catch((error: any) => {
           throw httpErrors.UnprocessableEntity(error.message);
         });

@@ -33,7 +33,7 @@ appAccountFileRouterV1.post(
 );
 
 appAccountFileRouterV1.post(
-  '/get-profile-picture',
+  '/get-profile',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
   appAccountFileController.getProfilePicture
@@ -51,7 +51,6 @@ appAccountFileRouterV1.post(
   ]),
   appAccountFileController.updateFile
 );
-
 
 appAccountFileRouterV1.post(
   '/upload-single-file',
