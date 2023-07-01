@@ -5,7 +5,7 @@ import {
   getFieldsToInclude,
   convertDateTimeFormat,
   logBackendError,
-  stringToObjectId,
+  stringToObjectId
 } from '../../../helpers/common/backend.functions';
 import httpErrors from 'http-errors';
 import appAgentModel from '../../../models/agent/agent.model';
@@ -24,7 +24,6 @@ import {
   FilterAgentType
 } from '../../../helpers/joi/agent/account/index';
 import { MetaDataBody } from '../../../helpers/shared/shared.type';
-
 
 export const createAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -93,7 +92,7 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
     ).toObject();
 
     //user bank details
-    const appAgentBank = new appAgentBanksModel({
+    const appAgentBank: any = new appAgentBanksModel({
       appAgentId: storeAppAgentBasicDetails._id,
       name_as_per_bank: appAgentDetails.name_as_per_bank,
       account_number: appAgentDetails.account_number,
@@ -190,7 +189,6 @@ export const createAccount = async (req: Request, res: Response, next: NextFunct
     }
   }
 };
-
 
 export const deleteAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -329,7 +327,6 @@ export const deleteAccount = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-
 export const getAllAppAgents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     console.log(req.body);
@@ -349,6 +346,9 @@ export const getAllAppAgents = async (req: Request, res: Response, next: NextFun
       query['appDesignationId'] = filterContent.appDesignationId;
     }
 
+    if (filterContent.search) {
+      query['$or'] = [{ first_name: { $regex: filterContent.search, $options: 'i' } }];
+    }
     const appAgents = await appAgentModel
       .find(query, {}, {})
       .select(fieldsToInclude)
@@ -356,7 +356,6 @@ export const getAllAppAgents = async (req: Request, res: Response, next: NextFun
       .skip(metaData.offset)
       .limit(metaData.limit)
       .lean()
-
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(`Error retrieving records from DB. ${error?.message}`);
       });
@@ -394,7 +393,6 @@ export const getAllAppAgents = async (req: Request, res: Response, next: NextFun
     next(error);
   }
 };
-
 
 export const updateAppAgentDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -668,26 +666,25 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
       });
 
     await appAgent
-      ?.updateOne({
-        first_name: appAgentDetails.first_name,
-        last_name: appAgentDetails.last_name,
-        email: appAgentDetails.email,
-        password: appAgentDetails.password,
-        appAccessGroupId: appAgentDetails.appAccessGroupId,
-        appDepartmentId: appAgentDetails.appDepartmentId,
-        appReportingManagerId: appAgentDetails.appReportingManagerId
-          ? appAgentDetails.appReportingManagerId
-          : null,
-        appDesignationId: appAgentDetails.appDesignationId,
-        employee_type: appAgentDetails.employee_type
-      }, {
-        new: true
-      })
+      ?.updateOne(
+        {
+          first_name: appAgentDetails.first_name,
+          last_name: appAgentDetails.last_name,
+          email: appAgentDetails.email,
+          password: appAgentDetails.password,
+          appAccessGroupId: appAgentDetails.appAccessGroupId,
+          appDepartmentId: appAgentDetails.appDepartmentId,
+          appReportingManagerId: appAgentDetails.appReportingManagerId ? appAgentDetails.appReportingManagerId : null,
+          appDesignationId: appAgentDetails.appDesignationId,
+          employee_type: appAgentDetails.employee_type
+        },
+        {
+          new: true
+        }
+      )
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(error.message);
       });
-
-
 
     const appAgentCompanyDetails = await appAgentDetailsModel
       .findOne({
@@ -699,24 +696,26 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
       });
 
     await appAgentCompanyDetails
-      ?.updateOne({
-        appAgentId: appAgentDetails.appAgentId,
-        primary_email: appAgentDetails.primary_email,
-        company_email: appAgentDetails.company_email,
-        gender: appAgentDetails.gender,
-        contact_number: appAgentDetails.contact_number,
-        date_of_birth: appAgentDetails.date_of_birth,
-        marital_status: appAgentDetails.marital_status,
-        date_of_joining: appAgentDetails.date_of_joining,
-        working_hours: appAgentDetails.working_hours,
-        salary: appAgentDetails.salary
-      }, {
-        new: true
-      })
+      ?.updateOne(
+        {
+          appAgentId: appAgentDetails.appAgentId,
+          primary_email: appAgentDetails.primary_email,
+          company_email: appAgentDetails.company_email,
+          gender: appAgentDetails.gender,
+          contact_number: appAgentDetails.contact_number,
+          date_of_birth: appAgentDetails.date_of_birth,
+          marital_status: appAgentDetails.marital_status,
+          date_of_joining: appAgentDetails.date_of_joining,
+          working_hours: appAgentDetails.working_hours,
+          salary: appAgentDetails.salary
+        },
+        {
+          new: true
+        }
+      )
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(error.message);
       });
-
 
     const appAgentBankDetails = await appAgentBanksModel
       .findOne({
@@ -728,19 +727,21 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
       });
 
     await appAgentBankDetails
-      ?.updateOne({
-        appAgentId: appAgentDetails.appAgentId,
-        name_as_per_bank: appAgentDetails.name_as_per_bank,
-        account_number: appAgentDetails.account_number,
-        ifsc_code: appAgentDetails.ifsc_code,
-        bank_name: appAgentDetails.bank_name
-      }, {
-        new: true
-      })
+      ?.updateOne(
+        {
+          appAgentId: appAgentDetails.appAgentId,
+          name_as_per_bank: appAgentDetails.name_as_per_bank,
+          account_number: appAgentDetails.account_number,
+          ifsc_code: appAgentDetails.ifsc_code,
+          bank_name: appAgentDetails.bank_name
+        },
+        {
+          new: true
+        }
+      )
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(error.message);
       });
-
 
     const appAgentAddressDetails = await appAgentBanksModel
       .findOne({
@@ -752,19 +753,21 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
       });
 
     await appAgentAddressDetails
-      ?.updateOne({
-        appAgentId: appAgentDetails.appAgentId,
-        name_as_per_bank: appAgentDetails.name_as_per_bank,
-        account_number: appAgentDetails.account_number,
-        ifsc_code: appAgentDetails.ifsc_code,
-        bank_name: appAgentDetails.bank_name
-      }, {
-        new: true
-      })
+      ?.updateOne(
+        {
+          appAgentId: appAgentDetails.appAgentId,
+          name_as_per_bank: appAgentDetails.name_as_per_bank,
+          account_number: appAgentDetails.account_number,
+          ifsc_code: appAgentDetails.ifsc_code,
+          bank_name: appAgentDetails.bank_name
+        },
+        {
+          new: true
+        }
+      )
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(error.message);
       });
-
 
     const appAgentContactDetails = await appAgentBanksModel
       .findOne({
@@ -776,13 +779,16 @@ export const updateAgentDetails = async (req: Request, res: Response, next: Next
       });
 
     await appAgentContactDetails
-      ?.updateOne({
-        appAgentId: appAgentDetails.appAgentId,
-        number: appAgentDetails.contact_number,
-        relation: appAgentDetails.relation
-      }, {
-        new: true
-      })
+      ?.updateOne(
+        {
+          appAgentId: appAgentDetails.appAgentId,
+          number: appAgentDetails.contact_number,
+          relation: appAgentDetails.relation
+        },
+        {
+          new: true
+        }
+      )
       .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(error.message);
       });

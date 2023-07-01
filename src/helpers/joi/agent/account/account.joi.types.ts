@@ -71,6 +71,7 @@ export interface FilterAgentType {
   appDepartmentId: mongoose.Types.ObjectId;
   appDesignationId: mongoose.Types.ObjectId;
   metaData: MetaDataResponse;
+  search: string | null;
 }
 
 export interface UpdateAppAgentType {

@@ -113,12 +113,12 @@ export const updateAppUserSchema = joi.object({
   //contact
   number: joi.number(),
   relation: joi.string().trim()
-
 });
 
 export const filterUserSchema = joi.object({
   appDesignationId: objectId().allow(null).default(null),
   appDepartmentId: objectId().allow(null).default(null),
+  search: joi.string().trim().allow(null).default(null),
   metaData: joi.object().keys({
     sortBy: joi.string().trim().allow(null).default(null),
     sortOn: joi.string().trim().allow(null).default(null),

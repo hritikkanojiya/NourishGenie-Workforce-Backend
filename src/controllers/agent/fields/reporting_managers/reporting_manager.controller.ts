@@ -92,6 +92,34 @@ export const getAppReportingManager = async (req: Request, res: Response, next: 
     const query: GetAppReportingManagerQueryType = { isDeleted: false };
     if (querySchema.appManagerId) query._id = querySchema.appManagerId;
     if (querySchema.appAgentId) query.appAgentId = querySchema.appAgentId;
+    if (querySchema.search && querySchema.search.trim() !== '') {
+      // Find app_agents with matching email
+      const appAgentsWithEmail = await appAgentModel
+        .find({ email: new RegExp(querySchema.search.trim(), 'i') }, '_id')
+        .lean()
+        .exec();
+      // If any app_agents found, add them to the query for appAgentId
+      if (appAgentsWithEmail.length > 0) {
+        query.appAgentId = { $in: appAgentsWithEmail.map((agent: any) => agent._id) } as any;
+      } else {
+        // If no matching app_agents found, return an empty result
+        res.status(200).send({
+          error: false,
+          data: {
+            appReportingManager: [],
+            metaData: {
+              sortBy: metaData.sortBy,
+              sortOn: metaData.sortOn,
+              limit: metaData.limit,
+              offset: metaData.offset,
+              total_records: 0
+            },
+            message: 'No reporting managers found for the provided email search.'
+          }
+        });
+        return;
+      }
+    }
     // Execute the Query
     const appManagers = await appReportingManagerModel
       .find(query, {}, {})
