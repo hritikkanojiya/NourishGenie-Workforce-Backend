@@ -1,180 +1,103 @@
 import { NextFunction, Request, Response } from 'express';
 import { calculateTimeSummary, logBackendError } from '../../../helpers/common/backend.functions';
 import moment from 'moment';
-import activity from '../../../models/agent/activity/activity.model'
 import appAgentDetailsModel from '../../../models/agent/fields/app_agent_details.model'
-import { appAttendanceModel } from '../../../models/agent/attendance/attendance.model';
+import { appUserAttendanceModel } from '../../../models/agent/attendance/attendance.model';
 import appAgentAcitivityModel from '../../../models/agent/activity/activity.model'
 
 import {
-  GetAgentActivityType,
   GetUserActivityType,
   GetUserActivityQueryType,
-  joiAgentActivity,
-  MarkAttandanceType,
-  UpdateAgentAttandenceType,
-  AgentLastActivityType
+  joiUserActivity,
+  CreateUserActivityLogsType,
+  // UpdateUserAttandenceType,
+  UserLastActivityType,
+  GetUsersActivityType,
+  // AppUserActivityType
   // GetTotalAgentActivityType
 } from '../../../helpers/joi/agent/activity/index'
 import httpErrors from 'http-errors';
 import appAgentModel from '../../../models/agent/agent.model';
 
-// export const attendenceMarker = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-//   const currentDate = moment().format('DD-MM-YYYY');
-//   const promise = new Promise((resolve, reject) => {
-//     const queryDetails: MarkAttandanceType = await joiAgentActivity.markAttandanceSchema.validateAsync(req.body);
-//     activity.findOne({ email: req.body.email, date: currentDate })
-//       .then(async (findUser) => {
-//         if (findUser) {
-//           const activities = findUser.activities;
-//           const latestActivity = activities[activities.length - 1].activity;
-
-//           if (queryDetails.activity === 'breakin') {
-//             // Check if the latest activity is checkin or checkout
-//             if (latestActivity === 'checkin' || latestActivity === 'breakout') {
-//               // Update the activities array with the new activity and time
-//               const updatedActivities = [...activities];
-//               updatedActivities.push({
-//                 activity: req.body.activity,
-//                 time: moment().format('HH:mm:ss'),
-//               });
-
-//               // Update the user's activities
-//               await activity.updateOne(
-//                 { email: req.body.email, date: currentDate },
-//                 {
-//                   $set: { activities: updatedActivities },
-//                 }
-//               );
-
-//               resolve({ message: `${req.body.activity} marked successfully` });
-//             } else {
-//               resolve({ message: 'Can\'t perform this activity without checking in or break out' });
-//             }
-//           } else if (req.body.activity === 'checkin') {
-//             // Check if the latest activity is checkout or checkin
-//             if (latestActivity === 'checkout') {
-//               // Update the activities array with the new activity and time
-//               const updatedActivities = [...activities];
-//               updatedActivities.push({
-//                 activity: req.body.activity,
-//                 time: moment().format('HH:mm:ss'),
-//               });
-
-//               // Update the user's activities
-//               await activity.updateOne(
-//                 { email: req.body.email, date: currentDate },
-//                 {
-//                   $set: { activities: updatedActivities },
-//                 }
-//               );
-
-//               resolve({ message: `${req.body.activity} marked successfully` });
-//             } else {
-//               resolve({ message: 'Can\'t perform this activity without checking out' });
-//             }
-//           } else if (req.body.activity === 'checkout') {
-//             // Check if the latest activity is checkin
-//             if (latestActivity === 'checkin' || latestActivity === 'breakout') {
-//               // Update the activities array with the new activity and time
-//               const updatedActivities = [...activities];
-//               updatedActivities.push({
-//                 activity: req.body.activity,
-//                 time: moment().format('HH:mm:ss'),
-//               });
-
-//               // Update the user's activities
-//               await activity.updateOne(
-//                 { email: req.body.email, date: currentDate },
-//                 {
-//                   $set: { activities: updatedActivities },
-//                 }
-//               );
-
-//               resolve({ message: `${req.body.activity} marked successfully` });
-//             } else {
-//               resolve({ message: 'Can\'t perform this activity without checking in' });
-//             }
-//           } else if (req.body.activity === 'breakout') {
-//             if (latestActivity === 'breakin') {
-//               // Update the activities array with the new activity and time
-//               const updatedActivities = [...activities];
-//               updatedActivities.push({
-//                 activity: req.body.activity,
-//                 time: moment().format('HH:mm:ss'),
-//               });
-//               // Update the user's activities
-//               await activity.updateOne(
-//                 { email: req.body.email, date: currentDate },
-//                 {
-//                   $set: { activities: updatedActivities },
-//                 }
-//               );
-
-//               resolve({ message: `${req.body.activity} marked successfully` });
-//             } else {
-//               resolve({ message: 'Can\'t perform this activity without breakin break' });
-//             }
-//           }
-//         } else {
-//           if (req.body.activity === 'checkout' || req.body.activity === 'breakin' || req.body.activity === 'breakout') {
-//             resolve({ message: 'Can\'t perform this activity without checking in' });
-//           } else {
-//             // Create a new attendance record for the user
-//             await activity.create({
-//               email: req.body.email,
-//               fullname: req.body.fullname,
-//               activities: [
-//                 {
-//                   activity: req.body.activity,
-//                   time: moment().format('HH:mm:ss'),
-//                 },
-//               ],
-//               date: currentDate,
-//             });
-
-//             resolve({ message: `${req.body.activity} marked successfully` });
-//           }
-//         }
-//       })
-//       .catch((error) => {
-//         reject(error);
-//       });
-//   });
-
-//   promise
-//     .then((data: any) => {
-//       res.status(200).send({ error: false, message: data.message });
-//     })
-//     .catch((error) => {
-//       next(error);
-//     });
-// };
-
-
-export const attendenceMarker = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const updateAttendance = async (userActivities: any): Promise<any> => {
   try {
-    const currentDate = moment().format('YYYY-MM-DD');
-    // console.log(new Date(currentDate.setDate(currentDate.getDate() + 1)));
-    const queryDetails: MarkAttandanceType = await joiAgentActivity.markAttandanceSchema.validateAsync(req.body);
-    const findUser = await activity.find({
+    for (const iterator of userActivities) {
+      const appAgentDetails = await appAgentDetailsModel.findOne({ company_email: iterator.email, isDeleted: false });
+      const timeSummary = await calculateTimeSummary(iterator);
+      const startingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[0]) ? appAgentDetails?.working_hours?.split('-')[0] : '');
+      const endingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[1]) ? appAgentDetails?.working_hours?.split('-')[1] : '');
+      const totalLoginTimeWithoutBreak = moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asHours();
+      let availability = 'not available';
+      // let overTime = 0;
+      if (totalLoginTimeWithoutBreak >= startingLimit && totalLoginTimeWithoutBreak <= endingLimit) {
+        availability = 'full day';
+      }
+      else if (Math.abs(totalLoginTimeWithoutBreak - startingLimit) <= 1) {
+        availability = 'half day';
+      }
+      else if (totalLoginTimeWithoutBreak > endingLimit) {
+        availability = 'over Time'
+        // overTime = (totalLoginTimeWithoutBreak - endingLimit) * 60;
+      }
+      const agentAttandence = await appUserAttendanceModel.findOne({
+        appUserId: appAgentDetails?.appAgentId,
+        createdAt: {
+          $gte: moment(iterator.createdAt).startOf('day').toDate(),
+          $lte: moment(iterator.createdAt).endOf('day').toDate(),
+        },
+        isDeleted: false,
+      });
+      console.log(agentAttandence);
+      await agentAttandence?.updateOne({
+        appUserId: appAgentDetails?.appAgentId,
+        email: iterator.email,
+        availability: availability,
+        status: totalLoginTimeWithoutBreak > 1 ? 'PRESENT' : 'ABSENT',
+      },
+        {
+          new: true
+        }
+      );
+    }
+
+  } catch (error: any) {
+    console.log(error);
+    logBackendError(__filename, error?.message, null, null, error?.stack);
+    if (error?.isJoi === true) error.status = 422;
+    return error;
+  }
+}
+
+const createActivityLogs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const queryDetails: CreateUserActivityLogsType = await joiUserActivity.createActivityLogsSchema.validateAsync(req.body);
+    const userActivities = await appAgentAcitivityModel.find({
       email: queryDetails.email,
-      date: currentDate
+      createdAt: {
+        $gte: moment().startOf('day'),
+        $lte: moment().endOf('day')
+      }
     });
     let message;
-    if (findUser.length > 0) {
-      const activities = findUser[0].activities;
+    if (userActivities.length > 0) {
+      const activities = userActivities[0].activities;
       const latestActivity = activities[activities.length - 1].activity;
       if (queryDetails.activity === 'breakin') {
         if (latestActivity === 'checkin' || latestActivity === 'breakout') {
           const updatedActivities = [...activities];
           updatedActivities.push({
             activity: queryDetails.activity,
-            time: moment().format('HH:mm:ss'),
+            time: moment().toDate(),
           });
 
-          await activity.updateOne(
-            { email: queryDetails.email, date: currentDate },
+          await appAgentAcitivityModel.updateOne(
+            {
+              email: queryDetails.email,
+              createdAt: {
+                $gte: moment().startOf('day'),
+                $lte: moment().endOf('day')
+              }
+            },
             {
               $set: { activities: updatedActivities },
             }
@@ -189,11 +112,17 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           const updatedActivities = [...activities];
           updatedActivities.push({
             activity: queryDetails.activity,
-            time: moment().format('HH:mm:ss'),
+            time: moment().toDate(),
           });
 
-          await activity.updateOne(
-            { email: queryDetails.email, date: currentDate },
+          await appAgentAcitivityModel.updateOne(
+            {
+              email: queryDetails.email,
+              createdAt: {
+                $gte: moment().startOf('day'),
+                $lte: moment().endOf('day')
+              }
+            },
             {
               $set: { activities: updatedActivities },
             }
@@ -208,11 +137,17 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           const updatedActivities = [...activities];
           updatedActivities.push({
             activity: queryDetails.activity,
-            time: moment().format('HH:mm:ss'),
+            time: moment().toDate(),
           });
 
-          await activity.updateOne(
-            { email: queryDetails.email, date: currentDate },
+          await appAgentAcitivityModel.updateOne(
+            {
+              email: queryDetails.email,
+              createdAt: {
+                $gte: moment().startOf('day'),
+                $lte: moment().endOf('day')
+              }
+            },
             {
               $set: { activities: updatedActivities },
             }
@@ -228,11 +163,17 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
           const updatedActivities = [...activities];
           updatedActivities.push({
             activity: queryDetails.activity,
-            time: moment().format('HH:mm:ss'),
+            time: moment().toDate(),
           });
 
-          await activity.updateOne(
-            { email: queryDetails.email, date: currentDate },
+          await appAgentAcitivityModel.updateOne(
+            {
+              email: queryDetails.email,
+              createdAt: {
+                $gte: moment().startOf('day'),
+                $lte: moment().endOf('day')
+              }
+            },
             {
               $set: { activities: updatedActivities },
             }
@@ -249,21 +190,30 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
         throw new Error(message);
       }
       else {
-        await activity.create({
+        await appAgentAcitivityModel.create({
           email: queryDetails.email,
           fullname: queryDetails.fullName,
           activities: [
             {
               activity: queryDetails.activity,
-              time: moment().format('HH:mm:ss'),
+              time: moment().toDate(),
             },
           ],
-          date: currentDate,
         });
 
         message = `${queryDetails.activity} marked successfully`;
       }
     }
+    const userActivity = await appAgentAcitivityModel.find({
+      email: queryDetails.email,
+      createdAt: {
+        $gte: moment().startOf('day'),
+        $lte: moment().endOf('day')
+      }
+    })
+
+    await updateAttendance(userActivity);
+
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
@@ -280,13 +230,14 @@ export const attendenceMarker = async (req: Request, res: Response, next: NextFu
   }
 }
 
-export const getAgentActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const getAgentActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const queryDetails: GetAgentActivityType = await joiAgentActivity.getAgentActivitySchema.validateAsync(req.body);
+    const queryDetails: GetUserActivityType = await joiUserActivity.getAgentActivitySchema.validateAsync(req.body);
     const fromDate = new Date(queryDetails.date.from);
     const toDate = new Date(queryDetails.date.to);
     const appAgentDetails = await appAgentDetailsModel.findOne({ company_email: queryDetails.email, isDeleted: false });
-    const activities = await activity.find({
+    const appAgent = await appAgentModel.findOne({ _id: appAgentDetails?.appAgentId, isDeleted: false });
+    const activities = await appAgentAcitivityModel.find({
       email: queryDetails.email,
       createdAt: {
         $gte: fromDate,
@@ -296,87 +247,38 @@ export const getAgentActivity = async (req: Request, res: Response, next: NextFu
     const agentActivities = [];
     const agentDetails = {
       email: queryDetails.email,
-      fullName: activities[0].fullname
+      fullName: `${appAgent?.first_name} ${appAgent?.last_name}`
     }
     for (const iterator of activities) {
-      const agentAttandence = await appAttendanceModel.findOne({
-        email: queryDetails.email,
-        date: iterator.date,
-        isDeleted: false,
+      const timeSummary = await calculateTimeSummary(iterator);
+      const startingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[0]) ? appAgentDetails?.working_hours?.split('-')[0] : '');
+      const endingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[1]) ? appAgentDetails?.working_hours?.split('-')[1] : '');
+      const totalLoginTimeWithoutBreak = moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asHours();
+      let availability = 'not available';
+      let overTime = 0;
+      if (totalLoginTimeWithoutBreak >= startingLimit && totalLoginTimeWithoutBreak <= endingLimit) {
+        availability = 'full day';
+      }
+      else if (Math.abs(totalLoginTimeWithoutBreak - startingLimit) <= 1) {
+        availability = 'half day';
+      }
+      else if (totalLoginTimeWithoutBreak > endingLimit) {
+        availability = 'over Time'
+        overTime = (totalLoginTimeWithoutBreak - endingLimit) * 60;
+      }
+      // await convertDateTimeFormat(iterator.activities),
+      agentActivities.push({
+        activities: iterator.activities,
+        createdAt: iterator.createdAt,
+        updatedAt: iterator.updatedAt,
+        availability: availability,
+        status: totalLoginTimeWithoutBreak > 1 ? 'PRESENT' : 'ABSENT',
+        totalLoggedinTime: `${moment.duration(timeSummary.totalLoggedInTime).asMinutes().toFixed(2)} Minutes`,
+        totalBreakTime: `${moment.duration(timeSummary.totalBreakTime).asMinutes().toFixed(2)} Minutes`,
+        totalLoginTimeWithoutBreak: `${moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asMinutes().toFixed(2)} Minutes`,
+        overTime: `${overTime.toFixed(2)} Mintues`,
       });
-      if (agentAttandence) {
-        const timeSummary = await calculateTimeSummary(iterator);
-        const startingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[0]) ? appAgentDetails?.working_hours?.split('-')[0] : '');
-        const endingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[1]) ? appAgentDetails?.working_hours?.split('-')[1] : '');
-        const totalLoginTimeWithoutBreak = parseInt(moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asHours().toPrecision(3));
-        let availaibility;
-        if (totalLoginTimeWithoutBreak >= startingLimit && totalLoginTimeWithoutBreak <= endingLimit) {
-          availaibility = 'full day';
-        }
-        else if ((totalLoginTimeWithoutBreak - startingLimit) <= 1) {
-          availaibility = 'half day';
-        }
-        else if (totalLoginTimeWithoutBreak > endingLimit) {
-          availaibility = 'over Time'
-        }
-        agentActivities.push({
-          activities: iterator.activities,
-          date: iterator.date,
-          createdAt: iterator.createdAt,
-          updatedAt: iterator.updatedAt,
-          availaibility: availaibility,
-          status: agentAttandence.status,
-          totalLoggedinTime: `${moment.duration(timeSummary.totalLoggedInTime).asMinutes().toPrecision(3)} Minutes`,
-          totalBreakTime: `${moment.duration(timeSummary.totalBreakTime).asMinutes().toPrecision(3)} Minutes`,
-          totalLoginTimeWithoutBreak: `${moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asMinutes().toPrecision(3)} Minutes`,
-        });
-        await agentAttandence.updateOne({
-          appAgentId: appAgentDetails?.appAgentId,
-          email: queryDetails.email,
-          status: agentAttandence.status,
-          date: iterator.date,
-        },
-          {
-            new: true
-          }
-        )
-      }
-      else {
-        const timeSummary = await calculateTimeSummary(iterator);
-        const startingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[0]) ? appAgentDetails?.working_hours?.split('-')[0] : '');
-        const endingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[1]) ? appAgentDetails?.working_hours?.split('-')[1] : '');
-        const totalLoginTimeWithoutBreak = parseInt(moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asHours().toPrecision(3));
-        let availaibility;
-        if (totalLoginTimeWithoutBreak >= startingLimit && totalLoginTimeWithoutBreak <= endingLimit) {
-          availaibility = 'full day';
-        }
-        else if ((totalLoginTimeWithoutBreak - startingLimit) <= 1) {
-          availaibility = 'half day';
-        }
-        else if (totalLoginTimeWithoutBreak > startingLimit) {
-          availaibility = 'over Time'
-        }
-        agentActivities.push({
-          activities: iterator.activities,
-          date: iterator.date,
-          createdAt: iterator.createdAt,
-          updatedAt: iterator.updatedAt,
-          availaibility: availaibility,
-          status: iterator.activities.length > 0 ? 'PRESENT' : 'ABSENT',
-          totalLoggedinTime: `${moment.duration(timeSummary.totalLoggedInTime).asMinutes().toPrecision(3)} Minutes`,
-          totalBreakTime: `${moment.duration(timeSummary.totalBreakTime).asMinutes().toPrecision(3)} Minutes`,
-          totalLoginTimeWithoutBreak: `${moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asMinutes().toPrecision(3)} Minutes`,
-        });
-        const newAttandence = new appAttendanceModel({
-          appAgentId: appAgentDetails?._id,
-          email: iterator.email,
-          date: iterator.date,
-          status: iterator.activities.length > 0 ? 'PRESENT' : 'ABSENT',
-        })
-        await newAttandence.save().catch(error => { throw new Error(error) });
-      }
     }
-
 
     if (res.headersSent == false) {
       res.status(200).send({
@@ -396,39 +298,7 @@ export const getAgentActivity = async (req: Request, res: Response, next: NextFu
   }
 };
 
-export const updateAttandence = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const agentAttandenceDetails: UpdateAgentAttandenceType = await joiAgentActivity.updateAgentAttandenceSchema.validateAsync(req.body);
-
-    const agentAttandence = await appAttendanceModel.findOne({
-      email: agentAttandenceDetails.email,
-      date: agentAttandenceDetails.date,
-      isDeleted: false
-    });
-    await agentAttandence?.updateOne(agentAttandenceDetails,
-      {
-        new: true
-      });
-
-    if (res.headersSent == false) {
-      res.status(200).send({
-        error: false,
-        data: {
-          message: 'Agent attandence updated successfully'
-        }
-      });
-    }
-
-  } catch (error: any) {
-    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
-    if (error?.isJoi === true) error.status = 422;
-    next(error);
-  }
-}
-
-// export const createAttandance
-
-export const getTotalAgentActivity = async (
+const getTotalAgentActivity = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -436,8 +306,10 @@ export const getTotalAgentActivity = async (
   try {
     const startOfMonth = moment().startOf('month').toDate();
     const endOfMonth = moment().endOf('month').toDate();
+    console.log(startOfMonth);
+    console.log(endOfMonth);
     console.log(req.body.email);
-    const userActivity = await activity.find({
+    const userActivity = await appAgentAcitivityModel.find({
       email: req.body.email,
       createdAt: {
         $gte: startOfMonth,
@@ -482,14 +354,14 @@ export const getTotalAgentActivity = async (
   }
 };
 
-export const getAgentLastActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const getAgentLastActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const agentLastActivity: AgentLastActivityType = await joiAgentActivity.agentLastActivitySchema.validateAsync(req.body);
+    const agentLastActivity: UserLastActivityType = await joiUserActivity.agentLastActivitySchema.validateAsync(req.body);
     if (agentLastActivity.date == 'today') {
       const currentDate = moment().format('YYYY-MM-DD');
       agentLastActivity.date = currentDate
     }
-    const findUser = await activity.find({
+    const findUser = await appAgentAcitivityModel.find({
       email: agentLastActivity.email,
       date: agentLastActivity.date
     });
@@ -515,12 +387,15 @@ export const getAgentLastActivity = async (req: Request, res: Response, next: Ne
   }
 }
 
-export const getUserActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const getUsersWorkingStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const querySchema: GetUserActivityType = await joiAgentActivity.getUserActivitySchema.validateAsync(req.body);
+    const querySchema: GetUsersActivityType = await joiUserActivity.getUserActivitySchema.validateAsync(req.body);
     const query: GetUserActivityQueryType = {};
-    const currentDate = moment().format('YYYY-MM-DD');
-    query.date = currentDate;
+
+    query.createdAt = {
+      $gte: moment().startOf('day'),
+      $lte: moment().endOf('day'),
+    }
     if (querySchema.search)
       query.$or = [
         {
@@ -536,6 +411,7 @@ export const getUserActivity = async (req: Request, res: Response, next: NextFun
           }
         }
       ];
+
     const appAgentActivities = await appAgentAcitivityModel
       .find(query)
       .catch(error => {
@@ -548,18 +424,19 @@ export const getUserActivity = async (req: Request, res: Response, next: NextFun
     const breakInUsers: any = [];
     for (const iterator of appAgentActivities) {
       const length = iterator.activities.length
-      const appUser = await appAgentModel.findOne({ email: iterator.email, isDeleted: false });
-      if (iterator.activities[length - 1].activity == 'checkin' || iterator.activities[length - 1].activity == 'checkout') {
-        if (querySchema.employeeType && appUser?.employee_type == querySchema.employeeType)
-          loggedInUsers.push({ appUserId: appUser?._id, fullname: iterator.fullname, email: iterator.email });
+      const appUserDetails = await appAgentDetailsModel.findOne({ company_email: iterator.email, isDeleted: false });
+      const appUser = await appAgentModel.findOne({ _id: appUserDetails?.appAgentId, isDeleted: false });
+      if (iterator.activities[length - 1].activity == 'checkin' || iterator.activities[length - 1].activity == 'breakout') {
+        if (querySchema.employeeType && appUser?.employee_type === querySchema.employeeType)
+          loggedInUsers.push({ appUserId: appUserDetails?.appAgentId, fullname: iterator.fullname, email: iterator.email });
         else if (!querySchema.employeeType)
-          loggedInUsers.push({ appUserId: appUser?._id, fullname: iterator.fullname, email: iterator.email });
+          loggedInUsers.push({ appUserId: appUserDetails?.appAgentId, fullname: iterator.fullname, email: iterator.email });
       }
       else if (iterator.activities[length - 1].activity == 'breakin' || iterator.activities[length - 1].activity == 'checkout') {
-        if (querySchema.employeeType && appUser?.employee_type == querySchema.employeeType)
-          breakInUsers.push({ appUserId: appUser?._id, fullname: iterator.fullname, email: iterator.email })
+        if (querySchema.employeeType && appUser?.employee_type === querySchema.employeeType)
+          breakInUsers.push({ appUserId: appUserDetails?.appAgentId, fullname: iterator.fullname, email: iterator.email })
         else if (!querySchema.employeeType)
-          breakInUsers.push({ appUserId: appUser?._id, fullname: iterator.fullname, email: iterator.email })
+          breakInUsers.push({ appUserId: appUserDetails?.appAgentId, fullname: iterator.fullname, email: iterator.email })
       }
     }
 
@@ -580,4 +457,14 @@ export const getUserActivity = async (req: Request, res: Response, next: NextFun
     next(error);
   }
 
+}
+
+
+export {
+  getUsersWorkingStatus,
+  getAgentLastActivity,
+  getTotalAgentActivity,
+  getAgentActivity,
+  createActivityLogs,
+  updateAttendance
 }

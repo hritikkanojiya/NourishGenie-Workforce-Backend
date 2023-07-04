@@ -1,35 +1,41 @@
 import { Router } from 'express';
 import * as activityController from '../../../controllers/agent/activity/activity.controller';
+import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
+import permissionsModule from '../../../middlewares/permissions/permissions.middleware';
 
 
-export const agentActivityRouterV1 = Router();
+const agentActivityRouterV1 = Router();
 
 agentActivityRouterV1.post(
     '/markAttendence',
-    activityController.attendenceMarker
+    activityController.createActivityLogs
 );
 agentActivityRouterV1.post(
     '/get-agent-activity',
+    jwtModule.verifyAccessToken,
+    permissionsModule.validateRouteAccess,
     activityController.getAgentActivity
 );
 
-agentActivityRouterV1.put(
-    '/update-attandence',
-    activityController.updateAttandence
-);
-
 agentActivityRouterV1.post(
-    '/get-Agent-month-Activity',
+    '/get-agent-month-activity',
+    jwtModule.verifyAccessToken,
+    permissionsModule.validateRouteAccess,
     activityController.getTotalAgentActivity
 );
 
 agentActivityRouterV1.post(
     '/get-users-activity',
-    activityController.getUserActivity
+    jwtModule.verifyAccessToken,
+    permissionsModule.validateRouteAccess,
+    activityController.getUsersWorkingStatus
 );
-
 
 agentActivityRouterV1.post(
     '/get-Agent-Last-Activity',
+    jwtModule.verifyAccessToken,
+    permissionsModule.validateRouteAccess,
     activityController.getAgentLastActivity
 );
+
+export { agentActivityRouterV1 }

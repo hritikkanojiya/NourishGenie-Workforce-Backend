@@ -3,7 +3,7 @@ import joiObjectId from 'joi-objectid';
 import moment from 'moment';
 const objectId = joiObjectId(joi);
 
-export const getAgentActivitySchema = joi.object({
+const getAgentActivitySchema = joi.object({
     email: joi.string().trim().email().lowercase().required(),
     date: joi.object().keys({
         to: joi
@@ -14,7 +14,7 @@ export const getAgentActivitySchema = joi.object({
     })
 });
 
-export const updateAgentAttandenceSchema = joi.object({
+const updateAgentAttandenceSchema = joi.object({
     appAgentId: objectId().required(),
     email: joi.string().trim().email().lowercase().required(),
     status: joi.string().trim().valid('PRESENT', 'ABSENT').required(),
@@ -22,29 +22,31 @@ export const updateAgentAttandenceSchema = joi.object({
 });
 
 
-export const markAttandanceSchema = joi.object({
+const createActivityLogsSchema = joi.object({
     email: joi.string().trim().email().lowercase().required(),
     fullName: joi.string().required(),
     activity: joi.string().required()
 });
 
-export const getAgentMonthActivitySchema = joi.object({
+const getAgentMonthActivitySchema = joi.object({
     email: joi.string().trim().email().lowercase().required(),
-    // date: joi.object().keys({
-    //     to: joi
-    //         .date()
-    //         .empty('')
-    //         .default(moment().add(1, 'days').format('DD-MM-YYYY')),
-    //     from: joi.date().empty('').default(moment().format('DD-MM-YYYY'))
-    // })
 });
 
-export const agentLastActivitySchema = joi.object({
+const agentLastActivitySchema = joi.object({
     email: joi.string().trim().email().lowercase().required(),
     date: joi.string().required(),
 });
 
-export const getUserActivitySchema = joi.object({
+const getUserActivitySchema = joi.object({
     employeeType: joi.string().trim().allow(null).default(null),
     search: joi.string().trim().allow(null).default(null)
 })
+
+export {
+    getAgentActivitySchema,
+    updateAgentAttandenceSchema,
+    createActivityLogsSchema,
+    getAgentMonthActivitySchema,
+    agentLastActivitySchema,
+    getUserActivitySchema
+}

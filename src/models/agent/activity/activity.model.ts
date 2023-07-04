@@ -18,13 +18,9 @@ const userActivitySchema = new mongoose.Schema(
           enum: ['checkin', 'checkout', 'breakin', 'breakout'],
         },
         time: {
-          type: String,
+          type: Date
         }
       }],
-      required: true,
-    },
-    date: {
-      type: String,
       required: true,
     }
   },

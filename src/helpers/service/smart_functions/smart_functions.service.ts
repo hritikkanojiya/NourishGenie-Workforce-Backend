@@ -1,20 +1,13 @@
 import fs from 'fs';
-// import httpErrors from 'http-errors'
+import httpErrors from 'http-errors'
 
 import appAgentDetailsModel from '../../../models/agent/fields/app_agent_details.model';
 import appAgentModel from '../../../models/agent/agent.model';
-// import { GlobalConfig } from '../../helpers/common/environment';
 import { logBackendError } from '../../../helpers/common/backend.functions';
-// import path from 'path';
 import puppeteer from 'puppeteer';
 import ejs from 'ejs';
-// import mongoose from 'mongoose';
-// import { NextFunction, Request, Response } from 'express';
-// import {
-//   joiAppUserSalarySlip,
-//   CreateAppUserSalarySlipType
-// } from '../../../helpers/joi/salary_slip/index'
-
+import { appUserAttendanceModel } from '../../../models/agent/attendance/attendance.model';
+import moment from 'moment';
 
 const _calculateLeavesAmount = (userBasicSalary: number, userLeavesCount: number): number => {
   try {
@@ -94,28 +87,48 @@ const generateSalarySlipPDF = async (incentive = 5000): Promise<void> => {
   }
 };
 
-// const createAppUserSalarySlip = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-//   try {
-//     const appUserSalarySlipDetails: CreateAppUserSalarySlipType = await joiAppUserSalarySlip.createAppUserSalarySlipSchema.validateAsync(req.body);
-//     const pdfBuffer: Buffer = await generateSalarySlipPDF(appUserSalarySlipDetails.appUserId, appUserSalarySlipDetails.incentive);
-//     res.setHeader('Content-Type', 'application/pdf');
-//     res.setHeader('Content-Disposition', 'attachment; filename=salary-slip.pdf');
-//     res.send(pdfBuffer);
-//   } catch (error: any) {
-//     logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
-//     if (error?.isJoi === true) error.status = 422;
-//     next(error);
-//   }
-// }
+const markAttendance = async (status: string): Promise<void> => {
+  try {
+    const appUsers = await appAgentDetailsModel.find({
+      isDeleted: false
+    });
+    await Promise.all(
+      appUsers.map(async (user) => {
+        const doesAttendanceExist = await appUserAttendanceModel.findOne({
+          appUserId: user.appAgentId,
+          createdAt: {
+            $gte: moment().startOf('day').toDate(),
+            $lte: moment().endOf('day').toDate()
+          }
+        })
 
-// export { createAppUserSalarySlip }
-
+        if (!doesAttendanceExist) {
+          const userAttendance = new appUserAttendanceModel({
+            appUserId: user.appAgentId,
+            email: user.company_email,
+            availability: 'Not Available',
+            status: status,
+          })
+          await userAttendance.save().catch((error) => {
+            throw httpErrors.UnprocessableEntity(error?.message);
+          });
+        }
+      })
+    )
+    console.log('Attendance Marked Successfully');
+  } catch (error: any) {
+    console.log(error);
+    return error;
+  }
+};
 
 function printName(name: string): void {
+  console.log(typeof name);
   console.log(`your name is ${name}`);
 }
 
 export {
   printName,
-  generateSalarySlipPDF
+  generateSalarySlipPDF,
+  markAttendance
 }

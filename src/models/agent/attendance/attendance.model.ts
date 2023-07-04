@@ -1,8 +1,8 @@
 import mongoose, { Schema, model } from 'mongoose';
 
-const appAttendanceSchema = new Schema(
+const appUserAttendanceSchema = new Schema(
     {
-        appAgentId: {
+        appUserId: {
             type: mongoose.Types.ObjectId,
             required: true
         },
@@ -10,14 +10,14 @@ const appAttendanceSchema = new Schema(
             type: String,
             required: true
         },
-        status: {
+        availability: {
             type: String,
-            enum: ['PRESENT', 'ABSENT', 'UNAVAILABLE'],
             required: true
         },
-        date: {
+        status: {
             type: String,
-            required: true,
+            enum: ['PRESENT', 'ABSENT'],
+            required: true
         },
         isDeleted: {
             type: Boolean,
@@ -29,10 +29,10 @@ const appAttendanceSchema = new Schema(
     }
 );
 
-const appAttendanceModel = model('app_attendance', appAttendanceSchema);
+const appUserAttendanceModel = model('app_user_attendance', appUserAttendanceSchema);
 // const appAgentActivitylogsModel = model('app_Agent_activity_log', appAgentActivitiesLogsSchema);
 
 
 export {
-    appAttendanceModel,
+    appUserAttendanceModel,
 };

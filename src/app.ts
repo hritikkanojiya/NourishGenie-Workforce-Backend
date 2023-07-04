@@ -17,7 +17,7 @@ import { logBackendError } from './helpers/common/backend.functions';
 import { appConstantsModel } from './models/constants/constants.model';
 import nodeScheduler from 'node-schedule';
 import sleep from 'atomic-sleep';
-import { reScheduleAutomatedJobsOnInit, synchronizeAppRoutesOnInit } from './helpers/common/init_app';
+import { reScheduleAutomatedJobsOnInit } from './helpers/common/init_app';
 require('dotenv');
 
 // Activate Middlewares
@@ -64,7 +64,7 @@ if (process.env.NODE_ENV !== 'production') {
   hrModuleBackendApp.use(morgan('dev'));
 }
 
-// Import Route Modules
+// // Import Route Modules
 hrModuleBackendApp.use('/v1', v1);
 const getAllRoutes = async (): Promise<void> => {
   try {
@@ -197,9 +197,6 @@ hrModuleBackendApp.use(
                 appEnvironment != 'production' ? 1000 : sleepDuration;
               sleep(sleepTime);
               await reScheduleAutomatedJobsOnInit();
-              sleep(sleepTime);
-              await synchronizeAppRoutesOnInit(hrModuleBackendApp);
-              sleep(sleepTime);
             })();
           }
         );

@@ -1,13 +1,13 @@
 import mongoose from 'mongoose'
 
 
-export interface AppAgentActivity {
+export interface AppUserActivityType {
     email?: string;
     fullname?: string;
-    activities?: {
+    activities?: [{
         activity: string;
         time: string;
-    }
+    }]
     date?: string;
     isDeleted?: boolean;
     __v?: number;
@@ -16,17 +16,17 @@ export interface AppAgentActivity {
     updateOne?: any;
 }
 
-export interface MarkAttandanceType {
+export interface CreateUserActivityLogsType {
     email: string,
     fullName: string,
     activity: string
 }
 
-export interface GetTotalAgentActivityType {
+export interface GetTotalUserActivityType {
     email: string
 }
 
-export interface GetAgentActivityType {
+export interface GetUserActivityType {
     email: string,
     date: {
         to: Date,
@@ -34,38 +34,17 @@ export interface GetAgentActivityType {
     }
 }
 
-export interface UpdateAgentAttandenceType {
-    appAgentId: mongoose.Types.ObjectId,
-    email: string,
-    availability: string,
-    status: string,
-    date: string,
-}
-
-export interface AgentLastActivityType {
+export interface UserLastActivityType {
     email: string,
     date: string,
 }
 
-export interface AgentActivityType {
-    email: string;
-    date: string;
-    fullname: string;
-    activities: {
-        activity?: string;
-        time?: string;
-    }[];
-    createdAt: Date;
-    updatedAt: Date;
-
-}
-
-export interface GetUserActivityType {
+export interface GetUsersActivityType {
     employeeType: string,
     search: string;
 }
 
 export interface GetUserActivityQueryType {
-    date?: string;
-    $or?: Array<mongoose.FilterQuery<AgentActivityType>>;
+    createdAt?: object;
+    $or?: Array<mongoose.FilterQuery<AppUserActivityType>>;
 }

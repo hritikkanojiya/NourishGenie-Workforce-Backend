@@ -7,7 +7,6 @@ import { objectIdToString, logBackendError } from '../../common/backend.function
 import * as appSmartFunctionService from '../smart_functions/smart_functions.service';
 import mongoose from 'mongoose';
 import httpErrors from 'http-errors';
-// import { AppAutomatedJobType } from '../../../helpers/joi/scheduler/automated_jobs';
 
 const scheduleAppAutomatedJob = async (automatedJob: any, forceExecute = false): Promise<mongoose.Types.ObjectId> => {
   try {
@@ -64,7 +63,7 @@ const scheduleAppAutomatedJob = async (automatedJob: any, forceExecute = false):
           __filename,
           'scheduleAppAutomatedJob => nodeScheduler.scheduleJob'
         );
-        (appSmartFunctionService as any)[smartFunction.name](Object.values(automatedJob.parameters));
+        (appSmartFunctionService as any)[smartFunction.name](...Object.values(automatedJob.parameters));
       }
     );
 

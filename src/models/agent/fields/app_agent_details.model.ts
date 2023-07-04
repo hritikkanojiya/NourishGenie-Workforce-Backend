@@ -5,7 +5,7 @@ const appAgentDetailsSchema = new mongoose.Schema(
     //foreign key
     appAgentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'app_agent'
+      ref: 'app_agents'
     },
     primary_email: {
       type: String,

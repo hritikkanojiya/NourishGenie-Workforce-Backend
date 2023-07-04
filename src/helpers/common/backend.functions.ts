@@ -11,7 +11,7 @@ import { appMenuModel, appSubMenuModel } from '../../models/permissions/menu/men
 import { AppMenuType } from '../joi/permissions/menu/index';
 import fs from 'fs'
 import path from 'path';
-import { appEventLogModel } from '../../models/app_logs/app_logs.model';
+import { appBackendErrorModel, appEventLogModel } from '../../models/app_logs/app_logs.model';
 import { socketio } from './init_socket';
 
 const appConstants = {
@@ -217,19 +217,19 @@ async function logBackendError(
 ): Promise<boolean> {
   try {
     if (mongoose.connection.readyState === 1) {
-      // const errorDetails = new appBackendErrorModel({
-      //   level: level ? level : 'error',
-      //   details: {
-      //     clientAddress,
-      //     errorMessage,
-      //     miscellaneous,
-      //     routePath,
-      //     scriptPath,
-      //   },
-      // });
-      // await errorDetails.save().catch((error) => {
-      //   throw error;
-      // });
+      const errorDetails = new appBackendErrorModel({
+        level: level ? level : 'error',
+        details: {
+          clientAddress,
+          errorMessage,
+          miscellaneous,
+          routePath,
+          scriptPath,
+        },
+      });
+      await errorDetails.save().catch((error) => {
+        throw error;
+      });
       return true;
     } else {
       LOGGER.info({
@@ -342,57 +342,115 @@ function arrayDifference(masterArray: string[], valuesToCompare: string[][]): Ar
   }
 }
 
-async function calculateTimeSummary(record: any): Promise<any> {
-  let totalLoggedInTime = 0;
-  let totalBreakTime = 0;
-  let totalLoggedInTimeWithoutBreaks = 0;
-  let checkInTime = null;
-  let isInBreak = false;
-  let breakStartTime = null;
+// async function calculateTimeSummary(record: any): Promise<any> {
+//   let totalLoggedInTime = 0;
+//   let totalBreakTime = 0;
+//   let totalLoggedInTimeWithoutBreaks = 0;
+//   let checkInTime = null;
+//   let isInBreak = false;
+//   let breakStartTime = null;
 
-  for (let i = 0; i < record.activities.length; i++) {
-    const activity = record.activities[i];
+//   for (let i = 0; i < record.activities.length; i++) {
+//     const activity = record.activities[i];
 
-    if (activity.activity === 'checkin') {
-      // Set the check-in time
-      checkInTime = moment(activity.time, 'HH:mm:ss');
-    } else if (activity.activity === 'breakin') {
-      // Set the break start time
-      isInBreak = true;
-      breakStartTime = moment(activity.time, 'HH:mm:ss');
-    } else if (activity.activity === 'breakout') {
-      if (isInBreak && checkInTime) {
-        // Calculate the break duration and add it to the total break time
-        const breakEndTime = moment(activity.time, 'HH:mm:ss');
-        const breakDuration = moment.duration(breakEndTime.diff(breakStartTime)).asMilliseconds();
-        totalBreakTime += breakDuration;
+//     if (activity.activity === 'checkin') {
+//       // Set the check-in time
+//       checkInTime = moment(activity.time, 'HH:mm:ss');
+//     } else if (activity.activity === 'breakin') {
+//       // Set the break start time
+//       isInBreak = true;
+//       breakStartTime = moment(activity.time, 'HH:mm:ss');
+//     } else if (activity.activity === 'breakout') {
+//       if (isInBreak && checkInTime) {
+//         // Calculate the break duration and add it to the total break time
+//         const breakEndTime = moment(activity.time, 'HH:mm:ss');
+//         const breakDuration = moment.duration(breakEndTime.diff(breakStartTime)).asMilliseconds();
+//         totalBreakTime += breakDuration;
 
-        // Reset the break start time and break status
-        breakStartTime = null;
-        isInBreak = false;
+//         // Reset the break start time and break status
+//         breakStartTime = null;
+//         isInBreak = false;
+//       }
+//     } else if (activity.activity === 'checkout') {
+//       if (checkInTime) {
+//         // Calculate the duration between check-in and check-out
+//         const checkOutTime = moment(activity.time, 'HH:mm:ss');
+//         const duration = moment.duration(checkOutTime.diff(checkInTime)).asMilliseconds();
+//         totalLoggedInTime += duration;
+
+//         // Calculate the duration between check-in and check-out excluding breaks
+//         const durationWithoutBreaks = duration - totalBreakTime;
+//         totalLoggedInTimeWithoutBreaks += durationWithoutBreaks;
+
+//         // Reset the check-in time for the next pair of activities
+//         checkInTime = null;
+//       }
+//     }
+//   }
+
+//   return {
+//     totalLoggedInTime,
+//     totalBreakTime,
+//     totalLoggedInTimeWithoutBreaks,
+//   };
+// }
+
+async function calculateTimeSummary(userActivity: any): Promise<any> {
+  try {
+    const checkInTimes = [];
+    const breakInTimes = [];
+    const breakOutTimes = [];
+    const checkOutTimes = [];
+    let totalLoggedInTime = 0;
+    let totalBreakTime = 0;
+
+    if (userActivity) {
+      for (const iterator of userActivity.activities) {
+        if (iterator.activity === 'checkin') {
+          checkInTimes.push(iterator.time);
+        }
+        else if (iterator.activity === 'breakin') {
+          breakInTimes.push(iterator.time);
+        }
+        else if (iterator.activity === 'breakout') {
+          breakOutTimes.push(iterator.time);
+        }
+        else {
+          checkOutTimes.push(iterator.time);
+        }
       }
-    } else if (activity.activity === 'checkout') {
-      if (checkInTime) {
-        // Calculate the duration between check-in and check-out
-        const checkOutTime = moment(activity.time, 'HH:mm:ss');
-        const duration = moment.duration(checkOutTime.diff(checkInTime)).asMilliseconds();
-        totalLoggedInTime += duration;
+      for (let i = 0; i < Math.min(checkInTimes.length, checkOutTimes.length); i++) {
+        const checkInTime = checkInTimes[i];
+        const checkOutTime = checkOutTimes[i];
+        totalLoggedInTime += moment.duration(checkOutTime.diff(checkInTime)).asMilliseconds();
+      }
+      if (checkInTimes.length > checkOutTimes.length) {
+        const checkInTime = checkInTimes[checkInTimes.length - 1];
+        const checkOutTime = moment();
+        totalLoggedInTime += moment.duration(checkOutTime.diff(checkInTime)).asMilliseconds();
+      }
 
-        // Calculate the duration between check-in and check-out excluding breaks
-        const durationWithoutBreaks = duration - totalBreakTime;
-        totalLoggedInTimeWithoutBreaks += durationWithoutBreaks;
-
-        // Reset the check-in time for the next pair of activities
-        checkInTime = null;
+      for (let i = 0; i < Math.min(breakInTimes.length, breakOutTimes.length); i++) {
+        const breakInTime = breakInTimes[i];
+        const breakOutTime = breakOutTimes[i];
+        totalBreakTime += moment.duration(breakOutTime.diff(breakInTime)).asMilliseconds();
+      }
+      if (breakInTimes.length > breakOutTimes.length) {
+        const breakInTime = breakInTimes[breakInTimes.length - 1]
+        const breakOutTime = moment();
+        totalBreakTime += moment.duration(breakOutTime.diff(breakInTime)).asMilliseconds();
       }
     }
+    const totalLoggedInTimeWithoutBreaks = totalLoggedInTime - totalBreakTime;
+    console.log(totalLoggedInTimeWithoutBreaks);
+    return {
+      totalLoggedInTime,
+      totalBreakTime,
+      totalLoggedInTimeWithoutBreaks
+    }
+  } catch (error: any) {
+    return error;
   }
-
-  return {
-    totalLoggedInTime,
-    totalBreakTime,
-    totalLoggedInTimeWithoutBreaks,
-  };
 }
 
 

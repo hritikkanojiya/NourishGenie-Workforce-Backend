@@ -145,16 +145,16 @@ async function generateAgentId(departmentId: any): Promise<string> {
   const department = await appDepartmentModel.findOne({ _id: departmentId }).catch(error => { throw error })
   let prefix;
   if (department?.name == 'Information Technology') {
-    prefix = 'NGIT'
+    prefix = 'NGIT-'
   }
   else if (department?.name == 'Sales') {
-    prefix = 'NGSA'
+    prefix = 'NGSA-'
   }
   else if (department?.name == 'Customer Service') {
-    prefix = 'NGCS'
+    prefix = 'NGCS-'
   }
   else {
-    prefix = 'NGCL'
+    prefix = 'NGCL-'
   }
   const lastAgent = await appAgentModel.findOne().sort({ _id: -1 }).limit(1);
   // let lastCount = await appAgentModel.find().countDocuments();
@@ -162,16 +162,16 @@ async function generateAgentId(departmentId: any): Promise<string> {
   if (lastAgent) {
     let lastAgentId;
     if (department?.name == 'Information Technology') {
-      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGIT00';
+      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGIT-00';
     }
     else if (department?.name == 'Sales') {
-      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGSA00';
+      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGSA-00';
     }
     else if (department?.name == 'Customer Service') {
-      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGCS00';
+      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGCS-00';
     }
     else {
-      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGCL00';
+      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGCL-00';
     }
     let lastCount = parseInt(lastAgentId.replace(prefix, ''), 10);
     if (isNaN(lastCount)) lastCount = 0;

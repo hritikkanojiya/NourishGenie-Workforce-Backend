@@ -1,8 +1,4 @@
 // // Import Packages
-// const joi = require('joi');
-// const { joiPasswordExtendCore } = require('joi-password');
-// joi.objectId = require('joi-objectid')(joi);
-// const joiPassword = joi.extend(joiPasswordExtendCore);
 import joi from 'joi';
 import { joiPasswordExtendCore } from 'joi-password';
 const joiPassword = joi.extend(joiPasswordExtendCore);
