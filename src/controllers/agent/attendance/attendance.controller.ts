@@ -122,8 +122,15 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
             usersAttendances.map(async (attendance) => {
                 const user = await appUserModel.findOne({ _id: attendance.appUserId, isDeleted: false });
                 const userDepartment = await appUserDepartmentModel.findOne({ _id: user?.appDepartmentId, isDeleted: false });
-                if (userDepartment?.name === querySchema.departmentName) {
-                    console.log(querySchema.departmentName);
+                if (querySchema.departmentName && userDepartment?.name === querySchema.departmentName) {
+                    if (!usersAttendancesArr[`${attendance.appUserId}`]) {
+                        usersAttendancesArr[`${attendance.appUserId}`] = [attendance];
+                    }
+                    else {
+                        usersAttendancesArr[`${attendance.appUserId}`].push(attendance);
+                    }
+                }
+                else if (!querySchema.departmentName) {
                     if (!usersAttendancesArr[`${attendance.appUserId}`]) {
                         usersAttendancesArr[`${attendance.appUserId}`] = [attendance];
                     }
