@@ -7,13 +7,6 @@ const getUsersAttendanceSchema = joi.object({
     year: joi.string().trim().allow(null).default(null),
     departmentName: joi.string().trim().allow(null).default(null),
     search: joi.string().trim().allow(null).default(null),
-    metaData: joi.object().keys({
-        sortBy: joi.string().trim().allow(null).default(null),
-        sortOn: joi.string().trim().allow(null).default(null),
-        limit: joi.number().allow(null).default(null),
-        offset: joi.number().allow(null).default(null),
-        fields: joi.array().unique().allow(null).default(null)
-    })
 })
 
 const getUserAttendanceSchema = joi.object({

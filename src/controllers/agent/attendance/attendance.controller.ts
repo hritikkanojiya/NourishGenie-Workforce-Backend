@@ -4,8 +4,6 @@ import { appUserAcitivityModel } from '../../../models/agent/activity/activity.m
 
 import {
     compactObject,
-    configureMetaData,
-    getFieldsToInclude,
     logBackendError
 } from '../../../helpers/common/backend.functions'
 
@@ -20,7 +18,6 @@ import {
 } from '../activity/activity.controller'
 import { NextFunction, Request, Response } from 'express';
 import moment from 'moment';
-import { MetaDataBody } from '../../../helpers/shared/shared.type';
 import { appUserModel } from '../../../models/agent/agent.model';
 import { appUserDepartmentModel } from '../../../models/agent/fields/app_department.model';
 
@@ -62,10 +59,6 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
 
         compactObject(querySchema);
 
-        const metaData: MetaDataBody = await configureMetaData(querySchema);
-
-        const fieldsToInclude = getFieldsToInclude(metaData.fields);
-
         const query: GetUsersAttendanceQueryType = {};
 
         let startOfMonth = moment().startOf('month').toDate();
@@ -94,11 +87,6 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
 
         const usersActivities = await appUserAcitivityModel
             .find(query)
-            .select(fieldsToInclude)
-            .sort({ [metaData.sortOn]: metaData.sortBy })
-            .skip(metaData.offset)
-            .limit(metaData.limit)
-            .lean()
             .catch((error: any) => {
                 throw httpErrors.UnprocessableEntity(
                     error?.message ? error.message : 'Unable to retrieve records from Database.'
@@ -116,7 +104,7 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
                     error?.message ? error.message : 'Unable to retrieve records from Database.'
                 );
             });
-        const totalRecords = await appUserAttendanceModel.find(query).countDocuments();
+
         const usersAttendancesArr: { [key: string]: any[] } = {};
         await Promise.all(
             usersAttendances.map(async (attendance) => {
@@ -147,13 +135,6 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
                 error: false,
                 data: {
                     usersAttendances: usersAttendancesArr,
-                    metaData: {
-                        sortBy: metaData.sortBy,
-                        sortOn: metaData.sortOn,
-                        limit: metaData.limit,
-                        offset: metaData.offset,
-                        total_records: totalRecords
-                    },
                     message: 'user attendance fetched successfully.'
                 }
             });

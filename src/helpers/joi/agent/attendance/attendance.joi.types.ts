@@ -1,4 +1,4 @@
-import { MetaDataResponse, QuerySchemaType } from '../../../shared/shared.type';
+import { QuerySchemaType } from '../../../shared/shared.type';
 import mongoose from 'mongoose';
 export interface UserAttendanceType {
     _id?: mongoose.Types.ObjectId;
@@ -25,7 +25,6 @@ export interface GetUsersAttendanceType {
     month: string;
     year: string;
     departmentName: string;
-    metaData: MetaDataResponse
 }
 
 export interface GetUsersAttendanceQueryType extends QuerySchemaType {
