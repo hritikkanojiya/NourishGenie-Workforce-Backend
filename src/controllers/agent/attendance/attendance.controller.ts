@@ -21,6 +21,8 @@ import {
 import { NextFunction, Request, Response } from 'express';
 import moment from 'moment';
 import { MetaDataBody } from '../../../helpers/shared/shared.type';
+import { appUserModel } from '../../../models/agent/agent.model';
+import { appUserDepartmentModel } from '../../../models/agent/fields/app_department.model';
 
 const updateUserAttendance = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -66,16 +68,18 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
 
         const query: GetUsersAttendanceQueryType = {};
 
-        query.createdAt = {
-            $gte: moment().startOf('day').toDate(),
-            $lte: moment().endOf('day').toDate(),
+        let startOfMonth = moment().startOf('month').toDate();
+        let endOfMonth = moment().endOf('month').toDate();
+
+        if (querySchema.month && querySchema.year) {
+            const dateStr = `${querySchema.year} ${querySchema.month}`;
+            startOfMonth = moment(dateStr, 'YYYY-MMM').startOf('month').toDate();
+            endOfMonth = moment(dateStr, 'YYYY-MMM').endOf('month').toDate();
         }
 
-        if (querySchema.date) {
-            query.createdAt = {
-                $gte: moment(querySchema.date.from).startOf('day').toDate(),
-                $lte: moment(querySchema.date.to).endOf('day').toDate(),
-            }
+        query.createdAt = {
+            $gte: startOfMonth,
+            $lte: endOfMonth
         }
 
         if (querySchema.search)
@@ -107,25 +111,35 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
 
         const usersAttendances = await appUserAttendanceModel
             .find(query)
-            .select(fieldsToInclude)
-            .sort({ [metaData.sortOn]: metaData.sortBy })
-            .skip(metaData.offset)
-            .limit(metaData.limit)
-            .lean()
             .catch(error => {
                 throw httpErrors.UnprocessableEntity(
                     error?.message ? error.message : 'Unable to retrieve records from Database.'
                 );
             });
-
         const totalRecords = await appUserAttendanceModel.find(query).countDocuments();
+        const usersAttendancesArr: { [key: string]: any[] } = {};
+        await Promise.all(
+            usersAttendances.map(async (attendance) => {
+                const user = await appUserModel.findOne({ _id: attendance.appUserId, isDeleted: false });
+                const userDepartment = await appUserDepartmentModel.findOne({ _id: user?.appDepartmentId, isDeleted: false });
+                if (userDepartment?.name === querySchema.departmentName) {
+                    console.log(querySchema.departmentName);
+                    if (!usersAttendancesArr[`${attendance.appUserId}`]) {
+                        usersAttendancesArr[`${attendance.appUserId}`] = [attendance];
+                    }
+                    else {
+                        usersAttendancesArr[`${attendance.appUserId}`].push(attendance);
+                    }
+                }
+            })
+        );
 
         // Send Response
         if (res.headersSent === false) {
             res.status(200).send({
                 error: false,
                 data: {
-                    userAttendance: usersAttendances,
+                    usersAttendances: usersAttendancesArr,
                     metaData: {
                         sortBy: metaData.sortBy,
                         sortOn: metaData.sortOn,
@@ -139,6 +153,7 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
         }
 
     } catch (error: any) {
+        console.log(error);
         logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
         if (error?.isJoi === true) error.status = 422;
         next(error);

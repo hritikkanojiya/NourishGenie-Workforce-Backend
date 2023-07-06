@@ -22,10 +22,9 @@ export interface UpdateUserAttendanceType {
 
 export interface GetUsersAttendanceType {
     search: string;
-    date: {
-        to: Date,
-        from: Date
-    }
+    month: string;
+    year: string;
+    departmentName: string;
     metaData: MetaDataResponse
 }
 

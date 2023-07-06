@@ -1,16 +1,11 @@
 import joi from 'joi';
 import joiObjectId from 'joi-objectid';
-import moment from 'moment';
 const objectId = joiObjectId(joi);
 
 const getUsersAttendanceSchema = joi.object({
-    date: joi.object().keys({
-        to: joi
-            .date()
-            .empty('')
-            .default(moment().add(1, 'days').format('DD-MM-YYYY')),
-        from: joi.date().empty('').default(moment().format('DD-MM-YYYY'))
-    }).allow(null).default(null),
+    month: joi.string().trim().allow(null).default(null),
+    year: joi.string().trim().allow(null).default(null),
+    departmentName: joi.string().trim().allow(null).default(null),
     search: joi.string().trim().allow(null).default(null),
     metaData: joi.object().keys({
         sortBy: joi.string().trim().allow(null).default(null),
