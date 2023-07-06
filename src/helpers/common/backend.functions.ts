@@ -4,7 +4,7 @@ import mongoose, { Types } from 'mongoose';
 import _ from 'lodash';
 import { MetaDataBody } from '../shared/shared.type';
 import { LOGGER } from './init_winston';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import { randomBytes, createCipheriv, createDecipheriv } from 'crypto';
 import { GlobalConfig } from './environment';
 import { appMenuModel, appSubMenuModel } from '../../models/permissions/menu/menu.model'
@@ -27,8 +27,8 @@ function stringToObjectId(rawData: string | string[] | undefined): Types.ObjectI
     const processedData: string[] = Array.isArray(rawData) ? rawData : rawData ? [rawData] : [];
     const typecastedData = _.map(processedData, data => new mongoose.Types.ObjectId(data.toString()));
     return executionType === 'string' ? typecastedData[0] : typecastedData;
-  } catch (error) {
-    throw httpErrors.UnprocessableEntity('Error typecasting string to object-id');
+  } catch (error: any) {
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 }
 
@@ -60,7 +60,7 @@ async function getMenuSchema(menus: AppMenuType[], requestType = false): Promise
     }
     return menuSchema;
   } catch (error: any) {
-    return (error);
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 }
 
@@ -78,7 +78,7 @@ async function getMaxMenuSeqNum(): Promise<number> {
         : 1;
     return maxMenuSeqNum;
   } catch (error: any) {
-    return (error);
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 }
 
@@ -108,7 +108,7 @@ async function getMaxSubMenuSeqNum(): Promise<number> {
         : 1;
     return (maxSubMenuSeqNum);
   } catch (error: any) {
-    return (error);
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 }
 
@@ -118,8 +118,9 @@ const objectIdToString = (rawData: mongoose.Types.ObjectId[] | mongoose.Types.Ob
     rawData = Array.isArray(rawData) ? rawData : [rawData];
     const typecastedData = _.map(rawData, data => data.toString());
     return typecastedData[0];
-  } catch (error) {
-    throw httpErrors.UnprocessableEntity('Error typecasting object-id to string');
+  } catch (error: any) {
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
+
   }
 };
 
@@ -134,6 +135,7 @@ function convertToIST(dateTime: Date | string, format: string | boolean = false)
   }
 }
 
+
 function compactObject(requestObject: any): any {
   try {
     Object.entries(requestObject).forEach(obj => {
@@ -143,8 +145,8 @@ function compactObject(requestObject: any): any {
       obj[1] === null ? delete requestObject[obj[0]] : 0;
     });
     return requestObject;
-  } catch (error) {
-    throw httpErrors.UnprocessableEntity(`Unable to process request. Please try again`);
+  } catch (error: any) {
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 }
 
@@ -154,16 +156,16 @@ const arrayPull = (masterArray: string[], valuesToRemove: string[]): string[] =>
     console.log(executionType);
     valuesToRemove = executionType === 'object' ? valuesToRemove : valuesToRemove;
     return _.without(masterArray, ...valuesToRemove);
-  } catch (error) {
-    throw httpErrors.UnprocessableEntity('Error performing [arrayPull] operation.');
+  } catch (error: any) {
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 };
 
 const arrayUnion = (multiDimArray: string[][]): string[] => {
   try {
     return _.union(...multiDimArray);
-  } catch (error) {
-    throw httpErrors.UnprocessableEntity('Error performing [arrayUnion] operation.');
+  } catch (error: any) {
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 };
 
@@ -180,31 +182,36 @@ async function configureMetaData(querySchema: any): Promise<MetaDataBody> {
         : appConstants.DEFAULT_LIMIT_SIZE,
       offset: querySchema?.metaData?.offset ? querySchema.metaData.offset : appConstants.DEFAULT_OFFSET,
       fields:
-        querySchema?.metaData?.fields?.length && querySchema?.metaData?.fields?.length > 0
+        querySchema?.metaData?.fields?.length > 0
           ? querySchema.metaData.fields
           : []
     };
   } catch (error: any) {
-    throw httpErrors.UnprocessableEntity(error?.message);
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 }
 
 function removeDirectory(directoryPath: string): void {
-  if (!fs.existsSync(directoryPath)) {
-    return;
-  }
-  const files = fs.readdirSync(directoryPath);
-  for (const file of files) {
-    const filePath = path.join(directoryPath, file);
-    const stats = fs.statSync(filePath);
-
-    if (stats.isDirectory()) {
-      removeDirectory(filePath);
-    } else {
-      fs.unlinkSync(filePath);
+  try {
+    if (!fs.existsSync(directoryPath)) {
+      return;
     }
+    const files = fs.readdirSync(directoryPath);
+    for (const file of files) {
+      const filePath = path.join(directoryPath, file);
+      const stats = fs.statSync(filePath);
+
+      if (stats.isDirectory()) {
+        removeDirectory(filePath);
+      } else {
+        fs.unlinkSync(filePath);
+      }
+    }
+    fs.rmdirSync(directoryPath);
+  } catch (error: any) {
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
-  fs.rmdirSync(directoryPath);
+
 }
 
 async function logBackendError(
@@ -259,34 +266,40 @@ function getFieldsToInclude(fieldsArray: string[]): { [k: string]: number } {
 }
 
 async function convertDateTimeFormat(dataDetails: any): Promise<void> {
-  if (Array.isArray(dataDetails)) {
-    await Promise.all(
-      dataDetails.map(data => {
-        Object.entries(data).forEach(([key, value]) => {
-          if (Array.isArray(value)) {
-            convertDateTimeFormat(value);
-          } else if (typeof value === 'object') {
-            convertDateTimeFormat(value);
-          }
-          if (value instanceof Date) {
-            data[key] = convertToIST(value);
-          }
-        });
-      })
-    );
-  } else if (dataDetails !== null && typeof dataDetails === 'object') {
-    Object.entries(dataDetails).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        convertDateTimeFormat(value);
-      } else if (typeof value === 'object') {
-        convertDateTimeFormat(value);
-      }
-      if (value instanceof Date) {
-        dataDetails[key] = convertToIST(value);
-      }
-    });
+  try {
+    if (Array.isArray(dataDetails)) {
+      await Promise.all(
+        dataDetails.map(data => {
+          Object.entries(data).forEach(async ([key, value]) => {
+            if (Array.isArray(value)) {
+              await convertDateTimeFormat(value);
+            } else if (value != null && typeof value === 'object') {
+              await convertDateTimeFormat(value);
+            }
+            if (value instanceof Date) {
+              data[key] = convertToIST(value);
+            }
+          });
+        })
+      );
+    } else if (dataDetails != null && typeof dataDetails === 'object') {
+      Object.entries(dataDetails).forEach(async ([key, value]) => {
+        if (Array.isArray(value)) {
+          await convertDateTimeFormat(value);
+        } else if (value != null && typeof value === 'object') {
+          await convertDateTimeFormat(value);
+        }
+        if (value instanceof Date) {
+          dataDetails[key] = convertToIST(value);
+        }
+      });
+    }
+  } catch (error: any) {
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
+
 }
+
 
 function encryptData(plainText: string): { initialVector: string; data: string } {
   try {
@@ -299,7 +312,7 @@ function encryptData(plainText: string): { initialVector: string; data: string }
     };
   } catch (error: any) {
     logBackendError(__filename, error?.message || `Unable to encrypt data ${plainText}`, null, null, error?.stack);
-    throw httpErrors.InternalServerError(`Unable to process request. Please try again`);
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 }
 
@@ -314,23 +327,28 @@ function decryptData(cipherText: string, initialVector: string): { data: string 
     return { data: decryptedData.toString() };
   } catch (error: any) {
     logBackendError(__filename, error?.message || `Unable to decrypt data ${cipherText}`, null, null, error?.stack);
-    throw httpErrors.InternalServerError(`Unable to process request. Please try again`);
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 }
 
 async function getTokenExpTime(): Promise<number> {
   // const dayRemainingTime = parseInt(moment.duration(moment().endOf('day')).asMinutes().toString());
+  try {
+    const endOfDay: moment.Moment = moment().endOf('day');
+    const dayRemainingTime: number = parseInt(moment.duration(endOfDay.diff(moment())).asMinutes().toString());
 
-  const endOfDay: moment.Moment = moment().endOf('day');
-  const dayRemainingTime: number = parseInt(moment.duration(endOfDay.diff(moment())).asMinutes().toString());
+    const JWT_ACCESS_TOKEN_EXP_MINS = GlobalConfig.JWT_ACCESS_TOKEN_EXP_MINS;
 
-  const JWT_ACCESS_TOKEN_EXP_MINS = GlobalConfig.JWT_ACCESS_TOKEN_EXP_MINS;
+    if (!JWT_ACCESS_TOKEN_EXP_MINS)
+      throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_ACCESS_TOKEN_EXP_MINS]`);
 
-  if (!JWT_ACCESS_TOKEN_EXP_MINS)
-    throw httpErrors.UnprocessableEntity(`Unable to process Constant [JWT_ACCESS_TOKEN_EXP_MINS]`);
+    // console.log(JWT_ACCESS_TOKEN_EXP_MINS, dayRemainingTime);
+    return JWT_ACCESS_TOKEN_EXP_MINS < dayRemainingTime ? JWT_ACCESS_TOKEN_EXP_MINS : dayRemainingTime;
 
-  // console.log(JWT_ACCESS_TOKEN_EXP_MINS, dayRemainingTime);
-  return JWT_ACCESS_TOKEN_EXP_MINS < dayRemainingTime ? JWT_ACCESS_TOKEN_EXP_MINS : dayRemainingTime;
+  } catch (error: any) {
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
+  }
+
 }
 
 
@@ -338,62 +356,21 @@ function arrayDifference(masterArray: string[], valuesToCompare: string[][]): Ar
   try {
     return _.difference(masterArray, ...valuesToCompare);
   } catch (error: any) {
-    return error
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 }
 
-// async function calculateTimeSummary(record: any): Promise<any> {
-//   let totalLoggedInTime = 0;
-//   let totalBreakTime = 0;
-//   let totalLoggedInTimeWithoutBreaks = 0;
-//   let checkInTime = null;
-//   let isInBreak = false;
-//   let breakStartTime = null;
+function convertTimeToDate(time: string, date: any): Moment {
+  // Convert the time to milliseconds
+  const timeArr = time.split(':');
+  const convertedDate = moment(date).set({
+    hour: parseInt(timeArr[0]),
+    minute: parseInt(timeArr[1]),
+    second: parseInt(timeArr[2])
+  });
+  return convertedDate;
+}
 
-//   for (let i = 0; i < record.activities.length; i++) {
-//     const activity = record.activities[i];
-
-//     if (activity.activity === 'checkin') {
-//       // Set the check-in time
-//       checkInTime = moment(activity.time, 'HH:mm:ss');
-//     } else if (activity.activity === 'breakin') {
-//       // Set the break start time
-//       isInBreak = true;
-//       breakStartTime = moment(activity.time, 'HH:mm:ss');
-//     } else if (activity.activity === 'breakout') {
-//       if (isInBreak && checkInTime) {
-//         // Calculate the break duration and add it to the total break time
-//         const breakEndTime = moment(activity.time, 'HH:mm:ss');
-//         const breakDuration = moment.duration(breakEndTime.diff(breakStartTime)).asMilliseconds();
-//         totalBreakTime += breakDuration;
-
-//         // Reset the break start time and break status
-//         breakStartTime = null;
-//         isInBreak = false;
-//       }
-//     } else if (activity.activity === 'checkout') {
-//       if (checkInTime) {
-//         // Calculate the duration between check-in and check-out
-//         const checkOutTime = moment(activity.time, 'HH:mm:ss');
-//         const duration = moment.duration(checkOutTime.diff(checkInTime)).asMilliseconds();
-//         totalLoggedInTime += duration;
-
-//         // Calculate the duration between check-in and check-out excluding breaks
-//         const durationWithoutBreaks = duration - totalBreakTime;
-//         totalLoggedInTimeWithoutBreaks += durationWithoutBreaks;
-
-//         // Reset the check-in time for the next pair of activities
-//         checkInTime = null;
-//       }
-//     }
-//   }
-
-//   return {
-//     totalLoggedInTime,
-//     totalBreakTime,
-//     totalLoggedInTimeWithoutBreaks,
-//   };
-// }
 
 async function calculateTimeSummary(userActivity: any): Promise<any> {
   try {
@@ -420,36 +397,35 @@ async function calculateTimeSummary(userActivity: any): Promise<any> {
         }
       }
       for (let i = 0; i < Math.min(checkInTimes.length, checkOutTimes.length); i++) {
-        const checkInTime = checkInTimes[i];
-        const checkOutTime = checkOutTimes[i];
+        const checkInTime = convertTimeToDate(checkInTimes[i], userActivity.createdAt);
+        const checkOutTime = convertTimeToDate(checkOutTimes[i], userActivity.createdAt);
         totalLoggedInTime += moment.duration(checkOutTime.diff(checkInTime)).asMilliseconds();
       }
       if (checkInTimes.length > checkOutTimes.length) {
-        const checkInTime = checkInTimes[checkInTimes.length - 1];
+        const checkInTime = convertTimeToDate(checkInTimes[checkInTimes.length - 1], userActivity.createdAt);
         const checkOutTime = moment();
         totalLoggedInTime += moment.duration(checkOutTime.diff(checkInTime)).asMilliseconds();
       }
 
       for (let i = 0; i < Math.min(breakInTimes.length, breakOutTimes.length); i++) {
-        const breakInTime = breakInTimes[i];
-        const breakOutTime = breakOutTimes[i];
+        const breakInTime = convertTimeToDate(breakInTimes[i], userActivity.createdAt);
+        const breakOutTime = convertTimeToDate(breakOutTimes[i], userActivity.createdAt);
         totalBreakTime += moment.duration(breakOutTime.diff(breakInTime)).asMilliseconds();
       }
       if (breakInTimes.length > breakOutTimes.length) {
-        const breakInTime = breakInTimes[breakInTimes.length - 1]
+        const breakInTime = convertTimeToDate(breakInTimes[breakInTimes.length - 1], userActivity.createdAt);
         const breakOutTime = moment();
         totalBreakTime += moment.duration(breakOutTime.diff(breakInTime)).asMilliseconds();
       }
     }
     const totalLoggedInTimeWithoutBreaks = totalLoggedInTime - totalBreakTime;
-    console.log(totalLoggedInTimeWithoutBreaks);
     return {
       totalLoggedInTime,
       totalBreakTime,
       totalLoggedInTimeWithoutBreaks
     }
   } catch (error: any) {
-    return error;
+    throw httpErrors.InternalServerError(error);
   }
 }
 

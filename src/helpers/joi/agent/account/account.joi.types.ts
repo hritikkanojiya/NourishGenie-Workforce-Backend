@@ -1,8 +1,8 @@
 import { MetaDataResponse } from '../../../../helpers/shared/shared.type';
 import mongoose from 'mongoose';
-//import { AppAgentType } from '../agent.joi.types';
+//import { AppUserType } from '../User.joi.types';
 
-export interface CreateAppAgentType {
+export interface CreateAppUserType {
   //user basic details
   //directory: string;
   first_name: string;
@@ -48,8 +48,8 @@ export interface CreateAppAgentType {
   // aadhar_number: string;
   // pan_number: string;
 }
-export interface GetAppAgentType {
-  appAgentId: mongoose.Types.ObjectId | null;
+export interface GetAppUserType {
+  appUserId: mongoose.Types.ObjectId | null;
   appAccessGroupId: mongoose.Types.ObjectId | null;
   isAdministrator: boolean | null;
   search: string | null;
@@ -63,19 +63,19 @@ export interface GetAppAgentType {
 //   // documents: File[];
 // }
 
-export interface DeleteAppAgentType {
-  appAgentId: mongoose.Types.ObjectId;
+export interface DeleteAppUserType {
+  appUserId: mongoose.Types.ObjectId;
 }
 
-export interface FilterAgentType {
+export interface FilterUserType {
   appDepartmentId: mongoose.Types.ObjectId;
   appDesignationId: mongoose.Types.ObjectId;
   metaData: MetaDataResponse;
   search: string | null;
 }
 
-export interface UpdateAppAgentType {
-  appAgentId: mongoose.Types.ObjectId;
+export interface UpdateAppUserType {
+  appUserId: mongoose.Types.ObjectId;
   //user basic details
   first_name: string;
   last_name: string;

@@ -1,4 +1,4 @@
-import appDesignationModel from '../../../../models/agent/fields/app_designation.model';
+import { appUserDesignationModel } from '../../../../models/agent/fields/app_designation.model';
 import { NextFunction, Request, Response } from 'express';
 import httpErrors from 'http-errors';
 import {
@@ -29,14 +29,14 @@ export const createAppDesignation = async (req: Request, res: Response, next: Ne
     const appDesignationDetails: CreateAppDesignationType =
       await joiAppDesignation.createAppDesignationSchema.validateAsync(req.body);
     // Check if designation exist in Collection
-    const doesDesignationExist = await appDesignationModel.find({
+    const doesDesignationExist = await appUserDesignationModel.find({
       name: appDesignationDetails.name,
       isDeleted: false
     });
     if (doesDesignationExist?.length > 0)
       throw httpErrors.Conflict(`designation [${appDesignationDetails.name}] already exist.`);
     // Else Construct Data
-    const appDesignation = new appDesignationModel({
+    const appDesignation = new appUserDesignationModel({
       name: appDesignationDetails.name,
       description: appDesignationDetails.description,
       isDeleted: false
@@ -100,14 +100,14 @@ export const getAppDesignation = async (req: Request, res: Response, next: NextF
         }
       ];
     // Execute the Query
-    const appDesignations = await appDesignationModel
+    const appDesignations = await appUserDesignationModel
       .find(query, {}, {})
       .select(fieldsToInclude)
       .sort({ [metaData.sortOn]: metaData.sortBy })
       .skip(metaData.offset)
       .limit(metaData.limit)
       .lean()
-      .catch(error => {
+      .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(
           error?.message ? error.message : 'Unable to retrieve records from Database.'
         );
@@ -121,7 +121,7 @@ export const getAppDesignation = async (req: Request, res: Response, next: NextF
         return appDesignation;
       })
     );
-    const totalRecords = await appDesignationModel.find(query).countDocuments();
+    const totalRecords = await appUserDesignationModel.find(query).countDocuments();
     convertDateTimeFormat(appDesignations);
     // Send Response
     if (res.headersSent === false) {
@@ -156,7 +156,7 @@ export const getSingleDesignation = async (req: Request, res: Response, next: Ne
     const getSingleDesignationDetails: GetSingleDesignation =
       await joiAppDesignation.getSingleDesignationSchema.validateAsync(req.body);
     //check if the dept exists
-    const designation = await appDesignationModel
+    const designation = await appUserDesignationModel
       .findOne({
         _id: getSingleDesignationDetails.appDesignationId,
         isDeleted: false
@@ -197,14 +197,14 @@ export const updateAppDesignation = async (req: Request, res: Response, next: Ne
     const appdesignationDetails: UpdateAppDesignationType =
       await joiAppDesignation.updateAppDesignationSchema.validateAsync(req.body);
     // Check if designation exist in Collection
-    const doesdesignationExist = await appDesignationModel.findOne({
+    const doesdesignationExist = await appUserDesignationModel.findOne({
       _id: { $in: appdesignationDetails.appDesignationId },
       isDeleted: false
     });
 
     if (!doesdesignationExist) throw httpErrors.Conflict(`Group [${appdesignationDetails.name}] does not exist.`);
     // Update records in Collection
-    await appDesignationModel
+    await appUserDesignationModel
       .updateOne(
         { _id: { $in: appdesignationDetails.appDesignationId } },
         {
@@ -240,7 +240,7 @@ export const deleteAppDesignation = async (req: Request, res: Response, next: Ne
     const appDesignationDetails: DeleteAppDesignationType =
       await joiAppDesignation.deleteAppDesignationSchema.validateAsync(req.body);
     // Update records in Collection
-    const appDesignation = await appDesignationModel
+    const appDesignation = await appUserDesignationModel
       .find({
         _id: { $in: appDesignationDetails.appDesignationIds },
         isDeleted: false
@@ -251,7 +251,7 @@ export const deleteAppDesignation = async (req: Request, res: Response, next: Ne
 
     if (appDesignation?.length <= 0) throw httpErrors.UnprocessableEntity(`Invalid Designation IDs.`);
     //Delete record by updating the isDelete value to true
-    appDesignation.forEach(async designation => {
+    appDesignation.forEach(async (designation: any) => {
       await designation
         .updateOne({
           isDeleted: true

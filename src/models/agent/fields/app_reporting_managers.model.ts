@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const appReportingManagerSchema = new mongoose.Schema(
   {
     //foreign key
-    appAgentId: {
+    appUserId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'app_agents',
       required: true
@@ -18,4 +18,8 @@ const appReportingManagerSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_reporting_manager', appReportingManagerSchema);
+const appReportingManagerModel = mongoose.model('app_reporting_manager', appReportingManagerSchema);
+
+export {
+  appReportingManagerModel
+}

@@ -5,7 +5,7 @@ import {
   sanitizeUrl,
   stringToObjectId
 } from '../../helpers/common/backend.functions';
-import appRouteModel from '../../models/permissions/service_routes/service_routes.model';
+import { appServiceRouteModel } from '../../models/permissions/service_routes/service_routes.model';
 import { RequestType } from '../../helpers/shared/shared.type';
 import { Types } from 'mongoose';
 
@@ -14,7 +14,7 @@ const validateRouteAccess = async (req: RequestType, _res: Response, next: NextF
     // Sanitize Route
     const requestRoute: string = sanitizeUrl(req.baseUrl + req.route.path);
     // Find route within Collection
-    const routeDetails = await appRouteModel.findOne({
+    const routeDetails = await appServiceRouteModel.findOne({
       method: req.method,
       path: requestRoute,
       isDeleted: false

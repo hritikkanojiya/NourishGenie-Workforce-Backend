@@ -7,8 +7,8 @@ import {
   logBackendError
 } from '../../../../helpers/common/backend.functions';
 import httpErrors from 'http-errors';
-import appAgentModel from '../../../../models/agent/agent.model';
-import appReportingManagerModel from '../../../../models/agent/fields/app_reporting_managers.model';
+import { appUserModel } from '../../../../models/agent/agent.model';
+import { appReportingManagerModel } from '../../../../models/agent/fields/app_reporting_managers.model';
 
 import {
   CreateAppReportingManagerType,
@@ -29,24 +29,24 @@ export const createAppReportingManager = async (req: Request, res: Response, nex
       await joiAppReportingManager.createAppReportingManagerSchema.validateAsync(req.body);
     // Check if reporting manager exist in Collection
     const doesReportingManagerExist = await appReportingManagerModel.findOne({
-      appAgentId: appReportingManagerDetails.appAgentId,
+      appUserId: appReportingManagerDetails.appUserId,
       isDeleted: false
     });
     if (doesReportingManagerExist)
       throw httpErrors.Conflict(
-        `Reporting Manager with app agent Id [${appReportingManagerDetails.appAgentId}] already exist.`
+        `Reporting Manager with app agent Id [${appReportingManagerDetails.appUserId}] already exist.`
       );
     // Check if Agent exist in Collection
-    const doesAgentExist = await appAgentModel.findOne({
-      _id: appReportingManagerDetails.appAgentId,
+    const doesAgentExist = await appUserModel.findOne({
+      _id: appReportingManagerDetails.appUserId,
       isDeleted: false
     });
     if (!doesAgentExist)
-      throw httpErrors.Conflict(`Agent with Id [${appReportingManagerDetails.appAgentId}] does not exist.`);
+      throw httpErrors.Conflict(`Agent with Id [${appReportingManagerDetails.appUserId}] does not exist.`);
 
     // Else Construct Data
     const appReportingManager = new appReportingManagerModel({
-      appAgentId: appReportingManagerDetails.appAgentId
+      appUserId: appReportingManagerDetails.appUserId
     });
     // Save Record in Collection
     const storeAppReportingManagerDetails = await appReportingManager.save().catch((error: any) => {
@@ -62,7 +62,7 @@ export const createAppReportingManager = async (req: Request, res: Response, nex
         data: {
           appReportingManager: {
             appManagerId: storeAppReportingManagerDetails._id,
-            appAgentId: storeAppReportingManagerDetails.appAgentId,
+            appUserId: storeAppReportingManagerDetails.appUserId,
             createdAt: storeAppReportingManagerDetails.createdAt,
             updatedAt: storeAppReportingManagerDetails.updatedAt
           },
@@ -91,16 +91,16 @@ export const getAppReportingManager = async (req: Request, res: Response, next: 
     const fieldsToInclude = getFieldsToInclude(metaData.fields);
     const query: GetAppReportingManagerQueryType = { isDeleted: false };
     if (querySchema.appManagerId) query._id = querySchema.appManagerId;
-    if (querySchema.appAgentId) query.appAgentId = querySchema.appAgentId;
+    if (querySchema.appUserId) query.appUserId = querySchema.appUserId;
     if (querySchema.search && querySchema.search.trim() !== '') {
       // Find app_agents with matching email
-      const appAgentsWithEmail = await appAgentModel
+      const appAgentsWithEmail = await appUserModel
         .find({ email: new RegExp(querySchema.search.trim(), 'i') }, '_id')
         .lean()
         .exec();
-      // If any app_agents found, add them to the query for appAgentId
+      // If any app_agents found, add them to the query for appUserId
       if (appAgentsWithEmail.length > 0) {
-        query.appAgentId = { $in: appAgentsWithEmail.map((agent: any) => agent._id) } as any;
+        query.appUserId = { $in: appAgentsWithEmail.map((user: any) => user._id) } as any;
       } else {
         // If no matching app_agents found, return an empty result
         res.status(200).send({
@@ -123,13 +123,13 @@ export const getAppReportingManager = async (req: Request, res: Response, next: 
     // Execute the Query
     const appManagers = await appReportingManagerModel
       .find(query, {}, {})
-      .populate('appAgentId', 'email')
+      .populate('appUserId', 'email')
       .select(fieldsToInclude)
       .sort({ [metaData.sortOn]: metaData.sortBy })
       .skip(metaData.offset)
       .limit(metaData.limit)
       .lean()
-      .catch(error => {
+      .catch((error: any) => {
         throw httpErrors.UnprocessableEntity(
           error?.message ? error.message : 'Unable to retrieve records from Database.'
         );
@@ -186,19 +186,19 @@ export const updateAppReportingManager = async (req: Request, res: Response, nex
         `Reporting Manager with Id [${appReportingManagerDetails.appManagerId}] does not exist.`
       );
     // Check if Agent exist in Collection
-    const doesAgentExist = await appAgentModel.findOne({
-      _id: appReportingManagerDetails.appAgentId,
+    const doesAgentExist = await appUserModel.findOne({
+      _id: appReportingManagerDetails.appUserId,
       isDeleted: false
     });
     if (!doesAgentExist)
-      throw httpErrors.Conflict(`Agent with Id [${appReportingManagerDetails.appAgentId}] does not exist.`);
+      throw httpErrors.Conflict(`Agent with Id [${appReportingManagerDetails.appUserId}] does not exist.`);
 
     // Update records in Collection
     await appReportingManagerModel
       .updateOne(
         { _id: { $in: appReportingManagerDetails.appManagerId } },
         {
-          appAgentId: appReportingManagerDetails.appAgentId
+          appUserId: appReportingManagerDetails.appUserId
         }
       )
       .catch((error: any) => {
@@ -273,8 +273,8 @@ export const getNonReportingManager = async (req: Request, res: Response, next: 
         error?.message ? error.message : 'Unable to retrieve records from Database.'
       );
     });
-    const userIds = reportingManagers.map(manager => manager.appAgentId);
-    const users = await appAgentModel.find({ _id: { $nin: userIds }, isDeleted: false });
+    const userIds = reportingManagers.map((manager: any) => manager.appUserId);
+    const users = await appUserModel.find({ _id: { $nin: userIds }, isDeleted: false });
     //send response
     res.status(201).json({
       message: `Non Reporting Managers fetched successfully.`,

@@ -24,4 +24,8 @@ const appDepartmentSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_department', appDepartmentSchema);
+const appUserDepartmentModel = mongoose.model('app_department', appDepartmentSchema);
+
+export {
+  appUserDepartmentModel
+}

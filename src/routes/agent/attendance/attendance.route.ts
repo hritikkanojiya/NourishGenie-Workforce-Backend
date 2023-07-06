@@ -15,7 +15,7 @@ userAttendanceRouterV1.post(
     '/get-attendance',
     jwtModule.verifyAccessToken,
     permissionsModule.validateRouteAccess,
-    userAttendanceContoller.getUsersMonthAttendance
+    userAttendanceContoller.getUsersAttendance
 );
 
 

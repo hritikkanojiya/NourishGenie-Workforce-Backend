@@ -1,32 +1,32 @@
-import appAgentModel from '../../../models/agent/agent.model';
+import { appUserModel } from '../../../models/agent/agent.model';
 // import { findOne } from '../../../models/permissions/access_group/access_group.model';
 import { logBackendError } from '../../common/backend.functions';
 import { socketio } from '../../common/init_socket';
 // import { ISocket } from '../../shared/backend.interface';
-import appAccessGroupModel from '../../../models/permissions/access_group/access_group.model';
+import { appAccessGroupModel } from '../../../models/permissions/access_group/access_group.model';
 // import { IAgent } from '../../shared/backend.interface';
 
 
-const connectedAgents: Record<string, { socketId: string }> = {};
+const connectedUsers: Record<string, { socketId: string }> = {};
 
 // socket.io stream
 socketio.on('connection', async (socket: any) => {
   try {
-    const appAgentId = socket?.appAgent?.payloadData?.appAgentId;
+    const appUserId = socket?.appUser?.payloadData?.appUserId;
 
-    if (!appAgentId) {
-      throw new Error('Invalid Agent Details.');
+    if (!appUserId) {
+      throw new Error('Invalid User Details.');
     }
 
     socket.on('forceLogout', (data: string) => {
       console.log('forceLogout', data);
-      socketio.to(connectedAgents[data].socketId).emit('forceLogout');
+      socketio.to(connectedUsers[data].socketId).emit('forceLogout');
     });
 
     // Global Event Emitters
-    const __agentConnected = async (): Promise<void> => {
+    const __userConnected = async (): Promise<void> => {
       try {
-        socketio.emit('agentConnected', await agentConnected(socket, appAgentId));
+        socketio.emit('agentConnected', await userConnected(socket, appUserId));
       } catch (error: any) {
         console.error('Error while handling agent connection:', error);
         // send an error message back to the client
@@ -34,9 +34,9 @@ socketio.on('connection', async (socket: any) => {
       }
     };
 
-    const __agentDisconnected = async (reason: string): Promise<void> => {
+    const __userDisconnected = async (reason: string): Promise<void> => {
       try {
-        socketio.emit('agentDisconnected', await agentDisconnected(socket, reason, appAgentId));
+        socketio.emit('agentDisconnected', await userDisconnected(socket, reason, appUserId));
       } catch (error: any) {
         console.error('Error while handling agent connection:', error);
         // send an error message back to the client
@@ -44,9 +44,9 @@ socketio.on('connection', async (socket: any) => {
       }
     };
 
-    const __connectedAgents = async (): Promise<void> => {
+    const __connectedUsers = async (): Promise<void> => {
       try {
-        socketio.emit('connectedAgents', await getConnectedAgents(socket));
+        socketio.emit('connectedUsers', await getConnectedUser(socket));
       } catch (error: any) {
         console.error('Error while handling agent connection:', error);
         // send an error message back to the client
@@ -54,14 +54,14 @@ socketio.on('connection', async (socket: any) => {
       }
     };
 
-    __agentConnected();
-    __connectedAgents();
+    __userConnected();
+    __connectedUsers();
 
     // Global Event Listeners
     socket.on('disconnect', (reason: string) => {
       try {
-        __agentDisconnected(reason);
-        __connectedAgents();
+        __userDisconnected(reason);
+        __connectedUsers();
       } catch (error: any) {
         console.error('Error while handling agent connection:', error);
         // send an error message back to the client
@@ -80,14 +80,14 @@ socketio.on('connection', async (socket: any) => {
   }
 });
 
-const getConnectedAgents = async (socket: any): Promise<any[] | object> => {
+const getConnectedUser = async (socket: any): Promise<any[] | object> => {
   try {
-    const connectedAgentIds = Object.keys(connectedAgents);
+    const connectedAgentIds = Object.keys(connectedUsers);
     const agents: any[] = [];
     await Promise.all(
-      connectedAgentIds.map(async (appAgentId: string) => {
+      connectedAgentIds.map(async (appUserId: string) => {
         try {
-          const data = await __getAgentDetails(appAgentId);
+          const data = await __getUserDetails(appUserId);
           if (typeof data != 'object') agents.push(data);
           else throw data;
         } catch (error: any) {
@@ -102,7 +102,7 @@ const getConnectedAgents = async (socket: any): Promise<any[] | object> => {
     logBackendError(
       __filename,
       error?.message,
-      'socket.io => getConnectedAgents',
+      'socket.io => getconnectedUsers',
       socket?.handshake?.address,
       null,
       error?.stack
@@ -111,11 +111,11 @@ const getConnectedAgents = async (socket: any): Promise<any[] | object> => {
   }
 };
 
-const agentConnected = async (socket: any, appAgentId: string): Promise<any | object | undefined> => {
+const userConnected = async (socket: any, appUserId: string): Promise<any | object | undefined> => {
   try {
-    console.log(`Agent [${appAgentId}] Connected with Socket ID [${socket.id}]`);
-    connectedAgents[appAgentId] = { socketId: socket?.id };
-    return await __getAgentDetails(appAgentId);
+    console.log(`Agent [${appUserId}] Connected with Socket ID [${socket.id}]`);
+    connectedUsers[appUserId] = { socketId: socket?.id };
+    return await __getUserDetails(appUserId);
   } catch (error: any) {
     logBackendError(
       __filename,
@@ -129,9 +129,9 @@ const agentConnected = async (socket: any, appAgentId: string): Promise<any | ob
   }
 };
 
-const getAppAgentConnectionDetails = async (appAgentId: string): Promise<object> => {
+const getAppUserConnectionDetails = async (appUserId: string): Promise<object> => {
   try {
-    const connectionDetails = connectedAgents[appAgentId];
+    const connectionDetails = connectedUsers[appUserId];
     return connectionDetails ? connectionDetails : {};
   } catch (error: any) {
     logBackendError(__filename, error?.message, 'socket.io => getAgentSocketId', null, null, error?.stack);
@@ -139,16 +139,16 @@ const getAppAgentConnectionDetails = async (appAgentId: string): Promise<object>
   }
 };
 
-const agentDisconnected = async (socket: any, _reason: string, appAgentId: string): Promise<any | object> => {
+const userDisconnected = async (socket: any, _reason: string, appUserId: string): Promise<any | object> => {
   try {
-    delete connectedAgents[appAgentId];
-    console.log(`Agent [${appAgentId}] Disconnected`);
-    return await __getAgentDetails(appAgentId);
+    delete connectedUsers[appUserId];
+    console.log(`User [${appUserId}] Disconnected`);
+    return await __getUserDetails(appUserId);
   } catch (error: any) {
     logBackendError(
       __filename,
       error?.message,
-      'socket.io => agentDisconnected',
+      'socket.io => userDisconnected',
       socket?.handshake?.address,
       null,
       error?.stack
@@ -157,19 +157,19 @@ const agentDisconnected = async (socket: any, _reason: string, appAgentId: strin
   }
 };
 
-const forceLogoutAgent = (agentConnectionDetails: any): void => {
+const forceLogoutUser = (agentConnectionDetails: any): void => {
   if (agentConnectionDetails) {
     socketio.to(agentConnectionDetails?.socketId).emit('forceLogout');
   }
 };
 
 // Private methods
-const __getAgentDetails = (appAgentId: string): Promise<any | object> => {
+const __getUserDetails = (appUserId: string): Promise<any | object> => {
   try {
     return new Promise((resolve, reject) => {
-      appAgentModel
+      appUserModel
         .findOne(
-          { _id: (appAgentId), isDeleted: false },
+          { _id: (appUserId), isDeleted: false },
           {
             __v: 0,
             password: 0,
@@ -178,14 +178,14 @@ const __getAgentDetails = (appAgentId: string): Promise<any | object> => {
           }
         )
         .lean()
-        .then((appAgent: any) => {
-          if (!appAgent) {
-            return reject(new Error(`Unable to fetch Agent Details [${appAgentId}]`));
+        .then((appUser: any) => {
+          if (!appUser) {
+            return reject(new Error(`Unable to fetch Agent Details [${appUserId}]`));
           }
 
           appAccessGroupModel
             .findOne({
-              _id: appAgent?.appAccessGroupId,
+              _id: appUser?.appAccessGroupId,
               isDeleted: false
             })
             .select({ name: 1, description: 1, isAdministrator: 1 })
@@ -193,24 +193,24 @@ const __getAgentDetails = (appAgentId: string): Promise<any | object> => {
             .then((appAccessGroup: any) => {
               if (!appAccessGroup)
                 return reject(
-                  new Error(`Unable to fetch Agent's Access Group Details [${appAgent?.appAccessGroupId}]`)
+                  new Error(`Unable to fetch Agent's Access Group Details [${appUser?.appAccessGroupId}]`)
                 );
 
-              appAgent.appAccessGroup = {
+              appUser.appAccessGroup = {
                 appAccessGroupId: appAccessGroup?._id,
                 name: appAccessGroup?.name,
                 description: appAccessGroup?.description,
                 isAdministrator: appAccessGroup?.isAdministrator
               };
 
-              appAgent.appAgentId = appAgent?._id;
-              delete appAgent?.appAccessGroupId;
-              delete appAgent?._id;
-              return resolve(appAgent);
+              appUser.appUserId = appUser?._id;
+              delete appUser?.appAccessGroupId;
+              delete appUser?._id;
+              return resolve(appUser);
             })
             .catch(error => reject(error));
         })
-        .catch(error => reject(error));
+        .catch((error: any) => reject(error));
     });
   } catch (error: any) {
     logBackendError(__filename, error?.message, 'socket.io => __getAgentDetails', null, null, error?.stack);
@@ -218,4 +218,4 @@ const __getAgentDetails = (appAgentId: string): Promise<any | object> => {
   }
 };
 
-export { getConnectedAgents, agentConnected, agentDisconnected, getAppAgentConnectionDetails, forceLogoutAgent };
+export { getConnectedUser, userConnected, userDisconnected, getAppUserConnectionDetails, forceLogoutUser };

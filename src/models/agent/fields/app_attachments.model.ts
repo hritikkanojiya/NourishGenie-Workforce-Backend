@@ -36,4 +36,8 @@ const appAttachmentsSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_attachment', appAttachmentsSchema);
+const appUserAttachmentModel = mongoose.model('app_attachment', appAttachmentsSchema);
+
+export {
+  appUserAttachmentModel
+}

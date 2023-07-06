@@ -39,4 +39,8 @@ const AppServiceRouteSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_service_routes', AppServiceRouteSchema);
+const appServiceRouteModel = mongoose.model('app_service_routes', AppServiceRouteSchema);
+
+export {
+  appServiceRouteModel
+}

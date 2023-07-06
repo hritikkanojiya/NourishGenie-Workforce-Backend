@@ -4,7 +4,7 @@ import { MetaDataResponse, QuerySchemaType } from '../../../../shared/shared.typ
 export interface AppReportingManagerType {
   _id?: mongoose.Types.ObjectId;
   appManagerId?: mongoose.Types.ObjectId;
-  appAgentId?: mongoose.Types.ObjectId;
+  appUserId?: mongoose.Types.ObjectId;
   isDeleted?: boolean;
   __v?: number;
   createdAt?: Date;
@@ -14,20 +14,20 @@ export interface AppReportingManagerType {
 }
 
 export interface CreateAppReportingManagerType {
-  appAgentId: mongoose.Types.ObjectId;
+  appUserId: mongoose.Types.ObjectId;
   isDeleted: boolean;
 }
 
 export interface GetAppReportingManagerType {
   appManagerId: mongoose.Types.ObjectId | null;
-  appAgentId: mongoose.Types.ObjectId | null;
+  appUserId: mongoose.Types.ObjectId | null;
   search: string | null;
   metaData: MetaDataResponse;
 }
 
 export interface UpdateAppReportingManagerType {
   appManagerId: mongoose.Types.ObjectId;
-  appAgentId: mongoose.Types.ObjectId;
+  appUserId: mongoose.Types.ObjectId;
   isDeleted: boolean;
 }
 
@@ -36,6 +36,6 @@ export interface DeleteAppReportingManagerType {
 }
 
 export interface GetAppReportingManagerQueryType extends QuerySchemaType {
-  appAgentId?: mongoose.Types.ObjectId;
+  appUserId?: mongoose.Types.ObjectId;
   $or?: Array<mongoose.FilterQuery<AppReportingManagerType>>;
 }

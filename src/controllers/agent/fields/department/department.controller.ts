@@ -8,7 +8,7 @@ import {
   getFieldsToInclude,
   logBackendError
 } from '../../../../helpers/common/backend.functions';
-import appDepartmentModel from '../../../../models/agent/fields/app_department.model';
+import { appUserDepartmentModel } from '../../../../models/agent/fields/app_department.model';
 import httpErrors from 'http-errors';
 import {
   joiAppDepartment,
@@ -31,14 +31,14 @@ export const createAppDepartment = async (req: Request, res: Response, next: Nex
     const appDepartmentDetails: CreateAppDepartmentType =
       await joiAppDepartment.createAppDepartmentSchema.validateAsync(req.body);
     // Check if department exist in Collection
-    const doesDepartmentExist = await appDepartmentModel.find({
+    const doesDepartmentExist = await appUserDepartmentModel.find({
       name: appDepartmentDetails.name,
       isDeleted: false
     });
     if (doesDepartmentExist?.length > 0)
       throw httpErrors.Conflict(`department [${appDepartmentDetails.name}] already exist.`);
     // Else Construct Data
-    const appDepartment = new appDepartmentModel({
+    const appDepartment = new appUserDepartmentModel({
       name: appDepartmentDetails.name,
       description: appDepartmentDetails.description
     });
@@ -86,6 +86,7 @@ export const getAppDepartment = async (req: Request, res: Response, next: NextFu
     const query: GetAppDepartmentQueryType = { isDeleted: false };
 
     if (querySchema.appDepartmentId) query._id = querySchema.appDepartmentId;
+    console.log(querySchema);
 
     if (querySchema.search)
       query.$or = [
@@ -103,7 +104,7 @@ export const getAppDepartment = async (req: Request, res: Response, next: NextFu
         }
       ];
     // Execute the Query
-    const appDepartments = await appDepartmentModel
+    const appDepartments = await appUserDepartmentModel
       .find(query, {}, {})
       .select(fieldsToInclude)
       .sort({ [metaData.sortOn]: metaData.sortBy })
@@ -124,7 +125,7 @@ export const getAppDepartment = async (req: Request, res: Response, next: NextFu
         return appDepartment;
       })
     );
-    const totalRecords = await appDepartmentModel.find(query).countDocuments();
+    const totalRecords = await appUserDepartmentModel.find(query).countDocuments();
 
     convertDateTimeFormat(appDepartments);
     // Send Response
@@ -161,7 +162,7 @@ export const getSingleDepartment = async (req: Request, res: Response, next: Nex
       await joiAppDepartment.getSingleDepartmentSchema.validateAsync(req.body);
     //check if the dept exists
     console.log(getSingleDepartmentDetails);
-    const department = await appDepartmentModel
+    const department = await appUserDepartmentModel
       .findOne({
         _id: getSingleDepartmentDetails.appDepartmentId,
         isDeleted: false
@@ -200,7 +201,7 @@ export const deleteAppDepartment = async (req: Request, res: Response, next: Nex
     const appDepartmentDetails: DeleteAppDepartmentType =
       await joiAppDepartment.deleteAppDepartmentSchema.validateAsync(req.body);
     // Update records in Collection
-    const appDepartment = await appDepartmentModel
+    const appDepartment = await appUserDepartmentModel
       .find({
         _id: { $in: appDepartmentDetails.appDepartmentIds },
         isDeleted: false
@@ -211,7 +212,7 @@ export const deleteAppDepartment = async (req: Request, res: Response, next: Nex
 
     if (appDepartment?.length <= 0) throw httpErrors.UnprocessableEntity(`Invalid Department ID.`);
     //Delete record by updating the isDelete value to true
-    appDepartment.forEach(async department => {
+    appDepartment.forEach(async (department: any) => {
       await department
         .updateOne({
           isDeleted: true
@@ -245,14 +246,14 @@ export const updateAppDepartment = async (req: Request, res: Response, next: Nex
     const appDepartmentDetails: UpdateAppDepartmentType =
       await joiAppDepartment.updateAppDepartmentSchema.validateAsync(req.body);
     // Check if department exist in Collection
-    const doesDepartmentExist = await appDepartmentModel.findOne({
+    const doesDepartmentExist = await appUserDepartmentModel.findOne({
       _id: appDepartmentDetails.appDepartmentId,
       isDeleted: false
     });
 
     if (!doesDepartmentExist) throw httpErrors.Conflict(`Group [${appDepartmentDetails.name}] does not exist.`);
     // Update records in Collection
-    await appDepartmentModel
+    await appUserDepartmentModel
       .updateOne(
         { _id: { $in: appDepartmentDetails.appDepartmentId } },
         {

@@ -1,6 +1,6 @@
 import httpErrors from 'http-errors';
-import appAccessGroupModel from '../../../models/permissions/access_group/access_group.model';
-import appAgentModel from '../../../models/agent/agent.model'
+import { appAccessGroupModel } from '../../../models/permissions/access_group/access_group.model';
+import { appUserModel } from '../../../models/agent/agent.model'
 import {
   compactObject,
   configureMetaData,
@@ -118,7 +118,7 @@ const getAppAccessGroup = async (req: Request, res: Response, next: NextFunction
     await Promise.all(
       appAccessGroups.map(async (appAccessGroup: any) => {
         appAccessGroup.appAccessGroupId = appAccessGroup._id;
-        // appAccessGroup.totalAppAgents = await appAgentModel
+        // appAccessGroup.totalAppAgents = await appUserModel
         //   .find({
         //     appAccessGroupId: appAccessGroup._id,
         //   })
@@ -228,7 +228,7 @@ const deleteAppAccessGroup = async (req: Request, res: Response, next: NextFunct
 
     await Promise.all(
       appAccessGroups.map(async (appAccessGroup) => {
-        const agentsCount = await appAgentModel
+        const agentsCount = await appUserModel
           .find({
             appAccessGroupId: appAccessGroup._id,
           })
@@ -239,7 +239,7 @@ const deleteAppAccessGroup = async (req: Request, res: Response, next: NextFunct
             'AccessGroup with agents assigned cannot be deleted'
           );
 
-        await appAgentModel
+        await appUserModel
           .find({
             appAccessGroupId: appAccessGroup._id,
             isDeleted: false,

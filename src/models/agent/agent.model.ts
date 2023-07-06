@@ -2,12 +2,12 @@ import mongoose from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 // import { required } from 'joi';
-import { AppAgentType } from '../../helpers/joi/agent/index'
-import appDepartmentModel from '../../models/agent/fields/app_department.model'
+import { AppUserType } from '../../helpers/joi/agent/index'
+import { appUserDepartmentModel } from '../../models/agent/fields/app_department.model'
 
 const agentSchema = new mongoose.Schema({
   //Basic Information of Employee
-  appAgentIdOfDepartment: {
+  appUserIdOfDepartment: {
     type: String,
   },
   first_name: {
@@ -72,38 +72,20 @@ const agentSchema = new mongoose.Schema({
   }
 });
 
-// //Hashing the password before storing it in the database
-// agentSchema.pre('save', async function (this: any, next: any): Promise<void> {
-//   if (!this.isModified('password')) {
-//     return next();
-//   }
-//   try {
-//     const salt = await bcrypt.genSalt(10);
-//     const hash = await bcrypt.hash(this.password, salt);
-//     this.password = hash;
-//     return next();
-//   } catch (err) {
-//     return next(err);
-//   }
-// });
-
-
-
-
-agentSchema.pre<AppAgentType>('save', async function (next) {
+agentSchema.pre<AppUserType>('save', async function (next) {
   try {
     // this.appAccessGroupId = this.appAccessGroupId;
-    this.first_name = this.first_name?.replace(/(^\w|\s\w)/g, m => m.toUpperCase());
-    this.last_name = this.last_name?.replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+    this.first_name = this.first_name?.replace(/(^\w|\s\w)/g, (m: string) => m.toUpperCase());
+    this.last_name = this.last_name?.replace(/(^\w|\s\w)/g, (m: string) => m.toUpperCase());
     this.password = await bcrypt.hash(this.password ?? '', 10);
-    this.appAgentIdOfDepartment = await generateAgentId(this.appDepartmentId)
+    this.appUserIdOfDepartment = await generateUserDepartmentId(this.appDepartmentId)
     next();
   } catch (error: any) {
     next(error);
   }
 });
 
-agentSchema.pre<AppAgentType>('updateOne', async function (next) {
+agentSchema.pre<AppUserType>('updateOne', async function (next) {
   try {
     if (this.password) {
       this.password = await bcrypt.hash(this.password, 10);
@@ -114,10 +96,6 @@ agentSchema.pre<AppAgentType>('updateOne', async function (next) {
   }
 });
 
-//match hash password with user entered password
-// agentSchema.methods.isValidPassword = async function (enteredPassword: string): Promise<boolean> {
-//   return await bcrypt.compare(enteredPassword, this.password);
-// };
 agentSchema.methods.isValidPassword = async function (this: any, plainPassword: string): Promise<boolean> {
   return await bcrypt.compare(plainPassword, this.password);
 };
@@ -136,13 +114,13 @@ agentSchema.methods.getSignedJWTToken = function (): string {
   );
 };
 
-const appAgentModel = mongoose.model('app_agents', agentSchema);
+const appUserModel = mongoose.model('app_agents', agentSchema);
 
-export default appAgentModel;
+export { appUserModel };
 
 
-async function generateAgentId(departmentId: any): Promise<string> {
-  const department = await appDepartmentModel.findOne({ _id: departmentId }).catch(error => { throw error })
+async function generateUserDepartmentId(departmentId: any): Promise<string> {
+  const department = await appUserDepartmentModel.findOne({ _id: departmentId }).catch(error => { throw error })
   let prefix;
   if (department?.name == 'Information Technology') {
     prefix = 'NGIT-'
@@ -156,22 +134,22 @@ async function generateAgentId(departmentId: any): Promise<string> {
   else {
     prefix = 'NGCL-'
   }
-  const lastAgent = await appAgentModel.findOne().sort({ _id: -1 }).limit(1);
+  const lastAgent = await appUserModel.findOne().sort({ _id: -1 }).limit(1);
   // let lastCount = await appAgentModel.find().countDocuments();
   let count = 1;
   if (lastAgent) {
     let lastAgentId;
     if (department?.name == 'Information Technology') {
-      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGIT-00';
+      lastAgentId = lastAgent.appUserIdOfDepartment ? lastAgent.appUserIdOfDepartment : 'NGIT-00';
     }
     else if (department?.name == 'Sales') {
-      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGSA-00';
+      lastAgentId = lastAgent.appUserIdOfDepartment ? lastAgent.appUserIdOfDepartment : 'NGSA-00';
     }
     else if (department?.name == 'Customer Service') {
-      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGCS-00';
+      lastAgentId = lastAgent.appUserIdOfDepartment ? lastAgent.appUserIdOfDepartment : 'NGCS-00';
     }
     else {
-      lastAgentId = lastAgent.appAgentIdOfDepartment ? lastAgent.appAgentIdOfDepartment : 'NGCL-00';
+      lastAgentId = lastAgent.appUserIdOfDepartment ? lastAgent.appUserIdOfDepartment : 'NGCL-00';
     }
     let lastCount = parseInt(lastAgentId.replace(prefix, ''), 10);
     if (isNaN(lastCount)) lastCount = 0;

@@ -23,4 +23,8 @@ const appAccessGroupSchema = new mongoose.Schema({
   }
 });
 
-export default mongoose.model('app_access_group', appAccessGroupSchema);
+const appAccessGroupModel = mongoose.model('app_access_group', appAccessGroupSchema);
+
+export {
+  appAccessGroupModel
+}

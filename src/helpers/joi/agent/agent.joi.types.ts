@@ -2,10 +2,10 @@ import { MetaDataResponse } from 'helpers/shared/shared.type';
 import mongoose from 'mongoose';
 
 
-export interface AppAgentType {
+export interface AppUserType {
   _id: mongoose.Types.ObjectId;
-  appAgentId?: mongoose.Types.ObjectId;
-  appAgentIdOfDepartment?: string;
+  appUserId?: mongoose.Types.ObjectId;
+  appUserIdOfDepartment?: string;
   first_name?: string;
   last_name?: string
   email?: string
@@ -25,7 +25,7 @@ export interface AppAgentType {
   updateOne?: any;
 }
 
-export interface AppAgentRegistrationType {
+export interface AppUserRegistrationType {
   username: string;
   email: string;
   password: string;
@@ -34,25 +34,25 @@ export interface AppAgentRegistrationType {
   isDeleted: boolean;
 }
 
-export interface AppAgentLoginType {
+export interface AppUserLoginType {
   email: string;
   password: string;
 }
 
-export interface GetAppAgentType {
+export interface GetAppUserType {
   appAccessGroupId: string | null;
   search: string | null;
   metaData: MetaDataResponse;
   isDeleted: boolean;
 }
 
-export interface AppAgentDetailsType {
-  appAgentId: string;
+export interface AppUserDetailsType {
+  appUserId: string;
 }
 
 export interface GetAppActivityType {
   appActivityId: string | null;
-  appAgentId: string | null;
+  appUserId: string | null;
   search: string | null;
   metaData: MetaDataResponse;
   isDeleted: boolean;
@@ -74,6 +74,6 @@ export interface UpdatePassType {
   cfmPassword: string;
 }
 
-export interface ForceLogoutAppAgentsType {
-  appAgentIds: string[]
+export interface ForceLogoutAppUsersType {
+  appUserIds: string[]
 }

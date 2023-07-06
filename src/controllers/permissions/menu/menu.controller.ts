@@ -33,7 +33,7 @@ import {
   DeleteAppSubMenuType
 } from '../../../helpers/joi/permissions/menu/index'
 import { appMenuModel, appSubMenuModel } from '../../../models/permissions/menu/menu.model';
-import appAccessGroupModel from '../../../models/permissions/access_group/access_group.model';
+import { appAccessGroupModel } from '../../../models/permissions/access_group/access_group.model';
 import { NextFunction, Request, Response } from 'express';
 import { MetaDataBody, RequestType } from 'helpers/shared/shared.type';
 import mongoose from 'mongoose';

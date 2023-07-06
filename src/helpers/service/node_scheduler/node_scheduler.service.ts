@@ -87,7 +87,7 @@ const scheduleAppAutomatedJob = async (automatedJob: any, forceExecute = false):
       'cancelScheduledJob'
     );
     logBackendError(__filename, error?.messag, null, null, error?.stacke);
-    return (error);
+    throw httpErrors.InternalServerError(`${error?.message}`);
   }
 };
 
@@ -97,7 +97,7 @@ const getScheduledJobs = async (appAutomatedJobId: any): Promise<boolean | Job> 
     return (scheduledJob ? scheduledJob : false);
   } catch (error: any) {
     logBackendError(__filename, error?.message, null, null, error?.stack);
-    return (error);
+    throw httpErrors.InternalServerError(`${error?.message}`);
   }
 };
 
@@ -113,12 +113,7 @@ const cancelScheduledJob = async (appAutomatedJobId: any): Promise<void> => {
         'cancelScheduledJob'
       );
     }
-
-    return scheduledJob !== undefined
-      ? scheduledJob.cancel()
-        ? Promise.resolve()
-        : Promise.reject()
-      : Promise.resolve();
+    if (scheduledJob !== undefined) scheduledJob.cancel();
   } catch (error: any) {
     await createAppAutomatedJobLog(
       appAutomatedJobId,
@@ -128,7 +123,7 @@ const cancelScheduledJob = async (appAutomatedJobId: any): Promise<void> => {
       'cancelScheduledJob'
     );
     logBackendError(__filename, error?.message, null, null, error?.stack);
-    Promise.reject(error);
+    throw httpErrors.InternalServerError(`${error?.message}`);
   }
 };
 
@@ -156,7 +151,7 @@ const createAppAutomatedJobLog = async (
 
   } catch (error: any) {
     logBackendError(__filename, error?.message, null, null, error?.stack);
-    return (error);
+    throw httpErrors.InternalServerError(`${error?.message}`);
   }
 };
 

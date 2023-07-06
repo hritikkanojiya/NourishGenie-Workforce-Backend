@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const appAgentFilesSchema = new mongoose.Schema(
   {
     //foreign key
-    appAgentId: {
+    appUserId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'appAgentSchema'
     },
@@ -48,4 +48,8 @@ const appAgentFilesSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_agent_file', appAgentFilesSchema);
+const appUserFilesModel = mongoose.model('app_agent_file', appAgentFilesSchema);
+
+export {
+  appUserFilesModel
+}

@@ -12,7 +12,7 @@ import { GlobalConfig } from './helpers/common/environment';
 import { LOGGER } from './helpers/common/init_winston';
 import './helpers/common/init_mongodb';
 import endPoints from 'express-list-endpoints';
-import appServiceRouteModel from './models/permissions/service_routes/service_routes.model';
+import { appServiceRouteModel } from './models/permissions/service_routes/service_routes.model';
 import { logBackendError } from './helpers/common/backend.functions';
 import { appConstantsModel } from './models/constants/constants.model';
 import nodeScheduler from 'node-schedule';

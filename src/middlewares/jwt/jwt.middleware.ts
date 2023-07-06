@@ -10,7 +10,7 @@ const notAuthorized = 'Request not Authorized';
 
 type PayloadDataType = {
   requestIP: string;
-  appAgentId: string;
+  appUserId: string;
   appAccessGroupId: string;
 };
 
@@ -87,7 +87,7 @@ const signRefreshToken = (payloadData: PayloadDataType): Promise<string> => {
             return reject(error);
           }
           await redisClient
-            .SET(payloadData.appAgentId, jwtRefreshToken, {
+            .SET(payloadData.appUserId, jwtRefreshToken, {
               EX: parseInt(moment.duration(moment().endOf('day').diff(moment())).asSeconds().toString())
             })
             .then(() => {
@@ -110,7 +110,7 @@ const signRefreshToken = (payloadData: PayloadDataType): Promise<string> => {
 const removeToken = async (payloadData: PayloadDataType): Promise<void> => {
   try {
     await redisClient
-      .DEL(payloadData.appAgentId.toString())
+      .DEL(payloadData.appUserId.toString())
       .catch(error => {
         throw httpErrors.InternalServerError(error);
       })
@@ -120,7 +120,8 @@ const removeToken = async (payloadData: PayloadDataType): Promise<void> => {
   } catch (error: any) {
     logBackendError(__filename, error?.message, null, null, null, error?.stack);
     if (error?.isJoi === true) error.status = 422;
-    return error;
+    throw httpErrors.InternalServerError(`${error?.message}`);
+
   }
 };
 
@@ -172,7 +173,6 @@ const verifyAccessToken = async (req: RequestType, res: Response, next: NextFunc
 
 const verifyRefreshToken = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
   try {
-
     const JWT_REFRESH_TOKEN_HEADER = await appConstantsModel
       .findOne({
         name: 'JWT_REFRESH_TOKEN_HEADER',
@@ -203,7 +203,7 @@ const verifyRefreshToken = async (req: RequestType, res: Response, next: NextFun
         return next(httpErrors.Unauthorized(notAuthorized));
       }
       redisClient
-        .GET(objectIdToString(payload.payloadData.appAgentId))
+        .GET(objectIdToString(payload.payloadData.appUserId))
         .catch((error: any) => {
           console.log(error);
           logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, null, error?.stack);
@@ -219,7 +219,6 @@ const verifyRefreshToken = async (req: RequestType, res: Response, next: NextFun
         });
     });
   } catch (error: any) {
-    console.log(error);
     __sendJWTError(error, req, res);
   }
 };

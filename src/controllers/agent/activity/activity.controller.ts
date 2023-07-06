@@ -1,34 +1,32 @@
 import { NextFunction, Request, Response } from 'express';
-import { calculateTimeSummary, logBackendError } from '../../../helpers/common/backend.functions';
+import { calculateTimeSummary, compactObject, configureMetaData, getFieldsToInclude, logBackendError } from '../../../helpers/common/backend.functions';
 import moment from 'moment';
-import appAgentDetailsModel from '../../../models/agent/fields/app_agent_details.model'
+import { appUserDetailsModel } from '../../../models/agent/fields/app_agent_details.model'
 import { appUserAttendanceModel } from '../../../models/agent/attendance/attendance.model';
-import appAgentAcitivityModel from '../../../models/agent/activity/activity.model'
+import { appUserAcitivityModel } from '../../../models/agent/activity/activity.model'
 
 import {
   GetUserActivityType,
-  GetUserActivityQueryType,
+  GetUserWorkingStatusType,
   joiUserActivity,
   CreateUserActivityLogsType,
-  // UpdateUserAttandenceType,
   UserLastActivityType,
-  GetUsersActivityType,
-  // AppUserActivityType
-  // GetTotalAgentActivityType
+  GetUserWorkingStatusQueryType,
+  GetUserActivityQueryType,
 } from '../../../helpers/joi/agent/activity/index'
 import httpErrors from 'http-errors';
-import appAgentModel from '../../../models/agent/agent.model';
+import { appUserModel } from '../../../models/agent/agent.model';
+import { MetaDataBody } from '../../../helpers/shared/shared.type';
 
-const updateAttendance = async (userActivities: any): Promise<any> => {
+const updateAttendance = async (userActivities: any): Promise<void> => {
   try {
     for (const iterator of userActivities) {
-      const appAgentDetails = await appAgentDetailsModel.findOne({ company_email: iterator.email, isDeleted: false });
+      const appUserDetails = await appUserDetailsModel.findOne({ company_email: iterator.email, isDeleted: false });
       const timeSummary = await calculateTimeSummary(iterator);
-      const startingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[0]) ? appAgentDetails?.working_hours?.split('-')[0] : '');
-      const endingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[1]) ? appAgentDetails?.working_hours?.split('-')[1] : '');
+      const startingLimit = parseInt((appUserDetails?.working_hours?.split('-')[0]) ? appUserDetails?.working_hours?.split('-')[0] : '');
+      const endingLimit = parseInt((appUserDetails?.working_hours?.split('-')[1]) ? appUserDetails?.working_hours?.split('-')[1] : '');
       const totalLoginTimeWithoutBreak = moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asHours();
       let availability = 'not available';
-      // let overTime = 0;
       if (totalLoginTimeWithoutBreak >= startingLimit && totalLoginTimeWithoutBreak <= endingLimit) {
         availability = 'full day';
       }
@@ -37,19 +35,16 @@ const updateAttendance = async (userActivities: any): Promise<any> => {
       }
       else if (totalLoginTimeWithoutBreak > endingLimit) {
         availability = 'over Time'
-        // overTime = (totalLoginTimeWithoutBreak - endingLimit) * 60;
       }
-      const agentAttandence = await appUserAttendanceModel.findOne({
-        appUserId: appAgentDetails?.appAgentId,
+      const UserAttandence = await appUserAttendanceModel.findOne({
+        appUserId: appUserDetails?.appUserId,
         createdAt: {
           $gte: moment(iterator.createdAt).startOf('day').toDate(),
           $lte: moment(iterator.createdAt).endOf('day').toDate(),
         },
-        isDeleted: false,
       });
-      console.log(agentAttandence);
-      await agentAttandence?.updateOne({
-        appUserId: appAgentDetails?.appAgentId,
+      await UserAttandence?.updateOne({
+        appUserId: appUserDetails?.appUserId,
         email: iterator.email,
         availability: availability,
         status: totalLoginTimeWithoutBreak > 1 ? 'PRESENT' : 'ABSENT',
@@ -59,19 +54,16 @@ const updateAttendance = async (userActivities: any): Promise<any> => {
         }
       );
     }
-
   } catch (error: any) {
-    console.log(error);
     logBackendError(__filename, error?.message, null, null, error?.stack);
-    if (error?.isJoi === true) error.status = 422;
-    return error;
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 }
 
 const createActivityLogs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const queryDetails: CreateUserActivityLogsType = await joiUserActivity.createActivityLogsSchema.validateAsync(req.body);
-    const userActivities = await appAgentAcitivityModel.find({
+    const userActivities = await appUserAcitivityModel.find({
       email: queryDetails.email,
       createdAt: {
         $gte: moment().startOf('day'),
@@ -87,10 +79,10 @@ const createActivityLogs = async (req: Request, res: Response, next: NextFunctio
           const updatedActivities = [...activities];
           updatedActivities.push({
             activity: queryDetails.activity,
-            time: moment().toDate(),
+            time: moment().format('HH:mm:ss'),
           });
 
-          await appAgentAcitivityModel.updateOne(
+          await appUserAcitivityModel.updateOne(
             {
               email: queryDetails.email,
               createdAt: {
@@ -112,10 +104,10 @@ const createActivityLogs = async (req: Request, res: Response, next: NextFunctio
           const updatedActivities = [...activities];
           updatedActivities.push({
             activity: queryDetails.activity,
-            time: moment().toDate(),
+            time: moment().format('HH:mm:ss'),
           });
 
-          await appAgentAcitivityModel.updateOne(
+          await appUserAcitivityModel.updateOne(
             {
               email: queryDetails.email,
               createdAt: {
@@ -137,10 +129,10 @@ const createActivityLogs = async (req: Request, res: Response, next: NextFunctio
           const updatedActivities = [...activities];
           updatedActivities.push({
             activity: queryDetails.activity,
-            time: moment().toDate(),
+            time: moment().format('HH:mm:ss'),
           });
 
-          await appAgentAcitivityModel.updateOne(
+          await appUserAcitivityModel.updateOne(
             {
               email: queryDetails.email,
               createdAt: {
@@ -163,10 +155,10 @@ const createActivityLogs = async (req: Request, res: Response, next: NextFunctio
           const updatedActivities = [...activities];
           updatedActivities.push({
             activity: queryDetails.activity,
-            time: moment().toDate(),
+            time: moment().format('HH:mm:ss'),
           });
 
-          await appAgentAcitivityModel.updateOne(
+          await appUserAcitivityModel.updateOne(
             {
               email: queryDetails.email,
               createdAt: {
@@ -190,13 +182,13 @@ const createActivityLogs = async (req: Request, res: Response, next: NextFunctio
         throw new Error(message);
       }
       else {
-        await appAgentAcitivityModel.create({
+        await appUserAcitivityModel.create({
           email: queryDetails.email,
-          fullname: queryDetails.fullName,
+          fullName: queryDetails.fullName,
           activities: [
             {
               activity: queryDetails.activity,
-              time: moment().toDate(),
+              time: moment().format('HH:mm:ss'),
             },
           ],
         });
@@ -204,7 +196,7 @@ const createActivityLogs = async (req: Request, res: Response, next: NextFunctio
         message = `${queryDetails.activity} marked successfully`;
       }
     }
-    const userActivity = await appAgentAcitivityModel.find({
+    const userActivity = await appUserAcitivityModel.find({
       email: queryDetails.email,
       createdAt: {
         $gte: moment().startOf('day'),
@@ -230,53 +222,74 @@ const createActivityLogs = async (req: Request, res: Response, next: NextFunctio
   }
 }
 
-const getAgentActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const getUserActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const queryDetails: GetUserActivityType = await joiUserActivity.getAgentActivitySchema.validateAsync(req.body);
-    const fromDate = new Date(queryDetails.date.from);
-    const toDate = new Date(queryDetails.date.to);
-    const appAgentDetails = await appAgentDetailsModel.findOne({ company_email: queryDetails.email, isDeleted: false });
-    const appAgent = await appAgentModel.findOne({ _id: appAgentDetails?.appAgentId, isDeleted: false });
-    const activities = await appAgentAcitivityModel.find({
-      email: queryDetails.email,
-      createdAt: {
-        $gte: fromDate,
-        $lte: new Date(toDate.setDate(toDate.getDate() + 1)),
-      }
-    });
-    const agentActivities = [];
-    const agentDetails = {
-      email: queryDetails.email,
-      fullName: `${appAgent?.first_name} ${appAgent?.last_name}`
+    const querySchema: GetUserActivityType = await joiUserActivity.getUserActivitySchema.validateAsync(req.body);
+    compactObject(querySchema);
+    const metaData: MetaDataBody = await configureMetaData(querySchema);
+    const fieldsToInclude = getFieldsToInclude(metaData.fields);
+    const query: GetUserActivityQueryType = {};
+    if (querySchema.email) query.email = querySchema.email;
+
+    query.createdAt = {
+      $gte: moment().startOf('day').toDate(),
+      $lte: moment().endOf('day').toDate(),
     }
+
+    if (querySchema.date) {
+      query.createdAt = {
+        $gte: moment(querySchema.date.from).startOf('day').toDate(),
+        $lte: moment(querySchema.date.to).endOf('day').toDate(),
+      }
+    }
+    if (querySchema.search)
+      query.$or = [
+        {
+          fullName: {
+            $regex: querySchema.search,
+            $options: 'is'
+          }
+        },
+        {
+          email: {
+            $regex: querySchema.search,
+            $options: 'is'
+          }
+        }
+      ];
+    const activities = await appUserAcitivityModel
+      .find(query)
+      .select(fieldsToInclude)
+      .sort({ [metaData.sortOn]: metaData.sortBy })
+      .skip(metaData.offset)
+      .limit(metaData.limit)
+      .lean()
+      .catch((error: any) => {
+        throw httpErrors.UnprocessableEntity(
+          error?.message ? error.message : 'Unable to retrieve records from Database.'
+        );
+      });
+    const totalRecords = await appUserAcitivityModel.find(query).countDocuments();
+    const appUserDetails = await appUserDetailsModel.findOne({ company_email: querySchema.email, isDeleted: false });
+    const UserActivities = [];
     for (const iterator of activities) {
       const timeSummary = await calculateTimeSummary(iterator);
-      const startingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[0]) ? appAgentDetails?.working_hours?.split('-')[0] : '');
-      const endingLimit = parseInt((appAgentDetails?.working_hours?.split('-')[1]) ? appAgentDetails?.working_hours?.split('-')[1] : '');
+      const endingLimit = parseInt((appUserDetails?.working_hours?.split('-')[1]) ? appUserDetails?.working_hours?.split('-')[1] : '');
       const totalLoginTimeWithoutBreak = moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asHours();
-      let availability = 'not available';
       let overTime = 0;
-      if (totalLoginTimeWithoutBreak >= startingLimit && totalLoginTimeWithoutBreak <= endingLimit) {
-        availability = 'full day';
-      }
-      else if (Math.abs(totalLoginTimeWithoutBreak - startingLimit) <= 1) {
-        availability = 'half day';
-      }
-      else if (totalLoginTimeWithoutBreak > endingLimit) {
-        availability = 'over Time'
+      if (totalLoginTimeWithoutBreak > endingLimit) {
         overTime = (totalLoginTimeWithoutBreak - endingLimit) * 60;
       }
-      // await convertDateTimeFormat(iterator.activities),
-      agentActivities.push({
+      UserActivities.push({
+        email: iterator.email,
+        fullName: iterator.fullName,
         activities: iterator.activities,
-        createdAt: iterator.createdAt,
-        updatedAt: iterator.updatedAt,
-        availability: availability,
-        status: totalLoginTimeWithoutBreak > 1 ? 'PRESENT' : 'ABSENT',
         totalLoggedinTime: `${moment.duration(timeSummary.totalLoggedInTime).asMinutes().toFixed(2)} Minutes`,
         totalBreakTime: `${moment.duration(timeSummary.totalBreakTime).asMinutes().toFixed(2)} Minutes`,
         totalLoginTimeWithoutBreak: `${moment.duration(timeSummary.totalLoggedInTimeWithoutBreaks).asMinutes().toFixed(2)} Minutes`,
         overTime: `${overTime.toFixed(2)} Mintues`,
+        createdAt: iterator.createdAt,
+        updatedAt: iterator.updatedAt,
       });
     }
 
@@ -284,9 +297,15 @@ const getAgentActivity = async (req: Request, res: Response, next: NextFunction)
       res.status(200).send({
         error: false,
         data: {
-          agentDetails: agentDetails,
-          agentActivitiesDetails: agentActivities,
-          message: 'Agent Activities fetched successfully'
+          UserActivitiesDetails: UserActivities,
+          metaData: {
+            sortBy: metaData.sortBy,
+            sortOn: metaData.sortOn,
+            limit: metaData.limit,
+            offset: metaData.offset,
+            total_records: totalRecords
+          },
+          message: 'User Activities fetched successfully'
         }
       });
     }
@@ -298,72 +317,16 @@ const getAgentActivity = async (req: Request, res: Response, next: NextFunction)
   }
 };
 
-const getTotalAgentActivity = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+const getUserLastActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const startOfMonth = moment().startOf('month').toDate();
-    const endOfMonth = moment().endOf('month').toDate();
-    console.log(startOfMonth);
-    console.log(endOfMonth);
-    console.log(req.body.email);
-    const userActivity = await appAgentAcitivityModel.find({
-      email: req.body.email,
-      createdAt: {
-        $gte: startOfMonth,
-        $lte: endOfMonth
-      }
-    });
-
-    const userData: Record<string, any> = {};
-    for (const iterator of userActivity) {
-      const { email, fullname } = iterator;
-      const timeSummary = await calculateTimeSummary(iterator);
-
-      if (!userData[email]) {
-        userData[email] = {
-          email,
-          fullname,
-          totalLoggedinTime: 0,
-          totalBreakTime: 0,
-          totalLoginTimeWithoutBreak: 0
-        };
-      }
-
-      userData[email].totalLoggedinTime += timeSummary.totalLoggedInTime;
-      userData[email].totalBreakTime += timeSummary.totalBreakTime;
-      userData[email].totalLoginTimeWithoutBreak += timeSummary.totalLoggedInTimeWithoutBreaks;
-    }
-
-    for (const user in userData) {
-      userData[user].totalLoggedinTime = `${moment.duration(userData[user].totalLoggedinTime).asHours().toPrecision(3)} Hours`
-
-      userData[user].totalBreakTime = `${moment.duration(userData[user].totalBreakTime).asHours().toPrecision(3)} Hours`
-
-      userData[user].totalLoginTimeWithoutBreak = `${moment.duration(userData[user].totalLoggedInTimeWithoutBreaks).asHours().toPrecision(3)} Hours`
-    }
-
-    const result = Object.values(userData);
-    res.status(200).send({ error: false, data: result });
-  } catch (error: any) {
-    logBackendError(__filename, error?.message, req?.originalUrl, req?.ip, error?.stack);
-    if (error?.isJoi === true) error.status = 422;
-    next(error);
-  }
-};
-
-const getAgentLastActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const agentLastActivity: UserLastActivityType = await joiUserActivity.agentLastActivitySchema.validateAsync(req.body);
-    if (agentLastActivity.date == 'today') {
+    const UserLastActivity: UserLastActivityType = await joiUserActivity.UserLastActivitySchema.validateAsync(req.body);
+    if (UserLastActivity.date == 'today') {
       const currentDate = moment().format('YYYY-MM-DD');
-      agentLastActivity.date = currentDate
+      UserLastActivity.date = currentDate
     }
-    const findUser = await appAgentAcitivityModel.find({
-      email: agentLastActivity.email,
-      date: agentLastActivity.date
+    const findUser = await appUserAcitivityModel.find({
+      email: UserLastActivity.email,
+      date: UserLastActivity.date
     });
     let message
     if (findUser.length > 0) {
@@ -389,12 +352,12 @@ const getAgentLastActivity = async (req: Request, res: Response, next: NextFunct
 
 const getUsersWorkingStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const querySchema: GetUsersActivityType = await joiUserActivity.getUserActivitySchema.validateAsync(req.body);
-    const query: GetUserActivityQueryType = {};
+    const querySchema: GetUserWorkingStatusType = await joiUserActivity.getUserActivitySchema.validateAsync(req.body);
+    const query: GetUserWorkingStatusQueryType = {};
 
     query.createdAt = {
-      $gte: moment().startOf('day'),
-      $lte: moment().endOf('day'),
+      $gte: moment().startOf('day').toDate(),
+      $lte: moment().endOf('day').toDate(),
     }
     if (querySchema.search)
       query.$or = [
@@ -412,7 +375,7 @@ const getUsersWorkingStatus = async (req: Request, res: Response, next: NextFunc
         }
       ];
 
-    const appAgentActivities = await appAgentAcitivityModel
+    const appUserActivities = await appUserAcitivityModel
       .find(query)
       .catch(error => {
         throw httpErrors.UnprocessableEntity(
@@ -422,21 +385,21 @@ const getUsersWorkingStatus = async (req: Request, res: Response, next: NextFunc
 
     const loggedInUsers: any = [];
     const breakInUsers: any = [];
-    for (const iterator of appAgentActivities) {
+    for (const iterator of appUserActivities) {
       const length = iterator.activities.length
-      const appUserDetails = await appAgentDetailsModel.findOne({ company_email: iterator.email, isDeleted: false });
-      const appUser = await appAgentModel.findOne({ _id: appUserDetails?.appAgentId, isDeleted: false });
+      const appUserDetails = await appUserDetailsModel.findOne({ company_email: iterator.email, isDeleted: false });
+      const appUser = await appUserModel.findOne({ _id: appUserDetails?.appUserId, isDeleted: false });
       if (iterator.activities[length - 1].activity == 'checkin' || iterator.activities[length - 1].activity == 'breakout') {
         if (querySchema.employeeType && appUser?.employee_type === querySchema.employeeType)
-          loggedInUsers.push({ appUserId: appUserDetails?.appAgentId, fullname: iterator.fullname, email: iterator.email });
+          loggedInUsers.push({ appUserId: appUserDetails?.appUserId, fullName: iterator.fullName, email: iterator.email });
         else if (!querySchema.employeeType)
-          loggedInUsers.push({ appUserId: appUserDetails?.appAgentId, fullname: iterator.fullname, email: iterator.email });
+          loggedInUsers.push({ appUserId: appUserDetails?.appUserId, fullName: iterator.fullName, email: iterator.email });
       }
       else if (iterator.activities[length - 1].activity == 'breakin' || iterator.activities[length - 1].activity == 'checkout') {
         if (querySchema.employeeType && appUser?.employee_type === querySchema.employeeType)
-          breakInUsers.push({ appUserId: appUserDetails?.appAgentId, fullname: iterator.fullname, email: iterator.email })
+          breakInUsers.push({ appUserId: appUserDetails?.appUserId, fullName: iterator.fullName, email: iterator.email })
         else if (!querySchema.employeeType)
-          breakInUsers.push({ appUserId: appUserDetails?.appAgentId, fullname: iterator.fullname, email: iterator.email })
+          breakInUsers.push({ appUserId: appUserDetails?.appUserId, fullName: iterator.fullName, email: iterator.email })
       }
     }
 
@@ -462,9 +425,8 @@ const getUsersWorkingStatus = async (req: Request, res: Response, next: NextFunc
 
 export {
   getUsersWorkingStatus,
-  getAgentLastActivity,
-  getTotalAgentActivity,
-  getAgentActivity,
+  getUserLastActivity,
+  getUserActivity,
   createActivityLogs,
   updateAttendance
 }

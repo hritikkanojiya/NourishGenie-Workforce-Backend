@@ -34,7 +34,7 @@ export interface GetRequestObject {
 
 export interface PayloadData {
   requestIP?: string,
-  appAgentId?: string,
+  appUserId?: string,
   appAccessGroupId?: string;
 }
 

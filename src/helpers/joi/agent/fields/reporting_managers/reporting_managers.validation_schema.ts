@@ -4,13 +4,13 @@ import joiObjectId from 'joi-objectid';
 const objectId = joiObjectId(joi);
 
 const createAppReportingManagerSchema = joi.object({
-  appAgentId: objectId().required(),
+  appUserId: objectId().required(),
   isDeleted: joi.boolean().default(false)
 });
 
 const getAppReportingManagerSchema = joi.object({
   appManagerId: objectId().allow(null),
-  appAgentId: objectId().allow(null),
+  appUserId: objectId().allow(null),
   search: joi.string().trim().allow(null, ''),
   metaData: joi.object().keys({
     sortBy: joi.string().trim().allow(null).default(null),
@@ -27,7 +27,7 @@ const deleteAppReportingManagerSchema = joi.object({
 
 const updateAppReportingManagerSchema = joi.object({
   appManagerId: objectId().required(),
-  appAgentId: objectId().required(),
+  appUserId: objectId().required(),
   isDeleted: joi.boolean().default(false)
 });
 

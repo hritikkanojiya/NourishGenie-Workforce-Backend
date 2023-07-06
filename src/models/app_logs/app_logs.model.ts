@@ -135,7 +135,7 @@ const backendErrorSchema = new mongoose.Schema(
 
 const appActivitySchema = new mongoose.Schema(
     {
-        appAgentId: {
+        appUserId: {
             type: mongoose.Schema.Types.ObjectId,
             default: null,
         },

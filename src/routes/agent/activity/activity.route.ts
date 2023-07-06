@@ -3,7 +3,6 @@ import * as activityController from '../../../controllers/agent/activity/activit
 import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
 import permissionsModule from '../../../middlewares/permissions/permissions.middleware';
 
-
 const agentActivityRouterV1 = Router();
 
 agentActivityRouterV1.post(
@@ -14,18 +13,11 @@ agentActivityRouterV1.post(
     '/get-agent-activity',
     jwtModule.verifyAccessToken,
     permissionsModule.validateRouteAccess,
-    activityController.getAgentActivity
+    activityController.getUserActivity
 );
 
 agentActivityRouterV1.post(
-    '/get-agent-month-activity',
-    jwtModule.verifyAccessToken,
-    permissionsModule.validateRouteAccess,
-    activityController.getTotalAgentActivity
-);
-
-agentActivityRouterV1.post(
-    '/get-users-activity',
+    '/get-users-working_status',
     jwtModule.verifyAccessToken,
     permissionsModule.validateRouteAccess,
     activityController.getUsersWorkingStatus
@@ -35,7 +27,7 @@ agentActivityRouterV1.post(
     '/get-Agent-Last-Activity',
     jwtModule.verifyAccessToken,
     permissionsModule.validateRouteAccess,
-    activityController.getAgentLastActivity
+    activityController.getUserLastActivity
 );
 
 export { agentActivityRouterV1 }

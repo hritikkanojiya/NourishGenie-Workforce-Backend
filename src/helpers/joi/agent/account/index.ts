@@ -1,2 +1,2 @@
 export * from './account.joi.types';
-export * as joiAgentAccount from './account.validation_schema';
+export * as joiUserAccount from './account.validation_schema';

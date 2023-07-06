@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const appAgentBanksSchema = new mongoose.Schema(
   {
     //foreign key
-    appAgentId: {
+    appUserId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'appAgentSchema'
     },
@@ -37,4 +37,8 @@ const appAgentBanksSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_agent_bank', appAgentBanksSchema);
+const appUserBanksModel = mongoose.model('app_agent_bank', appAgentBanksSchema);
+
+export {
+  appUserBanksModel
+}

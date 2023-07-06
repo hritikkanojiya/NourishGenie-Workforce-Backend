@@ -1,5 +1,5 @@
 import httpErrors from 'http-errors';
-import appRouteModel from '../../../models/permissions/service_routes/service_routes.model';
+import { appServiceRouteModel } from '../../../models/permissions/service_routes/service_routes.model';
 import {
   compactObject,
   configureMetaData,
@@ -11,7 +11,7 @@ import {
   arrayPull,
   stringToObjectId
 } from '../../../helpers/common/backend.functions';
-import appAccessGroupModel from '../../../models/permissions/access_group/access_group.model';
+import { appAccessGroupModel } from '../../../models/permissions/access_group/access_group.model';
 import { MetaDataBody } from '../../../helpers/shared/shared.type';
 import { NextFunction, Request, Response } from 'express';
 import {
@@ -45,7 +45,7 @@ const createAppServiceRoute = async (req: Request, res: Response, next: NextFunc
     );
 
     // Check if route exist in Collection
-    const doesRouteExist: AppServiceRouteType[] = await appRouteModel.find({
+    const doesRouteExist: AppServiceRouteType[] = await appServiceRouteModel.find({
       path: appRouteDetails.path,
       isDeleted: false
     });
@@ -71,7 +71,7 @@ const createAppServiceRoute = async (req: Request, res: Response, next: NextFunc
     }
 
     // Construct Data
-    const route = new appRouteModel({
+    const route = new appServiceRouteModel({
       method: appRouteDetails.method,
       path: appRouteDetails.path,
       type: 'MANUAL',
@@ -176,7 +176,7 @@ const getAppServiceRoutes = async (req: Request, res: Response, next: NextFuncti
     }
 
     // Execute the Query
-    const appRoutes: AppServiceRouteType[] = await appRouteModel
+    const appRoutes: AppServiceRouteType[] = await appServiceRouteModel
       .find(query)
       .select(fieldsToInclude)
       .sort({ [metaData.sortOn]: metaData.sortBy })
@@ -189,7 +189,7 @@ const getAppServiceRoutes = async (req: Request, res: Response, next: NextFuncti
         );
       });
 
-    const totalRecords = await appRouteModel.find(query).countDocuments();
+    const totalRecords = await appServiceRouteModel.find(query).countDocuments();
 
     if (querySchema.checkAppAccessGroupIds) {
       appRoutes?.forEach(appRoute => {
@@ -244,7 +244,7 @@ const updateAppServiceRoute = async (req: Request, res: Response, next: NextFunc
     );
 
     // Check if route exist in Collection other than current record
-    const doesRouteExist: AppServiceRouteType[] = await appRouteModel.find({
+    const doesRouteExist: AppServiceRouteType[] = await appServiceRouteModel.find({
       _id: { $ne: appRouteDetails.appRouteId },
       path: appRouteDetails.path,
       isDeleted: false
@@ -273,7 +273,7 @@ const updateAppServiceRoute = async (req: Request, res: Response, next: NextFunc
     appRouteDetails['type'] = 'MANUAL';
 
     // Update records in Collection
-    const appRoute = await appRouteModel
+    const appRoute = await appServiceRouteModel
       .findOne({
         _id: appRouteDetails.appRouteId,
         isDeleted: false
@@ -316,7 +316,7 @@ const toggleAppGroup = async (req: Request, res: Response, next: NextFunction): 
     const toggleAction = toggleDetails.toggleAction;
 
     // Check if route exist in Collection other than current record
-    const appRouteDetails = await appRouteModel.findOne({
+    const appRouteDetails = await appServiceRouteModel.findOne({
       _id: toggleDetails.appRouteId,
       isDeleted: false
     });
@@ -359,7 +359,7 @@ const toggleAppGroup = async (req: Request, res: Response, next: NextFunction): 
     })();
 
     // Update records in Collection
-    await appRouteModel
+    await appServiceRouteModel
       .findOne({
         _id: toggleDetails.appRouteId,
         isDeleted: false
@@ -396,7 +396,7 @@ const deleteAppRoute = async (req: Request, res: Response, next: NextFunction): 
     );
 
     // Update records in Collection
-    const appRoutes: AppServiceRouteType[] = await appRouteModel
+    const appRoutes: AppServiceRouteType[] = await appServiceRouteModel
       .find({
         _id: { $in: appRouteDetails.appRouteIds },
         isDeleted: false

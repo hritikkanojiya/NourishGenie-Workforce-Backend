@@ -9,14 +9,14 @@ appAccountRouterV1.post(
   '/create-agent',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
-  appAccountController.createAccount
+  appAccountController.createUserAccount
 );
 
 appAccountRouterV1.post(
   '/delete-agent',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
-  appAccountController.deleteAccount
+  appAccountController.deleteUserAccount
 );
 
 appAccountRouterV1.post(
@@ -30,19 +30,19 @@ appAccountRouterV1.post(
   '/get-agents',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
-  appAccountController.getAllAppAgents
+  appAccountController.getAllAppUsers
 );
 
-appAccountRouterV1.put(
-  '/update-agent',
-  jwtModule.verifyAccessToken,
-  permissionsModule.validateRouteAccess,
-  appAccountController.updateAppAgentDetails
-);
+// appAccountRouterV1.put(
+//   '/update-agent',
+//   jwtModule.verifyAccessToken,
+//   permissionsModule.validateRouteAccess,
+//   appAccountController.updateAppUserDetails
+// );
 
 appAccountRouterV1.put(
   '/update-app-agent',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
-  appAccountController.updateAgentDetails
+  appAccountController.updateUserAccount
 );

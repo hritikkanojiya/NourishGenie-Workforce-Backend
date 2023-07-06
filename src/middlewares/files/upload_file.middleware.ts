@@ -21,8 +21,7 @@ function generateUniqueFileName(fileExtension: string): string {
 const FILE_UPLOAD_PATH: any = GlobalConfig.MAIN_FILE_UPLOAD_PATH;
 //make a new directory with the user's objectID inside the HR_Module_Files folder
 const users: any = {};
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const makeDirectory = async (req: RequestType) => {
+const makeDirectory = async (req: RequestType): Promise<string> => {
   //create a temporary objectID using bson
   const ObjectId = bson.ObjectId;
 

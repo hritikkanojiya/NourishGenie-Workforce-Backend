@@ -6,7 +6,7 @@ import joiObjectId from 'joi-objectid';
 const objectId = joiObjectId(joi);
 // Define joi Validation Schema
 
-const appAgentLoginSchema = joi.object({
+const appUserLoginSchema = joi.object({
   email: joi.string().trim().email().lowercase().required(),
   password: joiPassword.string().trim().min(8).max(16).noWhiteSpaces().required()
 });
@@ -36,15 +36,15 @@ const updatePassSchema = joi.object({
   cfmPassword: joi.string().trim().required().valid(joi.ref('password'))
 });
 
-const forceLogoutAppAgentsSchema = joi.object({
-  appAgentIds: joi.array().unique().items(objectId()).min(1).required()
+const forceLogoutAppUsersSchema = joi.object({
+  appUserIds: joi.array().unique().items(objectId()).min(1).required()
 });
 
 // Export schema
 export {
-  appAgentLoginSchema,
+  appUserLoginSchema,
   resetPassTokenSchema,
   verifyResetPassTokenSchema,
   updatePassSchema,
-  forceLogoutAppAgentsSchema,
+  forceLogoutAppUsersSchema,
 };

@@ -5,7 +5,7 @@ import joiObjectId from 'joi-objectid';
 const objectId = joiObjectId(joi);
 
 const joiPassword = joi.extend(joiPasswordExtendCore);
-export const createAppUserSchema = joi.object({
+const createAppUserSchema = joi.object({
   // directory: joi.string().trim(),
   first_name: joi.string().trim().required(),
   last_name: joi.string().trim().required(),
@@ -58,8 +58,8 @@ export const createAppUserSchema = joi.object({
   // pan_number: joi.string().trim().required()
 });
 
-export const getAppUserSchema = joi.object({
-  appAgentId: objectId().allow(null).default(null),
+const getAppUserSchema = joi.object({
+  appUserId: objectId().allow(null).default(null),
   appAccessGroupId: objectId().allow(null).default(null),
   isAdministrator: joi.boolean().default(false),
   search: joi.string().trim().allow(null).default(null),
@@ -73,12 +73,12 @@ export const getAppUserSchema = joi.object({
   isDeleted: joi.boolean().default(false)
 });
 
-export const getAllDetailSchema = joi.object({
-  appAgentId: joi.string().hex().length(24).required()
+const getAllDetailSchema = joi.object({
+  appUserId: joi.string().hex().length(24).required()
 });
 
-export const updateAppUserSchema = joi.object({
-  appAgentId: objectId().required(),
+const updateAppUserSchema = joi.object({
+  appUserId: objectId().required(),
   first_name: joi.string().trim(),
   last_name: joi.string().trim(),
   email: joi.string().trim().email().lowercase(),
@@ -115,7 +115,7 @@ export const updateAppUserSchema = joi.object({
   relation: joi.string().trim()
 });
 
-export const filterUserSchema = joi.object({
+const filterUserSchema = joi.object({
   appDesignationId: objectId().allow(null).default(null),
   appDepartmentId: objectId().allow(null).default(null),
   search: joi.string().trim().allow(null).default(null),
@@ -128,7 +128,7 @@ export const filterUserSchema = joi.object({
   })
 });
 
-export const deleteAppUserSchema = joi.object({
-  appAgentId: objectId().required()
+const deleteAppUserSchema = joi.object({
+  appUserId: objectId().required()
 });
-//export default { createAppUserSchema, uploadedFilesSchema, fileSchema };
+export { createAppUserSchema, filterUserSchema, deleteAppUserSchema, getAllDetailSchema, getAppUserSchema, updateAppUserSchema };

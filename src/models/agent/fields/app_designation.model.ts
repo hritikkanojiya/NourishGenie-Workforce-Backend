@@ -24,4 +24,8 @@ const appDesignationSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('app_designation', appDesignationSchema);
+const appUserDesignationModel = mongoose.model('app_designation', appDesignationSchema);
+
+export {
+  appUserDesignationModel
+}

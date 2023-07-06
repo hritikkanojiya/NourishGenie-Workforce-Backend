@@ -7,7 +7,7 @@ const userActivitySchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    fullname: {
+    fullName: {
       type: String,
       required: true
     },
@@ -18,7 +18,7 @@ const userActivitySchema = new mongoose.Schema(
           enum: ['checkin', 'checkout', 'breakin', 'breakout'],
         },
         time: {
-          type: Date
+          type: String
         }
       }],
       required: true,
@@ -30,6 +30,8 @@ const userActivitySchema = new mongoose.Schema(
 );
 
 
-export default mongoose.model('app_agent_activities', userActivitySchema);
+const appUserAcitivityModel = mongoose.model('app_agent_activities', userActivitySchema);
+
+export { appUserAcitivityModel }
 
 

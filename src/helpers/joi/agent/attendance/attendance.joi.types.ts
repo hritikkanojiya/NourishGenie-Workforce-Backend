@@ -1,4 +1,4 @@
-import { QuerySchemaType } from '../../../shared/shared.type';
+import { MetaDataResponse, QuerySchemaType } from '../../../shared/shared.type';
 import mongoose from 'mongoose';
 export interface UserAttendanceType {
     _id?: mongoose.Types.ObjectId;
@@ -20,22 +20,18 @@ export interface UpdateUserAttendanceType {
     isDeleted: boolean;
 }
 
-export interface GetUsersMonthAttendanceType {
+export interface GetUsersAttendanceType {
     search: string;
-    month: string;
-    year: string;
+    date: {
+        to: Date,
+        from: Date
+    }
+    metaData: MetaDataResponse
 }
 
-export interface GetUsersMonthAttendanceQueryType extends QuerySchemaType {
+export interface GetUsersAttendanceQueryType extends QuerySchemaType {
     createdAt?: object;
     $or?: Array<mongoose.FilterQuery<UserAttendanceType>>;
-}
-
-export interface GetUserAttendanceType {
-    appUserId: mongoose.Types.ObjectId;
-    search: string;
-    month: string;
-    year: string;
 }
 
 export interface GetUserAttendanceQueryType extends QuerySchemaType {

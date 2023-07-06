@@ -6,6 +6,10 @@ const appUserAttendanceSchema = new Schema(
             type: mongoose.Types.ObjectId,
             required: true
         },
+        fullName: {
+            type: String,
+            required: true
+        },
         email: {
             type: String,
             required: true
@@ -30,8 +34,6 @@ const appUserAttendanceSchema = new Schema(
 );
 
 const appUserAttendanceModel = model('app_user_attendance', appUserAttendanceSchema);
-// const appAgentActivitylogsModel = model('app_Agent_activity_log', appAgentActivitiesLogsSchema);
-
 
 export {
     appUserAttendanceModel,

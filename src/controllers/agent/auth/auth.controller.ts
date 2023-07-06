@@ -2,56 +2,56 @@ import { NextFunction, Response } from 'express';
 import moment from 'moment';
 import httpErrors from 'http-errors';
 // import JWT from 'jsonwebtoken';
-import appAgentModel from '../../../models/agent/agent.model';
-import appAccessGroupModel from '../../../models/permissions/access_group/access_group.model';
+import { appUserModel } from '../../../models/agent/agent.model';
+import { appAccessGroupModel } from '../../../models/permissions/access_group/access_group.model';
 import { appConstantsModel } from '../../../models/constants/constants.model';
 import { objectIdToString, logBackendError } from '../../../helpers/common/backend.functions';
 import { RequestType } from '../../../helpers/shared/shared.type';
 import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
 import {
-  joiAgent,
   // AppAgentDetailsType,
-  AppAgentLoginType,
-  AppAgentType
+  AppUserLoginType,
+  AppUserType,
+  joiUser
 } from '../../../helpers/joi/agent/index';
-import { forceLogoutAgent, getAppAgentConnectionDetails } from '../../../helpers/service/socket.io/socket.io.service';
+import { forceLogoutUser, getAppUserConnectionDetails } from '../../../helpers/service/socket.io/socket.io.service';
 
 // Controller Methods
-const appAgentLogin = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+const appUserLogin = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Validate Joi Schema
-    const agentLoginDetails: AppAgentLoginType = await joiAgent.appAgentLoginSchema.validateAsync(req.body);
+    const userLoginDetails: AppUserLoginType = await joiUser.appUserLoginSchema.validateAsync(req.body);
 
     // Check if agent exist in Collection
-    const getAgent: AppAgentType | null = await appAgentModel.findOne({
-      email: agentLoginDetails.email,
+    const getUser: AppUserType | null = await appUserModel.findOne({
+      email: userLoginDetails.email,
       isDeleted: false
     });
 
-    if (!getAgent) throw httpErrors.Forbidden(`Invalid Email or Password. Please try again.`);
+    if (!getUser) throw httpErrors.Forbidden(`Invalid Email or Password. Please try again.`);
 
-    // Check if password matches to the agent details
-    const doesPassMatch = await getAgent.isValidPassword?.(agentLoginDetails.password);
+    // Check if password matches to the User details
+    const doesPassMatch = await getUser.isValidPassword?.(userLoginDetails.password);
 
     if (!doesPassMatch) throw httpErrors.Forbidden(`Invalid Email or Password. Please try again.`);
 
     // Check if access group exist in Collection
     const doesAccessGroupExist = await appAccessGroupModel
       .findOne({
-        _id: getAgent.appAccessGroupId,
+        _id: getUser.appAccessGroupId,
         isDeleted: false
       })
       .select({ name: 1, description: 1, isAdministrator: 1 })
       .lean();
 
     if (!doesAccessGroupExist)
-      throw httpErrors.Forbidden(`Access Group Id : ${getAgent.appAccessGroupId} does not Exist.`);
+      throw httpErrors.Forbidden(`Access Group Id : ${getUser.appAccessGroupId} does not Exist.`);
 
     const jwtToken = await jwtModule
       .signAccessToken({
         requestIP: req.ip,
-        appAgentId: objectIdToString(getAgent._id),
-        appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
+        appUserId: objectIdToString(getUser._id),
+        appAccessGroupId: objectIdToString(getUser.appAccessGroupId)
       })
       .catch((error: any) => {
         throw httpErrors.InternalServerError(`JWT Access Token error : ${error.message}`);
@@ -60,8 +60,8 @@ const appAgentLogin = async (req: RequestType, res: Response, next: NextFunction
     const jwtRefreshToken = await jwtModule
       .signRefreshToken({
         requestIP: req.ip,
-        appAgentId: objectIdToString(getAgent._id),
-        appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
+        appUserId: objectIdToString(getUser._id),
+        appAccessGroupId: objectIdToString(getUser.appAccessGroupId)
       })
       .catch((error: any) => {
         throw httpErrors.InternalServerError(`JWT Refresh Token error : ${error.message}`);
@@ -89,10 +89,10 @@ const appAgentLogin = async (req: RequestType, res: Response, next: NextFunction
         .send({
           error: false,
           data: {
-            appAgentAccDetails: {
-              appAgentId: getAgent._id,
-              email: getAgent.email,
-              username: getAgent.first_name && getAgent.last_name ? getAgent.first_name + ' ' + getAgent.last_name : '',
+            appUserAccDetails: {
+              appUserId: getUser._id,
+              email: getUser.email,
+              username: getUser.first_name && getUser.last_name ? getUser.first_name + ' ' + getUser.last_name : '',
               appAccessGroup: {
                 appAccessGroupId: doesAccessGroupExist._id,
                 name: doesAccessGroupExist.name,
@@ -102,7 +102,7 @@ const appAgentLogin = async (req: RequestType, res: Response, next: NextFunction
             },
             jwtToken: jwtToken
           },
-          message: 'Agent Logged in successfully.'
+          message: 'User Logged in successfully.'
         });
     }
   } catch (error: any) {
@@ -112,37 +112,37 @@ const appAgentLogin = async (req: RequestType, res: Response, next: NextFunction
   }
 };
 
-const appAgentRefresh = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+const appUserRefresh = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // Check if Payload contains appAgentId
-    if (!req?.payload?.appAgentId) {
+    // Check if Payload contains appUserId
+    if (!req?.payload?.appUserId) {
       throw httpErrors.UnprocessableEntity(`JWT Refresh Token error : Missing Payload Data`);
     }
-    // Check if agent exist in Collection
-    const getAgent = await appAgentModel.findOne({
-      _id: req.payload.appAgentId,
+    // Check if User exist in Collection
+    const getUser = await appUserModel.findOne({
+      _id: req.payload.appUserId,
       isDeleted: false
     });
-    if (!getAgent) throw httpErrors.UnprocessableEntity(`Unable to process Agent's Data.`);
+    if (!getUser) throw httpErrors.UnprocessableEntity(`Unable to process User's Data.`);
 
     // Check if access group exist in Collection
     const doesAccessGroupExist = await appAccessGroupModel
       .findOne({
-        _id: getAgent.appAccessGroupId,
+        _id: getUser.appAccessGroupId,
         isDeleted: false
       })
       .select({ name: 1, description: 1, isAdministrator: 1 })
       .lean();
 
     if (!doesAccessGroupExist)
-      throw httpErrors.Forbidden(`Access Group Id : ${getAgent.appAccessGroupId} does not Exist.`);
+      throw httpErrors.Forbidden(`Access Group Id : ${getUser.appAccessGroupId} does not Exist.`);
 
     // Sign new Access Token
     const newJwtToken = await jwtModule
       .signAccessToken({
         requestIP: req.ip,
-        appAgentId: objectIdToString(getAgent._id),
-        appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
+        appUserId: objectIdToString(getUser._id),
+        appAccessGroupId: objectIdToString(getUser.appAccessGroupId)
       })
       .catch((error: any) => {
         throw httpErrors.InternalServerError(`JWT Access Token error : ${error.message}`);
@@ -152,8 +152,8 @@ const appAgentRefresh = async (req: RequestType, res: Response, next: NextFuncti
     const newJwtRefreshToken = await jwtModule
       .signRefreshToken({
         requestIP: req.ip,
-        appAgentId: objectIdToString(getAgent._id),
-        appAccessGroupId: objectIdToString(getAgent.appAccessGroupId)
+        appUserId: objectIdToString(getUser._id),
+        appAccessGroupId: objectIdToString(getUser.appAccessGroupId)
       })
       .catch((error: any) => {
         throw httpErrors.InternalServerError(`JWT Refresh Token error : ${error.message}`);
@@ -180,10 +180,10 @@ const appAgentRefresh = async (req: RequestType, res: Response, next: NextFuncti
       .send({
         error: false,
         data: {
-          appAgentAccDetails: {
-            appAgentId: getAgent._id,
-            email: getAgent.email,
-            username: getAgent.first_name && getAgent.last_name ? getAgent.first_name + ' ' + getAgent.last_name : '',
+          appUserAccDetails: {
+            appUserId: getUser._id,
+            email: getUser.email,
+            username: getUser.first_name && getUser.last_name ? getUser.first_name + ' ' + getUser.last_name : '',
             appAccessGroup: {
               appAccessGroupId: doesAccessGroupExist._id,
               name: doesAccessGroupExist.name,
@@ -202,21 +202,21 @@ const appAgentRefresh = async (req: RequestType, res: Response, next: NextFuncti
   }
 };
 
-const appAgentLogout = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+const appUserLogout = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // Check if Payload contains appAgentId
-    if (!req?.payload?.appAgentId) {
+    // Check if Payload contains appUserId
+    if (!req?.payload?.appUserId) {
       throw httpErrors.UnprocessableEntity(`JWT Refresh Token error : Missing Payload Data`);
     }
-    // const getAgent: IAgent | null = await appAgentModel.findOne({
-    //   _id: req.payload.appAgentId,
+    // const getUser: IUser | null = await appUserModel.findOne({
+    //   _id: req.payload.appUserId,
     //   isDeleted: false,
     // });
 
     // Delete Refresh Token from Redis DB
     await jwtModule
       .removeToken({
-        appAgentId: req.payload.appAgentId,
+        appUserId: req.payload.appUserId,
         requestIP: '',
         appAccessGroupId: ''
       })
@@ -224,8 +224,8 @@ const appAgentLogout = async (req: RequestType, res: Response, next: NextFunctio
         throw httpErrors.InternalServerError(`JWT Refresh Token error : ${error.message}`);
       });
 
-    // await new appAgentTimeLogModel({
-    //   appAgentId: getAgent._id,
+    // await new appUserTimeLogModel({
+    //   appUserId: getUser._id,
     //   type: 'LOGGED_OUT',
     // }).save({});
 
@@ -250,7 +250,7 @@ const appAgentLogout = async (req: RequestType, res: Response, next: NextFunctio
       .send({
         error: false,
         data: {
-          message: 'Agent logged out successfully.'
+          message: 'User logged out successfully.'
         }
       });
   } catch (error: any) {
@@ -259,15 +259,15 @@ const appAgentLogout = async (req: RequestType, res: Response, next: NextFunctio
   }
 };
 
-const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+const appUserForceLogout = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Validate Joi Schema
-    const appAgentDetails = await joiAgent.forceLogoutAppAgentsSchema.validateAsync(req.body);
+    const appUserDetails = await joiUser.forceLogoutAppUsersSchema.validateAsync(req.body);
 
     await Promise.all(
-      appAgentDetails.appAgentIds.map(async (appAgentId: string) => {
-        const agentConnectionDetails = await getAppAgentConnectionDetails(appAgentId);
-        forceLogoutAgent(agentConnectionDetails);
+      appUserDetails.appUserIds.map(async (appUserId: string) => {
+        const UserConnectionDetails = await getAppUserConnectionDetails(appUserId);
+        forceLogoutUser(UserConnectionDetails);
       })
     );
 
@@ -284,29 +284,29 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
   }
 };
 
-// const appAgentResetPasswordToken = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+// const appUserResetPasswordToken = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
 //     try {
 //         // Validate Joi Schema
-//         const appAgentDetails: IResetPassToken = await joiAgent.resetPassTokenSchema.validateAsync(req.body);
+//         const appUserDetails: IResetPassToken = await joiUser.resetPassTokenSchema.validateAsync(req.body);
 
-//         // Check if agent exist in Collection
-//         const getAgent: IAgent | null = await appAgentModel.findOne({
-//             email: appAgentDetails.email,
+//         // Check if User exist in Collection
+//         const getUser: IUser | null = await appUserModel.findOne({
+//             email: appUserDetails.email,
 //             isDeleted: false
 //         });
 
-//         if (!getAgent) throw httpErrors.Forbidden(`Invalid Agent details.`);
+//         if (!getUser) throw httpErrors.Forbidden(`Invalid User details.`);
 
 //         // Construct Data
 //         const token = new resetPassTokenModel({
-//             appAgentId: getAgent._id,
-//             isDeleted: appAgentDetails.isDeleted === true ? true : false
+//             appUserId: getUser._id,
+//             isDeleted: appUserDetails.isDeleted === true ? true : false
 //         });
 
 //         // Update all token as Overridden
 //         await resetPassTokenModel.updateMany(
 //             {
-//                 appAgentId: getAgent._id
+//                 appUserId: getUser._id
 //             },
 //             {
 //                 isOverridden: true
@@ -319,13 +319,13 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //         });
 
 //         const encryptedTokenId = encryptData(storeToken._id.toString());
-//         const resetPassUrl = `${process.env.APP_FRONTEND}/agent/auth/update-password/${encryptedTokenId.data}/${encryptedTokenId.initialVector}`;
+//         const resetPassUrl = `${process.env.APP_FRONTEND}/User/auth/update-password/${encryptedTokenId.data}/${encryptedTokenId.initialVector}`;
 //         const activeMailService = process.env.ACTIVE_MAIL_SERVICE || 'send-in-blue';
 //         const mailInfo: { messageId?: string; serviceName?: string } = {};
 
 //         switch (activeMailService) {
 //             case 'send-in-blue':
-//                 await forgotPasswordMail(resetPassUrl, getAgent.email ?? '', getAgent.username ?? '')
+//                 await forgotPasswordMail(resetPassUrl, getUser.email ?? '', getUser.username ?? '')
 //                     .catch((error: any) => {
 //                         throw httpErrors.InternalServerError(`Oops!!! Server failed to send mail : ${error.message}`);
 //                     })
@@ -336,7 +336,7 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //                 break;
 
 //             default:
-//                 await forgotPasswordMail(resetPassUrl, getAgent.email ?? '', getAgent.username ?? '')
+//                 await forgotPasswordMail(resetPassUrl, getUser.email ?? '', getUser.username ?? '')
 //                     .catch((error: any) => {
 //                         throw httpErrors.InternalServerError(`Oops!!! Server failed to send mail : ${error.message}`);
 //                     })
@@ -351,7 +351,7 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //             res.status(200).send({
 //                 error: false,
 //                 data: {
-//                     message: `Reset token sent to Email : ${getAgent.email}`,
+//                     message: `Reset token sent to Email : ${getUser.email}`,
 //                     mailInfo
 //                 }
 //             });
@@ -363,32 +363,32 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //     }
 // };
 
-// const appAgentVerifyPassToken = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+// const appUserVerifyPassToken = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
 //     try {
 //         // Validate Joi Schema
-//         const tokenDetails: IVerifyResetPassToken = await joiAgent.verifyResetPassTokenSchema.validateAsync(req.body);
+//         const tokenDetails: IVerifyResetPassToken = await joiUser.verifyResetPassTokenSchema.validateAsync(req.body);
 
 //         const token_details: IVerifyAccesToken = await __validateResetPassToken(tokenDetails);
 //         if (token_details.error) {
 //             throw token_details.errorObj;
 //         }
 
-//         // Check if agent exist in Collection
-//         const getAgent = await appAgentModel.findOne({
-//             _id: token_details?.data?.appAgentId,
+//         // Check if User exist in Collection
+//         const getUser = await appUserModel.findOne({
+//             _id: token_details?.data?.appUserId,
 //             isDeleted: false
 //         });
 
-//         if (!getAgent) throw httpErrors.Forbidden(`Invalid Agent details.`);
+//         if (!getUser) throw httpErrors.Forbidden(`Invalid User details.`);
 
 //         if (res.headersSent === false) {
 //             res.status(200).send({
 //                 error: false,
 //                 data: {
-//                     appAgentAccDetails: {
-//                         appAgentId: getAgent._id,
-//                         username: getAgent.username,
-//                         email: getAgent.email
+//                     appUserAccDetails: {
+//                         appUserId: getUser._id,
+//                         username: getUser.username,
+//                         email: getUser.email
 //                     },
 //                     message: 'Token verified successfully'
 //                 }
@@ -401,37 +401,37 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //     }
 // };
 
-// const appAgentUpdatePassword = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+// const appUserUpdatePassword = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
 //     try {
 //         // Validate Joi Schema
-//         const passwordDetails = await joiAgent.updatePassSchema.validateAsync(req.body);
+//         const passwordDetails = await joiUser.updatePassSchema.validateAsync(req.body);
 
 //         const token_details = await __validateResetPassToken(passwordDetails);
 //         if (token_details.error) {
 //             throw token_details.errorObj;
 //         }
 
-//         // Check if agent exist in Collection
-//         const getAgent: IAgent | null = await appAgentModel.findOne({
-//             _id: token_details?.data?.appAgentId,
+//         // Check if User exist in Collection
+//         const getUser: IUser | null = await appUserModel.findOne({
+//             _id: token_details?.data?.appUserId,
 //             isDeleted: false
 //         });
 
-//         if (!getAgent) throw httpErrors.Forbidden(`Invalid Agent details.`);
+//         if (!getUser) throw httpErrors.Forbidden(`Invalid User details.`);
 
 //         // Update all token as Overridden
 //         await resetPassTokenModel.updateMany(
 //             {
-//                 appAgentId: getAgent._id
+//                 appUserId: getUser._id
 //             },
 //             {
 //                 isOverridden: true
 //             }
 //         );
 
-//         const appAgentUpdatePassword = await appAgentModel.updateOne(
+//         const appUserUpdatePassword = await appUserModel.updateOne(
 //             {
-//                 _id: getAgent._id,
+//                 _id: getUser._id,
 //                 isDeleted: false
 //             },
 //             {
@@ -439,13 +439,13 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //             }
 //         );
 
-//         if (!appAgentUpdatePassword)
+//         if (!appUserUpdatePassword)
 //             throw httpErrors.Forbidden(`Error updating account credentials. Please try again later`);
 
 //         // Delete Refresh Token from Redis DB
 //         await jwtModule
 //             .removeToken({
-//                 appAgentId: objectIdToString(getAgent._id)
+//                 appUserId: objectIdToString(getUser._id)
 //             })
 //             .catch((error: any) => {
 //                 throw httpErrors.InternalServerError(`JWT Refresh Token error : ${error.message}`);
@@ -471,7 +471,7 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //             .send({
 //                 error: false,
 //                 data: {
-//                     appAgentAccDetails: { appAgentId: getAgent._id },
+//                     appUserAccDetails: { appUserId: getUser._id },
 //                     message: 'Password updated successfully'
 //                 }
 //             });
@@ -482,10 +482,10 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //     }
 // };
 
-// const getAppAgents = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+// const getAppUsers = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
 //     try {
 //         // Validate Joi Schema
-//         const querySchema: IGetAgentSchema = await joiAgent.getAppAgentsSchema.validateAsync(req.body);
+//         const querySchema: IGetUserSchema = await joiUser.getAppUsersSchema.validateAsync(req.body);
 
 //         compactObject(querySchema);
 
@@ -493,7 +493,7 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 
 //         const fieldsToInclude = getFieldsToInclude(metaData.fields);
 
-//         const query: IAgentQuery = { isDeleted: false };
+//         const query: IUserQuery = { isDeleted: false };
 
 //         if (querySchema.appAccessGroupId) query.appAccessGroupId = querySchema.appAccessGroupId;
 
@@ -515,7 +515,7 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //         }
 
 //         // Execute the Query
-//         const appAgents: IAgent[] = await appAgentModel
+//         const appUsers: IUser[] = await appUserModel
 //             .find(query, {}, {})
 //             .select(fieldsToInclude)
 //             .sort({ [metaData.sortOn]: metaData.sortBy })
@@ -528,50 +528,50 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //                 );
 //             });
 
-//         const totalRecords = await appAgentModel.find(query).countDocuments();
+//         const totalRecords = await appUserModel.find(query).countDocuments();
 
 //         await Promise.all(
-//             appAgents.map(async appAgent => {
+//             appUsers.map(async appUser => {
 //                 // Check if access group exist in Collection
 //                 const doesAccessGroupExist = await appAccessGroupModel
 //                     .findOne({
-//                         _id: appAgent.appAccessGroupId,
+//                         _id: appUser.appAccessGroupId,
 //                         isDeleted: false
 //                     })
 //                     .select({ name: 1, description: 1, isAdministrator: 1 })
 //                     .lean();
 
 //                 if (!doesAccessGroupExist)
-//                     throw httpErrors.Forbidden(`Access Group Id : ${appAgent.appAccessGroupId} does not Exist.`);
+//                     throw httpErrors.Forbidden(`Access Group Id : ${appUser.appAccessGroupId} does not Exist.`);
 
-//                 appAgent.appAgentId = appAgent._id;
-//                 appAgent.appAccessGroup = {
+//                 appUser.appUserId = appUser._id;
+//                 appUser.appAccessGroup = {
 //                     appAccessGroupId: doesAccessGroupExist._id,
 //                     name: doesAccessGroupExist.name,
 //                     description: doesAccessGroupExist.description,
 //                     isAdministrator: doesAccessGroupExist.isAdministrator
 //                 };
-//                 appAgent.lastLoggedIn = moment(appAgent?.lastLoggedIn).fromNow();
-//                 delete appAgent.appAccessGroupId;
-//                 delete appAgent._id;
-//                 delete appAgent?.password;
-//                 delete appAgent?.__v;
-//                 delete appAgent?.isNonDeleteAble;
-//                 delete appAgent?.isDeleted;
-//                 return appAgent;
+//                 appUser.lastLoggedIn = moment(appUser?.lastLoggedIn).fromNow();
+//                 delete appUser.appAccessGroupId;
+//                 delete appUser._id;
+//                 delete appUser?.password;
+//                 delete appUser?.__v;
+//                 delete appUser?.isNonDeleteAble;
+//                 delete appUser?.isDeleted;
+//                 return appUser;
 //             })
 //         );
 
-//         convertDateTimeFormat(appAgents);
+//         convertDateTimeFormat(appUsers);
 
-//         // await maskFields(req.payload.appAccessGroupId, appAgents, ['email']);
+//         // await maskFields(req.payload.appAccessGroupId, appUsers, ['email']);
 
 //         // Send Response
 //         if (res.headersSent === false) {
 //             res.status(200).send({
 //                 error: false,
 //                 data: {
-//                     appAgents: appAgents,
+//                     appUsers: appUsers,
 //                     metaData: {
 //                         sortBy: metaData.sortBy,
 //                         sortOn: metaData.sortOn,
@@ -579,7 +579,7 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //                         offset: metaData.offset,
 //                         total_records: totalRecords
 //                     },
-//                     message: 'Agents fetched successfully'
+//                     message: 'Users fetched successfully'
 //                 }
 //             });
 //         }
@@ -590,15 +590,15 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //     }
 // };
 
-// const getAppAgentDetails = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+// const getAppUserDetails = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
 //     try {
 //         // Validate Joi Schema
-//         const getAgentDetailSchema = await joiAgent.getAppAgentDetailSchema.validateAsync(req.body);
+//         const getUserDetailSchema = await joiUser.getAppUserDetailSchema.validateAsync(req.body);
 
-//         // Check if agent exist in Collection
-//         const appAgent = await appAgentModel
+//         // Check if User exist in Collection
+//         const appUser = await appUserModel
 //             .findOne({
-//                 _id: (getAgentDetailSchema.appAgentId),
+//                 _id: (getUserDetailSchema.appUserId),
 //                 isDeleted: false
 //             })
 //             .select({
@@ -608,27 +608,27 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //             })
 //             .lean();
 
-//         if (!appAgent) throw httpErrors.Forbidden(`Invalid Agent ID [${getAgentDetailSchema.appAgentId}]`);
+//         if (!appUser) throw httpErrors.Forbidden(`Invalid User ID [${getUserDetailSchema.appUserId}]`);
 
 //         // Check if access group exist in Collection
 //         const doesAccessGroupExist = await appAccessGroupModel
 //             .findOne({
-//                 _id: appAgent.appAccessGroupId,
+//                 _id: appUser.appAccessGroupId,
 //                 isDeleted: false
 //             })
 //             .select({ name: 1, description: 1, isAdministrator: 1 })
 //             .lean();
 
 //         if (!doesAccessGroupExist)
-//             throw httpErrors.Forbidden(`Access Group Id : ${appAgent.appAccessGroupId} does not Exist.`);
+//             throw httpErrors.Forbidden(`Access Group Id : ${appUser.appAccessGroupId} does not Exist.`);
 
-//         const appAgentRecentActivities = await appActivityModel
+//         const appUserRecentActivities = await appActivityModel
 //             .find({
-//                 appAgentId: appAgent._id,
+//                 appUserId: appUser._id,
 //                 isDeleted: false
 //             })
 //             .select({
-//                 appAgentId: 0,
+//                 appUserId: 0,
 //                 'activityDetails.request.headers': 0,
 //                 'activityDetails.request._id': 0,
 //                 'activityDetails.response.headers': 0,
@@ -644,38 +644,38 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //             .lean();
 
 //         await Promise.all(
-//             appAgentRecentActivities.map(appAgentRecentActivity => {
-//                 appAgentRecentActivity.appActivityId = appAgentRecentActivity._id;
-//                 delete appAgentRecentActivity._id;
+//             appUserRecentActivities.map(appUserRecentActivity => {
+//                 appUserRecentActivity.appActivityId = appUserRecentActivity._id;
+//                 delete appUserRecentActivity._id;
 //             })
 //         );
 
-//         appAgent.appAgentId = appAgent._id;
-//         appAgent.appAccessGroup = {
+//         appUser.appUserId = appUser._id;
+//         appUser.appAccessGroup = {
 //             appAccessGroupId: doesAccessGroupExist._id,
 //             name: doesAccessGroupExist.name,
 //             description: doesAccessGroupExist.description,
 //             isAdministrator: doesAccessGroupExist.isAdministrator
 //         };
 
-//         appAgent.socketDetails = await getAppAgentConnectionDetails(objectIdToString(appAgent._id));
+//         appUser.socketDetails = await getAppUserConnectionDetails(objectIdToString(appUser._id));
 
-//         appAgent.recentActivities = appAgentRecentActivities;
+//         appUser.recentActivities = appUserRecentActivities;
 
-//         convertDateTimeFormat(appAgent);
+//         convertDateTimeFormat(appUser);
 
-//         appAgent.lastLoggedIn = moment(appAgent.lastLoggedIn).fromNow();
+//         appUser.lastLoggedIn = moment(appUser.lastLoggedIn).fromNow();
 
-//         delete appAgent._id;
-//         delete appAgent.appAccessGroupId;
+//         delete appUser._id;
+//         delete appUser.appAccessGroupId;
 
-//         // await maskFields(req.payload.appAccessGroupId, appAgent, ['email']);
+//         // await maskFields(req.payload.appAccessGroupId, appUser, ['email']);
 
 //         if (res.headersSent === false) {
 //             res.send({
 //                 error: false,
 //                 data: {
-//                     appAgentAccDetails: appAgent
+//                     appUserAccDetails: appUser
 //                 }
 //             });
 //         }
@@ -689,7 +689,7 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 // const getAppActivities = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
 //     try {
 //         // Validate Joi Schema
-//         const querySchema: IAppActivity = await joiAgent.getAppActivitiesSchema.validateAsync(req.body);
+//         const querySchema: IAppActivity = await joiUser.getAppActivitiesSchema.validateAsync(req.body);
 
 //         compactObject(querySchema);
 
@@ -700,7 +700,7 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //         const query: IAppActivityQuerySchema = { isDeleted: false };
 
 //         if (querySchema.appActivityId) query._id = querySchema.appActivityId;
-//         if (querySchema.appAgentId) query.appAgentId = querySchema.appAgentId;
+//         if (querySchema.appUserId) query.appUserId = querySchema.appUserId;
 
 //         if (querySchema.search) {
 //             query.$or = [
@@ -804,14 +804,14 @@ const appAgentForceLogout = async (req: RequestType, res: Response, next: NextFu
 //         };
 //     }
 // };
-const getAgentByToken = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
+const getUserByToken = async (req: RequestType, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const getAgent = await appAgentModel.findOne({ _id: req?.payload?.appAgentId });
+    const getUser = await appUserModel.findOne({ _id: req?.payload?.appUserId });
     res.status(200).json({
-      agent: {
-        appAgentId: getAgent?._id,
-        email: getAgent?.email,
-        username: getAgent?.first_name && getAgent?.last_name ? getAgent?.first_name + ' ' + getAgent?.last_name : ''
+      User: {
+        appUserId: getUser?._id,
+        email: getUser?.email,
+        username: getUser?.first_name && getUser?.last_name ? getUser?.first_name + ' ' + getUser?.last_name : ''
       }
     });
   } catch (error: any) {
@@ -823,9 +823,9 @@ const getAgentByToken = async (req: RequestType, res: Response, next: NextFuncti
 
 // Export Methods
 export {
-  appAgentLogin,
-  appAgentRefresh,
-  appAgentLogout,
-  getAgentByToken,
-  appAgentForceLogout
+  appUserLogin,
+  appUserRefresh,
+  appUserLogout,
+  getUserByToken,
+  appUserForceLogout
 };

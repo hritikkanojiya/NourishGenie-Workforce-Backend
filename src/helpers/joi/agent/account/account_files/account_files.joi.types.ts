@@ -2,13 +2,13 @@ import mongoose from 'mongoose';
 
 interface CreateFileType {
   directory: string;
-  appAgentId: mongoose.Types.ObjectId;
+  appUserId: mongoose.Types.ObjectId;
   aadhar_number: string;
   pan_number: string
 }
 
 interface DeleteFileType {
-  // appAgentId: mongoose.Types.ObjectId | null;
+  // appUserId: mongoose.Types.ObjectId | null;
   aadhar_cardId: mongoose.Types.ObjectId | null;
   pan_cardId: mongoose.Types.ObjectId | null;
   profile_pictureId: mongoose.Types.ObjectId | null;
@@ -16,7 +16,7 @@ interface DeleteFileType {
 }
 
 interface DeleteFileType {
-  // appAgentId: mongoose.Types.ObjectId | null;
+  // appUserId: mongoose.Types.ObjectId | null;
   aadhar_cardId: mongoose.Types.ObjectId | null;
   pan_cardId: mongoose.Types.ObjectId | null;
   profile_pictureId: mongoose.Types.ObjectId | null;
@@ -24,11 +24,11 @@ interface DeleteFileType {
 }
 
 interface GetFileType {
-  appAgentId: mongoose.Types.ObjectId;
+  appUserId: mongoose.Types.ObjectId;
 }
 
 interface GetProfilePictureType {
-  appAgentId: mongoose.Types.ObjectId;
+  appUserId: mongoose.Types.ObjectId;
 }
 
 interface File {
@@ -50,7 +50,7 @@ export interface UploadedFilesTypes {
 }
 
 interface UpdateFilesType {
-  appAgentId: mongoose.Types.ObjectId;
+  appUserId: mongoose.Types.ObjectId;
   directory: string;
   profile_pictureId: mongoose.Types.ObjectId | null;
   aadhar_cardId: mongoose.Types.ObjectId | null;
@@ -66,7 +66,7 @@ interface UpdatedFilesType {
 
 
 interface UploadSingleFileType {
-  appAgentId: mongoose.Types.ObjectId;
+  appUserId: mongoose.Types.ObjectId;
   directory: string;
 }
 

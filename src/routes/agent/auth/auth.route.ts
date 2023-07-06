@@ -1,28 +1,28 @@
 import { Router } from 'express';
-import * as appAgentAuthController from '../../../controllers/agent/auth/auth.controller';
+import * as appUserAuthController from '../../../controllers/agent/auth/auth.controller';
 import * as jwtModule from '../../../middlewares/jwt/jwt.middleware';
 import permissionsModule from '../../../middlewares/permissions/permissions.middleware';
 
-const appAgentAuthRouterV1 = Router();
+const appUserAuthRouterV1 = Router();
 
-appAgentAuthRouterV1.post('/login', appAgentAuthController.appAgentLogin);
+appUserAuthRouterV1.post('/login', appUserAuthController.appUserLogin);
 
-appAgentAuthRouterV1.post('/refresh', jwtModule.verifyRefreshToken, appAgentAuthController.appAgentRefresh);
+appUserAuthRouterV1.post('/refresh', jwtModule.verifyRefreshToken, appUserAuthController.appUserRefresh);
 
-appAgentAuthRouterV1.post('/logout', jwtModule.verifyAccessToken, appAgentAuthController.appAgentLogout);
+appUserAuthRouterV1.post('/logout', jwtModule.verifyAccessToken, appUserAuthController.appUserLogout);
 
-appAgentAuthRouterV1.delete(
+appUserAuthRouterV1.delete(
   '/force-logout',
   jwtModule.verifyAccessToken,
   permissionsModule.validateRouteAccess,
-  appAgentAuthController.appAgentForceLogout
+  appUserAuthController.appUserForceLogout
 );
 
-// appAgentAuthRouterV1.post(
+// appUserAuthRouterV1.post(
 //   '/get-details',
 //   jwtModule.verifyAccessToken,
 //   permissionsModule.validateRouteAccess,
 //   appAgentAuthController.
 // );
-appAgentAuthRouterV1.get('/getAgentByToken', jwtModule.verifyAccessToken, appAgentAuthController.getAgentByToken);
-export { appAgentAuthRouterV1 };
+appUserAuthRouterV1.get('/getAgentByToken', jwtModule.verifyAccessToken, appUserAuthController.getUserByToken);
+export { appUserAuthRouterV1 };

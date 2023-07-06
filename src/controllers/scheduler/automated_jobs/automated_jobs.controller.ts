@@ -622,7 +622,7 @@ const __checkSmartFunctionParameters = async (smartFunction: any, automatedJobPa
     } else return [];
   } catch (error: any) {
     logBackendError(__filename, error?.message, null, null, error?.stack);
-    return (error);
+    throw httpErrors.InternalServerError(`${error?.message}`);
   }
 };
 

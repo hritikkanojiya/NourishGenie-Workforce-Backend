@@ -1,8 +1,7 @@
 import fs from 'fs';
 import httpErrors from 'http-errors'
-
-import appAgentDetailsModel from '../../../models/agent/fields/app_agent_details.model';
-import appAgentModel from '../../../models/agent/agent.model';
+import { appUserDetailsModel } from '../../../models/agent/fields/app_agent_details.model';
+import { appUserModel } from '../../../models/agent/agent.model';
 import { logBackendError } from '../../../helpers/common/backend.functions';
 import puppeteer from 'puppeteer';
 import ejs from 'ejs';
@@ -15,7 +14,7 @@ const _calculateLeavesAmount = (userBasicSalary: number, userLeavesCount: number
     return perDayAmount * userLeavesCount;
   } catch (error: any) {
     logBackendError(__filename, error?.message, null, null, error?.stack);
-    return error;
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 }
 
@@ -29,13 +28,13 @@ const generateSalarySlipPDF = async (incentive = 5000): Promise<void> => {
 
     const temaplatePath = '/home/deepak/Desktop/NourishGenie/hr_module/backend/src/template/salary_slip.ejs'; // Replace with the actual file path to the EJS file
 
-    const appUsers = await appAgentModel.find({
+    const appUsers = await appUserModel.find({
       isDeleted: false
     });
 
     for (const user of appUsers) {
-      const appUserCompanydetails: any = await appAgentDetailsModel.findOne({
-        appAgentId: user._id,
+      const appUserCompanydetails: any = await appUserDetailsModel.findOne({
+        appUserId: user._id,
         isDeleted: false
       });
 
@@ -82,43 +81,44 @@ const generateSalarySlipPDF = async (incentive = 5000): Promise<void> => {
     await browser.close();
 
   } catch (error: any) {
-    console.error('Error generating PDF:', error);
-    return error;
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 };
 
 const markAttendance = async (status: string): Promise<void> => {
   try {
-    const appUsers = await appAgentDetailsModel.find({
+    const appUsersDetails = await appUserDetailsModel.find({
       isDeleted: false
     });
-    await Promise.all(
-      appUsers.map(async (user) => {
-        const doesAttendanceExist = await appUserAttendanceModel.findOne({
-          appUserId: user.appAgentId,
-          createdAt: {
-            $gte: moment().startOf('day').toDate(),
-            $lte: moment().endOf('day').toDate()
-          }
-        })
-
-        if (!doesAttendanceExist) {
-          const userAttendance = new appUserAttendanceModel({
-            appUserId: user.appAgentId,
-            email: user.company_email,
-            availability: 'Not Available',
-            status: status,
-          })
-          await userAttendance.save().catch((error) => {
-            throw httpErrors.UnprocessableEntity(error?.message);
-          });
+    appUsersDetails.map(async (user: any) => {
+      const doesAttendanceExist = await appUserAttendanceModel.findOne({
+        appUserId: user.appUserId,
+        createdAt: {
+          $gte: moment().startOf('day').toDate(),
+          $lte: moment().endOf('day').toDate()
         }
       })
-    )
+      const appUser = await appUserModel.findOne({
+        _id: user.appUserId,
+        isDeleted: false
+      })
+
+      if (!doesAttendanceExist) {
+        const userAttendance = new appUserAttendanceModel({
+          appUserId: user.appUserId,
+          fullName: `${appUser?.first_name} ${appUser?.last_name}`,
+          email: user.company_email,
+          availability: 'Not Available',
+          status: status,
+          isDeleted: false
+        })
+        await userAttendance.save()
+      }
+    })
     console.log('Attendance Marked Successfully');
   } catch (error: any) {
     console.log(error);
-    return error;
+    throw httpErrors.UnprocessableEntity(`Unable to process request. Error : ${error?.message}`);
   }
 };
 
