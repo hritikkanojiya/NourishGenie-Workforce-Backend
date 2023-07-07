@@ -99,6 +99,7 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
 
         const usersAttendances = await appUserAttendanceModel
             .find(query)
+            .sort({ ['createdAt']: 'asc' })
             .catch(error => {
                 throw httpErrors.UnprocessableEntity(
                     error?.message ? error.message : 'Unable to retrieve records from Database.'
@@ -106,28 +107,27 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
             });
 
         const usersAttendancesArr: { [key: string]: any[] } = {};
-        await Promise.all(
-            usersAttendances.map(async (attendance) => {
-                const user = await appUserModel.findOne({ _id: attendance.appUserId, isDeleted: false });
-                const userDepartment = await appUserDepartmentModel.findOne({ _id: user?.appDepartmentId, isDeleted: false });
-                if (querySchema.departmentName && userDepartment?.name === querySchema.departmentName) {
-                    if (!usersAttendancesArr[`${attendance.appUserId}`]) {
-                        usersAttendancesArr[`${attendance.appUserId}`] = [attendance];
-                    }
-                    else {
-                        usersAttendancesArr[`${attendance.appUserId}`].push(attendance);
-                    }
+        for (let i = 0; i < usersAttendances.length; i++) {
+            const attendance = usersAttendances[i];
+            const user = await appUserModel.findOne({ _id: attendance.appUserId, isDeleted: false });
+            const userDepartment = await appUserDepartmentModel.findOne({ _id: user?.appDepartmentId, isDeleted: false });
+            if (querySchema.departmentName && userDepartment?.name === querySchema.departmentName) {
+                if (!usersAttendancesArr[`${attendance.appUserId}`]) {
+                    usersAttendancesArr[`${attendance.appUserId}`] = [attendance];
                 }
-                else if (!querySchema.departmentName) {
-                    if (!usersAttendancesArr[`${attendance.appUserId}`]) {
-                        usersAttendancesArr[`${attendance.appUserId}`] = [attendance];
-                    }
-                    else {
-                        usersAttendancesArr[`${attendance.appUserId}`].push(attendance);
-                    }
+                else {
+                    usersAttendancesArr[`${attendance.appUserId}`].push(attendance);
                 }
-            })
-        );
+            }
+            else if (!querySchema.departmentName) {
+                if (!usersAttendancesArr[`${attendance.appUserId}`]) {
+                    usersAttendancesArr[`${attendance.appUserId}`] = [attendance];
+                }
+                else {
+                    usersAttendancesArr[`${attendance.appUserId}`].push(attendance);
+                }
+            }
+        }
 
         // Send Response
         if (res.headersSent === false) {

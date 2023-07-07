@@ -16,7 +16,7 @@ import { appAutomatedJobRouterV1 } from '../../../routes/scheduler/automated_job
 import { appCronExpressionRouterV1 } from '../../../routes/scheduler/cron_expression/cron_expression.route';
 import { appSmartFunctionRouterV1 } from '../../../routes/scheduler/smart_functions/smart_functions.route';
 import { userAttendanceRouterV1 } from '../../../routes/agent/attendance/attendance.route';
-import { appTicketRouterV1 } from '../../../routes/ticket_routes/ticket_routes.routes'
+import { appTicketRouterV1 } from '../../../routes/ticket_routes/ticket_routes.routes';
 
 const v1 = Router();
 
