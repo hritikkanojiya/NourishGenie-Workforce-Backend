@@ -76,6 +76,7 @@
     "@types/node": "^18.15.11",
     "@types/node-emoji": "^1.8.2",
     "@types/node-schedule": "^2.1.0",
+    "@types/nodemailer": "^6.4.8",
     "@types/pdfmake": "^0.2.2",
     "@typescript-eslint/eslint-plugin": "~5.58",
     "@typescript-eslint/parser": "~5.58",

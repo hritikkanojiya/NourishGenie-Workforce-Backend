@@ -15,8 +15,8 @@ import { appConstantsRouterV1 } from '../../../routes/constants/constants.route'
 import { appAutomatedJobRouterV1 } from '../../../routes/scheduler/automated_jobs/automated_jobs.route';
 import { appCronExpressionRouterV1 } from '../../../routes/scheduler/cron_expression/cron_expression.route';
 import { appSmartFunctionRouterV1 } from '../../../routes/scheduler/smart_functions/smart_functions.route';
-import { userAttendanceRouterV1 } from '../../../routes/agent/attendance/attendance.route'
-
+import { userAttendanceRouterV1 } from '../../../routes/agent/attendance/attendance.route';
+import { appTicketRouterV1 } from '../../../routes/ticket_routes/ticket_routes.routes'
 
 const v1 = Router();
 
@@ -37,9 +37,6 @@ v1.use('/scheduler/cron-expression', appCronExpressionRouterV1);
 v1.use('/scheduler/automated-job', appAutomatedJobRouterV1);
 v1.use('/scheduler/smart-function', appSmartFunctionRouterV1);
 v1.use('/user/attendance', userAttendanceRouterV1);
-
-
-
-
+v1.use('/ticketroutes', appTicketRouterV1);
 
 export { v1 };
