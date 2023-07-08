@@ -107,27 +107,36 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
             });
 
         const usersAttendancesArr: { [key: string]: any[] } = {};
-        for (let i = 0; i < usersAttendances.length; i++) {
-            const attendance = usersAttendances[i];
-            const user = await appUserModel.findOne({ _id: attendance.appUserId, isDeleted: false });
-            const userDepartment = await appUserDepartmentModel.findOne({ _id: user?.appDepartmentId, isDeleted: false });
-            if (querySchema.departmentName && userDepartment?.name === querySchema.departmentName) {
-                if (!usersAttendancesArr[`${attendance.appUserId}`]) {
-                    usersAttendancesArr[`${attendance.appUserId}`] = [attendance];
+        let tempArr;
+        await Promise.all(
+            usersAttendances.map(async (attendance) => {
+                const user = await appUserModel.findOne({ _id: attendance.appUserId, isDeleted: false });
+                const userDepartment = await appUserDepartmentModel.findOne({ _id: user?.appDepartmentId, isDeleted: false });
+                const dateIndex = attendance.createdAt.getDate();
+                if (querySchema.departmentName && userDepartment?.name === querySchema.departmentName) {
+                    if (!usersAttendancesArr[`${attendance.appUserId}`]) {
+                        tempArr = new Array(31);
+                        tempArr.fill('N/A');
+                        tempArr[dateIndex] = attendance;
+                        usersAttendancesArr[`${attendance.appUserId}`] = tempArr;
+                    }
+                    else {
+                        usersAttendancesArr[`${attendance.appUserId}`][dateIndex] = attendance;
+                    }
                 }
-                else {
-                    usersAttendancesArr[`${attendance.appUserId}`].push(attendance);
+                else if (!querySchema.departmentName) {
+                    if (!usersAttendancesArr[`${attendance.appUserId}`]) {
+                        tempArr = new Array(31);
+                        tempArr.fill('N/A');
+                        tempArr[dateIndex] = attendance;
+                        usersAttendancesArr[`${attendance.appUserId}`] = tempArr;
+                    }
+                    else {
+                        usersAttendancesArr[`${attendance.appUserId}`][dateIndex] = attendance;
+                    }
                 }
-            }
-            else if (!querySchema.departmentName) {
-                if (!usersAttendancesArr[`${attendance.appUserId}`]) {
-                    usersAttendancesArr[`${attendance.appUserId}`] = [attendance];
-                }
-                else {
-                    usersAttendancesArr[`${attendance.appUserId}`].push(attendance);
-                }
-            }
-        }
+            })
+        )
 
         // Send Response
         if (res.headersSent === false) {
