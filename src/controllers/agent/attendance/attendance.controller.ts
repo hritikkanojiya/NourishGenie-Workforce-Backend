@@ -116,8 +116,9 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
                 if (querySchema.departmentName && userDepartment?.name === querySchema.departmentName) {
                     if (!usersAttendancesMap[`${attendance.appUserId}`]) {
                         const noOfDays = new Date(attendance.createdAt.getFullYear(), attendance.createdAt.getMonth() + 1, 0).getDate();
-                        tempArr = new Array(noOfDays);
+                        tempArr = new Array(noOfDays + 1);
                         tempArr.fill('N/A');
+                        tempArr[0] = attendance.fullName;
                         tempArr[dateIndex - 1] = attendance;
                         usersAttendancesMap[`${attendance.appUserId}`] = tempArr;
                     }
@@ -128,8 +129,9 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
                 else if (!querySchema.departmentName) {
                     if (!usersAttendancesMap[`${attendance.appUserId}`]) {
                         const noOfDays = new Date(attendance.createdAt.getFullYear(), attendance.createdAt.getMonth() + 1, 0).getDate();
-                        tempArr = new Array(noOfDays);
+                        tempArr = new Array(noOfDays + 1);
                         tempArr.fill('N/A');
+                        tempArr[0] = attendance.fullName;
                         tempArr[dateIndex - 1] = attendance;
                         usersAttendancesMap[`${attendance.appUserId}`] = tempArr;
                     }
@@ -158,6 +160,8 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
         next(error);
     }
 }
+
+// const getSingleUserAttendanceDetails = async (req: Request, res: Response, next: )
 
 export {
     updateUserAttendance,
