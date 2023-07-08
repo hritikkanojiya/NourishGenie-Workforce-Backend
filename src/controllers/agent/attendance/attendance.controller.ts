@@ -106,7 +106,7 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
                 );
             });
 
-        const usersAttendancesArr: { [key: string]: any[] } = {};
+        const usersAttendancesMap: { [key: string]: any[] } = {};
         let tempArr;
         await Promise.all(
             usersAttendances.map(async (attendance) => {
@@ -114,25 +114,27 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
                 const userDepartment = await appUserDepartmentModel.findOne({ _id: user?.appDepartmentId, isDeleted: false });
                 const dateIndex = attendance.createdAt.getDate();
                 if (querySchema.departmentName && userDepartment?.name === querySchema.departmentName) {
-                    if (!usersAttendancesArr[`${attendance.appUserId}`]) {
-                        tempArr = new Array(31);
+                    if (!usersAttendancesMap[`${attendance.appUserId}`]) {
+                        const noOfDays = new Date(attendance.createdAt.getFullYear(), attendance.createdAt.getMonth() + 1, 0).getDate();
+                        tempArr = new Array(noOfDays);
                         tempArr.fill('N/A');
-                        tempArr[dateIndex] = attendance;
-                        usersAttendancesArr[`${attendance.appUserId}`] = tempArr;
+                        tempArr[dateIndex - 1] = attendance;
+                        usersAttendancesMap[`${attendance.appUserId}`] = tempArr;
                     }
                     else {
-                        usersAttendancesArr[`${attendance.appUserId}`][dateIndex] = attendance;
+                        usersAttendancesMap[`${attendance.appUserId}`][dateIndex - 1] = attendance;
                     }
                 }
                 else if (!querySchema.departmentName) {
-                    if (!usersAttendancesArr[`${attendance.appUserId}`]) {
-                        tempArr = new Array(31);
+                    if (!usersAttendancesMap[`${attendance.appUserId}`]) {
+                        const noOfDays = new Date(attendance.createdAt.getFullYear(), attendance.createdAt.getMonth() + 1, 0).getDate();
+                        tempArr = new Array(noOfDays);
                         tempArr.fill('N/A');
-                        tempArr[dateIndex] = attendance;
-                        usersAttendancesArr[`${attendance.appUserId}`] = tempArr;
+                        tempArr[dateIndex - 1] = attendance;
+                        usersAttendancesMap[`${attendance.appUserId}`] = tempArr;
                     }
                     else {
-                        usersAttendancesArr[`${attendance.appUserId}`][dateIndex] = attendance;
+                        usersAttendancesMap[`${attendance.appUserId}`][dateIndex - 1] = attendance;
                     }
                 }
             })
@@ -143,7 +145,7 @@ const getUsersAttendance = async (req: Request, res: Response, next: NextFunctio
             res.status(200).send({
                 error: false,
                 data: {
-                    usersAttendances: usersAttendancesArr,
+                    usersAttendances: usersAttendancesMap,
                     message: 'user attendance fetched successfully.'
                 }
             });
