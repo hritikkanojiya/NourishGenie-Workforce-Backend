@@ -247,8 +247,11 @@ const getCategory = async (req: Request, res: Response, next: NextFunction): Pro
     const all_category = await categoryTicketModel.find({});
     if (res.headersSent === false)
       res.status(200).send({
+        error: false,
+        data: {
         all_category: all_category,
         message: 'Category fetched successfully',
+        }
       });
   } catch (error: any) {
     logBackendError(
@@ -327,7 +330,6 @@ const changeAssigner = async (req: Request, res: Response, next: NextFunction): 
     const ticket_id = changeAssignerDetails.ticket_id;
     const assignedNext = changeAssignerDetails.assignedNext;
     const ticketData: any = await appTicketModel.findOne({ _id: ticket_id });
-    console.log(ticketData, 'ticketData');
     const all_assigned_user: any = ticketData?.To;
     let t = 1;
     for (let i = 0; i < all_assigned_user?.length; i++) {
@@ -346,7 +348,6 @@ const changeAssigner = async (req: Request, res: Response, next: NextFunction): 
       );
     }
     const all_assigned_user1 = all_assigned_user.filter((item: string) => item.toString() !== changeAssignerDetails.removalUser);
-    console.log(all_assigned_user1, 'all_assigned_user1')
     all_assigned_user1.push(assignedNext);
     ticketData.To = all_assigned_user1;
     await ticketData.save();
@@ -563,7 +564,8 @@ const transferTicket = async (req: Request, res: Response, next: NextFunction): 
         `This ticket is not assigned for you. Please try again.`
       );
     }
-    const all_assigned_user1 = all_assigned_user.filter((item: mongoose.Types.ObjectId) => item !== transferTicketDetails.transferBy);
+    const all_assigned_user1 = all_assigned_user.filter((item: mongoose.Types.ObjectId) => item.toString() !== transferTicketDetails.transferBy.toString());
+    console.log(all_assigned_user1, 'all_assigned_user1');
     all_assigned_user1.push(transferTicketDetails.transferTo);
     ticketData.To = all_assigned_user1;
     await ticketData.save();
@@ -709,22 +711,21 @@ const uploadFile = async (req: Request, res: Response, next: NextFunction): Prom
     const extension: string = getFileExtension(req?.file?.filename);
     const fileType = getFileType(extension);
 
-    console.log('File Extension:', extension);
-    console.log('File Type:', fileType);
     let attachmentDetail;
     if (req?.file?.filename) {
       attachmentDetail = await appUserAttachmentModel.create({
         name: req?.file?.filename,
         type: fileType,
-        extention: extension,
-        uploadedBy: ticketFileDetails.From
+        extension: extension,
+        uploadedBy: ticketFileDetails.From,
+        original_name: req?.file?.filename
       })
     }
     if (res.headersSent === false) {
       res.status(200).send({
         error: false,
         data: {
-          attachmentDetail: attachmentDetail,
+          attachmentDetailId: attachmentDetail?._id,
           message: 'upload file successfully.',
         }
       });
@@ -812,7 +813,6 @@ const getAllMyTicket = async (req: Request, res: Response, next: NextFunction): 
       all_ticket2 = await appTicketModel.find({ To: { $in: [(ticketDetails.From)] } }).sort({ subject: ticketDetails.sortBy == 'asc' ? 1 : -1 });
     }
     const total_ticket = all_ticket2?.length;
-    console.log(total_ticket, 'total_ticket');
     const skip = (ticketDetails.page - 1) * ticketDetails.limit;
     const all_ticket = await all_ticket1.skip(skip).limit(ticketDetails.limit);
     const priority_detail = await priorityTicketModel.find({});
@@ -822,7 +822,6 @@ const getAllMyTicket = async (req: Request, res: Response, next: NextFunction): 
     const ticket_array = [];
     for (let i = 0; i < all_ticket.length; i++) {
       const category = await categoryTicketModel.findOne({ _id: (all_ticket[i].appTicketCategoryId) });
-      console.log(category?.name, 'category.name');
       ticket_array.push({ _id: all_ticket[i]._id, subject: all_ticket[i].subject, content: all_ticket[i].content, To: all_ticket[i].To, priority: all_ticket[i].appTicketPriorityId, category: category?.name, status: all_ticket[i].appTicketStatusId, complete: all_ticket[i].completedPercent, attachements: all_ticket[i].appAttachments });
     }
     all_ticket_detail = ticket_array;
@@ -857,7 +856,6 @@ const getAllCategoryTicket = async (req: Request, res: Response, next: NextFunct
     const ticketDetails: GetAllCategoryTicketSchemaType = await joiAppTickets.getAllCategoryTicketSchema.validateAsync(
       req.body
     );
-
     let all_ticket1;
     let total_ticket = 0;
     if (ticketDetails.ticketPriorityId && ticketDetails.ticketStatusId) {
@@ -900,14 +898,8 @@ const getAllCategoryTicket = async (req: Request, res: Response, next: NextFunct
         From: (ticketDetails.From)
       });
     }
-    // const all_ticket = await TicketModel.find({
-    //   From: (ticketDetails.From),
-    //   appTicketPriorityId: (ticketDetails.priority),
-    //   appTicketStatusId: (ticketDetails.status)
-    // })
     const skip = (ticketDetails.page - 1) * ticketDetails.limit;
     const all_ticket = await all_ticket1.skip(skip).limit(ticketDetails.limit);
-    console.log(all_ticket, 'all_category_ticket');
     let all_ticket_detail: any = []
     const ticket_array = [];
     for (let i = 0; i < all_ticket.length; i++) {
@@ -945,7 +937,6 @@ const getAllSearchTicket = async (req: Request, res: Response, next: NextFunctio
 
     const all_ticket1 = appTicketModel.find({ From: ticketDetails.From, subject: { $regex: ticketDetails.searchValue } })
     const total_ticket = await appTicketModel.countDocuments({ From: ticketDetails.From, subject: { $regex: ticketDetails.searchValue } });
-    console.log(all_ticket1, 'all_search_ticket');
     const skip = (ticketDetails.page - 1) * ticketDetails.limit;
     const all_ticket = await all_ticket1.skip(skip).limit(ticketDetails.limit);
     let all_ticket_detail: any = []
@@ -981,7 +972,7 @@ const getAllSearchTicket = async (req: Request, res: Response, next: NextFunctio
 
 const getAllUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const all_user = await appUserModel.find({}, { username: 1 });
+    const all_user = await appUserModel.find({}, { first_name: 1, last_name: 1 });
     const allUser: any = [];
     for (let i = 0; i < all_user.length; i++) {
       allUser.push({ value: all_user[i]._id, label: `${all_user[i].first_name} ${all_user[i].last_name}` });
@@ -1062,7 +1053,6 @@ const sendRemainder = async (req: Request, res: Response, next: NextFunction): P
     const message = req.body.message;
     const sender_user = await appUserModel.findOne({ _id: '6370e0792f7c84e5b547e329' });
     const reciever_user = await appUserModel.findOne({ _id: reciever_id });
-    console.log(sender_user, 'sender_user', reciever_user)
     const sender_email = sender_user?.email;
     const reciever_email = reciever_user?.email;
     const transporter = nodeMailer?.createTransport({

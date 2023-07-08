@@ -6,7 +6,7 @@ import path from 'path';
 
 const storagePost = multer.diskStorage({
     destination: function (req: any, file: any, cb: any) {
-        cb(null, path.join(__dirname, '../../../../public/UserFile'), function (error: any, success: any) {
+        cb(null, path.join(__dirname, '../../../../NourishGenie-Workforce-Frontend/public/UserFile'), function (error: any, success: any) {
             if (error) {
                 console.log(req, file);
                 console.log(error);

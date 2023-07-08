@@ -34,7 +34,7 @@ const createTicketSchema = joi.object({
         .unique(),
     appTicketPriorityId: objectId().required(),
     appTicketCategoryId: objectId().required(),
-    file_id: objectId().required(),
+    file_id: objectId(),
 });
 
 const userSchema = joi.object({
@@ -74,7 +74,7 @@ const updateStatusSchema = joi.object({
 
 const updateTicketCompletionSchema = joi.object({
     ticket_id: objectId().required(),
-    completionPersent: joi.string().trim().required()
+    completionPercent: joi.number().required()
 });
 
 const addUserSchema = joi.object({
@@ -172,17 +172,17 @@ const getAllTicketSchema = joi.object({
     sortOn: joi
         .string()
         .trim()
-        .required(),
+        .allow(null),
     sortBy: joi
         .string()
         .trim()
-        .required(),
+        .allow(null)
 });
 
 const getAllCategoryTicketSchema = joi.object({
     From: objectId().required(),
-    priority: objectId().required(),
-    status: objectId().required(),
+    ticketPriorityId: joi.allow(null),
+    ticketStatusId: joi.allow(null),
     page: joi
         .number()
         .required(),
