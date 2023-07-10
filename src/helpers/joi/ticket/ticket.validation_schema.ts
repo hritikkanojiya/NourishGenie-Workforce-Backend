@@ -191,8 +191,35 @@ const getAllCategoryTicketSchema = joi.object({
         .required()
 });
 
+const getAllMySortTicketSchema = joi.object({
+    To: objectId().required(),
+    ticketPriorityId: joi.allow(null),
+    ticketStatusId: joi.allow(null),
+    page: joi
+        .number()
+        .required(),
+    limit: joi
+        .number()
+        .required()
+});
+
 const getAllSearchTicketSchema = joi.object({
-    From: objectId().required(),
+    To: objectId().required(),
+    searchValue: joi
+        .string()
+        .trim()
+        .min(1)
+        .required(),
+    page: joi
+        .number()
+        .required(),
+    limit: joi
+        .number()
+        .required()
+});
+
+const getAllSearchMyTicketSchema = joi.object({
+    To: objectId().required(),
     searchValue: joi
         .string()
         .trim()
@@ -224,7 +251,9 @@ export {
     getTicketDetailsSchema,
     uploadFileSchema,
     getAllCategoryTicketSchema,
+    getAllMySortTicketSchema,
     getAllSearchTicketSchema,
+    getAllSearchMyTicketSchema,
     getAllTicketSchema
 
 };

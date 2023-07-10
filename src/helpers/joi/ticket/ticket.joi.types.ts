@@ -95,8 +95,23 @@ interface GetAllCategoryTicketSchemaType {
     limit: number
 }
 
+interface GetAllMySortTicketSchemaType {
+    To: mongoose.Types.ObjectId,
+    ticketPriorityId: mongoose.Types.ObjectId,
+    ticketStatusId: mongoose.Types.ObjectId,
+    page: number,
+    limit: number
+}
+
 interface GetAllSearchTicketSchemaType {
     From: mongoose.Types.ObjectId,
+    searchValue: string,
+    page: number,
+    limit: number
+}
+
+interface GetAllSearchMyTicketSchemaType {
+    To: mongoose.Types.ObjectId,
     searchValue: string,
     page: number,
     limit: number
@@ -118,6 +133,8 @@ export {
     GetTicketDetailsSchemaType,
     UploadFileSchemaType,
     GetAllCategoryTicketSchemaType,
+    GetAllMySortTicketSchemaType,
     GetAllSearchTicketSchemaType,
+    GetAllSearchMyTicketSchemaType,
     GetAllTicketSchemaType
 };

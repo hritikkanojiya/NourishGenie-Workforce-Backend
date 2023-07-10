@@ -28,7 +28,9 @@ import {
   UploadFileSchemaType,
   GetAllTicketSchemaType,
   GetAllCategoryTicketSchemaType,
-  GetAllSearchTicketSchemaType
+  GetAllMySortTicketSchemaType,
+  GetAllSearchTicketSchemaType,
+  GetAllSearchMyTicketSchemaType
 } from '../../helpers/joi/ticket/index'
 import mongoose from 'mongoose';
 import nodeMailer from 'nodemailer'
@@ -565,7 +567,6 @@ const transferTicket = async (req: Request, res: Response, next: NextFunction): 
       );
     }
     const all_assigned_user1 = all_assigned_user.filter((item: mongoose.Types.ObjectId) => item.toString() !== transferTicketDetails.transferBy.toString());
-    console.log(all_assigned_user1, 'all_assigned_user1');
     all_assigned_user1.push(transferTicketDetails.transferTo);
     ticketData.To = all_assigned_user1;
     await ticketData.save();
@@ -929,6 +930,85 @@ const getAllCategoryTicket = async (req: Request, res: Response, next: NextFunct
   }
 }
 
+const getAllMySortTicket = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const ticketDetails: GetAllMySortTicketSchemaType = await joiAppTickets.getAllMySortTicketSchema.validateAsync(
+      req.body
+    );
+    let all_ticket1;
+    let total_ticket = 0;
+    if (ticketDetails.ticketPriorityId && ticketDetails.ticketStatusId) {
+      // all_ticket1 = await appTicketModel.find({ To: { $in: [(ticketDetails.From)] } }).sort({ _id: -1 });
+      all_ticket1 = appTicketModel.find({
+        To: { $in: [(ticketDetails.To)] },
+        appTicketPriorityId: (ticketDetails.ticketPriorityId),
+        appTicketStatusId: (ticketDetails.ticketStatusId)
+      }).sort({ _id: -1 });
+      total_ticket = await appTicketModel.countDocuments({
+        To: { $in: [(ticketDetails.To)] },
+        appTicketPriorityId: (ticketDetails.ticketPriorityId),
+        appTicketStatusId: (ticketDetails.ticketStatusId)
+      })
+    }
+    else if (ticketDetails.ticketPriorityId && !ticketDetails.ticketStatusId) {
+      all_ticket1 = appTicketModel.find({
+        To: { $in: [(ticketDetails.To)] },
+        appTicketPriorityId: (ticketDetails.ticketPriorityId)
+      }).sort({ _id: -1 });
+      total_ticket = await appTicketModel.countDocuments({
+        To: { $in: [(ticketDetails.To)] },
+        appTicketPriorityId: (ticketDetails.ticketPriorityId)
+      })
+    }
+    else if (!ticketDetails.ticketPriorityId && ticketDetails.ticketStatusId) {
+      all_ticket1 = appTicketModel.find({
+        To: { $in: [(ticketDetails.To)] },
+        appTicketStatusId: (ticketDetails.ticketStatusId)
+      }).sort({ _id: -1 });
+      total_ticket = await appTicketModel.countDocuments({
+        To: { $in: [(ticketDetails.To)] },
+        appTicketStatusId: (ticketDetails.ticketStatusId)
+      })
+    }
+    else {
+      all_ticket1 = appTicketModel.find({
+        To: { $in: [(ticketDetails.To)] },
+      }).sort({ _id: -1 });
+      total_ticket = await appTicketModel.countDocuments({
+        To: { $in: [(ticketDetails.To)] },
+      })
+    }
+    const skip = (ticketDetails.page - 1) * ticketDetails.limit;
+    const all_ticket = await all_ticket1.skip(skip).limit(ticketDetails.limit);
+    let all_ticket_detail: any = []
+    const ticket_array = [];
+    for (let i = 0; i < all_ticket.length; i++) {
+      ticket_array.push({ _id: all_ticket[i]._id, subject: all_ticket[i].subject, content: all_ticket[i].content, To: all_ticket[i].To, priority: all_ticket[i].appTicketPriorityId, category: all_ticket[i].appTicketCategoryId, status: all_ticket[i].appTicketStatusId, complete: all_ticket[i].completedPercent });
+    }
+    all_ticket_detail = ticket_array;
+    if (res.headersSent === false) {
+      res.status(200).send({
+        error: false,
+        data: {
+          all_category_ticket: all_ticket_detail,
+          total_ticket: total_ticket,
+          message: 'All category tickets fetched successfully.',
+        }
+      });
+    }
+  } catch (error: any) {
+    logBackendError(
+      __filename,
+      error?.message,
+      req?.originalUrl,
+      req?.ip,
+      error?.stack
+    );
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
+}
+
 const getAllSearchTicket = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const ticketDetails: GetAllSearchTicketSchemaType = await joiAppTickets.getAllSearchTicketSchema.validateAsync(
@@ -970,9 +1050,51 @@ const getAllSearchTicket = async (req: Request, res: Response, next: NextFunctio
   }
 }
 
+const getAllSearchMyTicket = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const ticketDetails: GetAllSearchMyTicketSchemaType = await joiAppTickets.getAllSearchMyTicketSchema.validateAsync(
+      req.body
+    );
+
+    const all_ticket1 = appTicketModel.find({ To: { $in: [(ticketDetails.To)] }, subject: { $regex: ticketDetails.searchValue } }).sort({ _id: -1 });
+    // const all_ticket1 = appTicketModel.find({ From: ticketDetails.To, subject: { $regex: ticketDetails.searchValue } })
+    const total_ticket = await appTicketModel.countDocuments({ To: { $in: [(ticketDetails.To)] }, subject: { $regex: ticketDetails.searchValue } });
+    const skip = (ticketDetails.page - 1) * ticketDetails.limit;
+    const all_ticket = await all_ticket1.skip(skip).limit(ticketDetails.limit);
+    let all_ticket_detail: any = []
+    const ticket_array = [];
+    for (let i = 0; i < all_ticket.length; i++) {
+      ticket_array.push({ _id: all_ticket[i]._id, subject: all_ticket[i].subject, content: all_ticket[i].content, To: all_ticket[i].To, priority: all_ticket[i].appTicketPriorityId, category: all_ticket[i].appTicketCategoryId, status: all_ticket[i].appTicketStatusId, complete: all_ticket[i].completedPercent });
+    }
+    all_ticket_detail = ticket_array;
+
+    if (res.headersSent === false) {
+      res.status(200).send({
+        error: false,
+        data: {
+          all_search_ticket: all_ticket_detail,
+          total_ticket: total_ticket,
+          message: 'All Saerch tickets fetched successfully.',
+        }
+      });
+    }
+
+  } catch (error: any) {
+    logBackendError(
+      __filename,
+      error?.message,
+      req?.originalUrl,
+      req?.ip,
+      error?.stack
+    );
+    if (error?.isJoi === true) error.status = 422;
+    next(error);
+  }
+}
+
 const getAllUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const all_user = await appUserModel.find({}, { first_name: 1, last_name: 1 });
+    const all_user = await appUserModel.find( {_id:{$ne: req.body.loginUserId} }, { first_name: 1, last_name: 1 });
     const allUser: any = [];
     for (let i = 0; i < all_user.length; i++) {
       allUser.push({ value: all_user[i]._id, label: `${all_user[i].first_name} ${all_user[i].last_name}` });
@@ -1114,7 +1236,9 @@ export {
   uploadFile,
   getAllTicket,
   getAllCategoryTicket,
+  getAllMySortTicket,
   getAllSearchTicket,
+  getAllSearchMyTicket,
   getAllMyTicket,
   getAllUser,
   // downloadFile,
