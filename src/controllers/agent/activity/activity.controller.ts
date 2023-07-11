@@ -339,7 +339,7 @@ const getUserLastActivity = async (req: Request, res: Response, next: NextFuncti
     res.status(200).send({
       error: false,
       data: {
-        message: message
+        message: message+"test"
       }
     });
 
