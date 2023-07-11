@@ -320,13 +320,16 @@ const getUserActivity = async (req: Request, res: Response, next: NextFunction):
 const getUserLastActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const UserLastActivity: UserLastActivityType = await joiUserActivity.UserLastActivitySchema.validateAsync(req.body);
-    if (UserLastActivity.date == 'today') {
-      const currentDate = moment().format('YYYY-MM-DD');
-      UserLastActivity.date = currentDate
-    }
+    // if (UserLastActivity.date == 'today') {
+    //   const currentDate = moment().format('YYYY-MM-DD');
+    //   UserLastActivity.date = currentDate
+    // }
     const findUser = await appUserAcitivityModel.find({
       email: UserLastActivity.email,
-      date: UserLastActivity.date
+      createdAt: {
+        $gte: moment().startOf('day').toDate(),
+        $lte: moment().endOf('day').toDate(),
+      }
     });
     let message
     if (findUser.length > 0) {
@@ -339,7 +342,7 @@ const getUserLastActivity = async (req: Request, res: Response, next: NextFuncti
     res.status(200).send({
       error: false,
       data: {
-        message: message+'test'
+        message: message
       }
     });
 

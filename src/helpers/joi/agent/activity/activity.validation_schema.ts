@@ -42,7 +42,7 @@ const getUserMonthActivitySchema = joi.object({
 
 const UserLastActivitySchema = joi.object({
     email: joi.string().trim().email().lowercase().required(),
-    date: joi.string().required(),
+    // date: joi.string().required(),
 });
 
 const getUserWorkingStatusSchema = joi.object({
