@@ -204,7 +204,7 @@ const getAllMySortTicketSchema = joi.object({
 });
 
 const getAllSearchTicketSchema = joi.object({
-    To: objectId().required(),
+    From: objectId().required(),
     searchValue: joi
         .string()
         .trim()
