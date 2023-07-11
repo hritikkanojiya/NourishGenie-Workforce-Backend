@@ -62,6 +62,7 @@ const updateAttendance = async (userActivities: any): Promise<void> => {
 
 const createActivityLogs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    console.log(req.headers)
     const queryDetails: CreateUserActivityLogsType = await joiUserActivity.createActivityLogsSchema.validateAsync(req.body);
     const userActivities = await appUserAcitivityModel.find({
       email: queryDetails.email,
